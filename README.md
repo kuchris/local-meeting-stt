@@ -45,6 +45,20 @@ Post-meeting Qwen3-ASR transcript:
 post_transcribe_qwen.cmd recordings\meeting.wav
 ```
 
+Drag-and-drop Qwen transcript:
+
+```text
+drop a .wav file onto drop_qwen_gpu.bat
+drop a .wav file onto drop_qwen_cpu.bat
+```
+
+Drag-and-drop whisper.cpp transcript:
+
+```text
+drop a .wav file onto drop_cpp_gpu.bat
+drop a .wav file onto drop_cpp_cpu.bat
+```
+
 ## What Each Script Does
 
 ```text

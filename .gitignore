@@ -9,6 +9,10 @@ recordings/
 beta_whisper_cpp/output/
 *.wav
 *_transcript.txt
+*_cpp_cpu_transcript.txt
+*_cpp_gpu_transcript.txt
+*_qwen_cpu_transcript.txt
+*_qwen_gpu_transcript.txt
 live_transcript.txt
 
 # Archives and caches

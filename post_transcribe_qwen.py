@@ -14,7 +14,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--model", help="Qwen3-ASR model name or local model path")
     parser.add_argument("--language", default="Japanese", help="Language name passed to Qwen3-ASR. Default: Japanese")
     parser.add_argument("--device", default="auto", help="auto, cuda:0, or cpu. Default: auto")
-    parser.add_argument("--max-new-tokens", type=int, default=4096, help="Maximum output tokens. Default: 4096")
+    parser.add_argument("--max-new-tokens", type=int, default=2048, help="Maximum output tokens. Default: 2048")
     parser.add_argument("--batch-size", type=int, default=1, help="Maximum inference batch size. Default: 1")
     return parser.parse_args()
 
