@@ -1,0 +1,22 @@
+# Local model files and downloaded runtimes
+models/
+beta_whisper_cpp/bin/
+beta_whisper_cpp/downloads/
+beta_whisper_cpp/models/
+
+# Generated recordings and transcripts
+recordings/
+beta_whisper_cpp/output/
+*.wav
+*_transcript.txt
+live_transcript.txt
+
+# Archives and caches
+*.zip
+__pycache__/
+*.pyc
+.cache/
+
+# Local environment files
+.venv/
+.env
