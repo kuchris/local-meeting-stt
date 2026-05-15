@@ -4,6 +4,8 @@ Windows desktop app for recording meeting audio and creating local transcripts.
 
 The main target is Teams or browser meeting audio. The app records system audio through Windows loopback, can optionally mix your microphone, and can run either live rough transcription or post-meeting transcription.
 
+![Local Meeting STT app preview](docs/preview.svg)
+
 ## What You Can Do
 
 - Record a meeting as a `.wav` file.
