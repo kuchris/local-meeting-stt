@@ -1,14 +1,14 @@
 # Local model files and downloaded runtimes
 models/
-beta_whisper_cpp/bin/
-beta_whisper_cpp/bin_cpu/
-beta_whisper_cpp/bin_cuda/
-beta_whisper_cpp/downloads/
-beta_whisper_cpp/models/
+whisper_cpp/bin/
+whisper_cpp/bin_cpu/
+whisper_cpp/bin_cuda/
+whisper_cpp/downloads/
+whisper_cpp/models/
 
 # Generated recordings and transcripts
 recordings/
-beta_whisper_cpp/output/
+whisper_cpp/output/
 *.wav
 *_transcript.txt
 *_cpp_cpu_transcript.txt
@@ -26,3 +26,10 @@ __pycache__/
 # Local environment files
 .venv/
 .env
+
+# Electron app local dependencies and build output
+electron_app/node_modules/
+electron_app/dist/
+electron_app/dist-electron/
+electron_app/out/
+.electron-user-data/

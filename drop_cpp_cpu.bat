@@ -21,7 +21,7 @@ echo Output:
 echo   %OUT%.txt
 echo.
 
-beta_whisper_cpp\bin_cpu\Release\whisper-cli.exe -m beta_whisper_cpp\models\ggml-small.bin -f "%AUDIO%" -l ja -otxt -of "%OUT%" -t 16
+whisper_cpp\bin_cpu\Release\whisper-cli.exe -m whisper_cpp\models\ggml-small.bin -f "%AUDIO%" -l ja -otxt -of "%OUT%" -t 16
 
 echo.
 if errorlevel 1 (

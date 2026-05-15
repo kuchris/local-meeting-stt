@@ -114,21 +114,21 @@ def download_assets(args: Namespace) -> None:
         )
 
     if not args.skip_whisper_cpp:
-        beta_root = root / "beta_whisper_cpp"
-        cuda_zip_path = beta_root / "downloads" / WHISPER_CPP_CUDA_ASSET
+        whisper_cpp_root = root / "whisper_cpp"
+        cuda_zip_path = whisper_cpp_root / "downloads" / WHISPER_CPP_CUDA_ASSET
         cuda_asset_url = github_release_asset_url(WHISPER_CPP_RELEASE, WHISPER_CPP_CUDA_ASSET)
         download_url(cuda_asset_url, cuda_zip_path, args.force)
-        extract_zip(cuda_zip_path, beta_root / "bin_cuda", args.force)
+        extract_zip(cuda_zip_path, whisper_cpp_root / "bin_cuda", args.force)
 
-        cpu_zip_path = beta_root / "downloads" / WHISPER_CPP_CPU_ASSET
+        cpu_zip_path = whisper_cpp_root / "downloads" / WHISPER_CPP_CPU_ASSET
         cpu_asset_url = github_release_asset_url(WHISPER_CPP_RELEASE, WHISPER_CPP_CPU_ASSET)
         download_url(cpu_asset_url, cpu_zip_path, args.force)
-        extract_zip(cpu_zip_path, beta_root / "bin_cpu", args.force)
+        extract_zip(cpu_zip_path, whisper_cpp_root / "bin_cpu", args.force)
 
         download_hf_file(
             "ggerganov/whisper.cpp",
             "ggml-small.bin",
-            beta_root / "models" / "ggml-small.bin",
+            whisper_cpp_root / "models" / "ggml-small.bin",
             args.force,
         )
 

@@ -1,4 +1,4 @@
-# whisper.cpp Beta
+# whisper.cpp
 
 This folder is for testing `whisper.cpp` separately from the current Python workflow.
 
@@ -11,10 +11,10 @@ record_audio.py
 transcribe_audio.py
 ```
 
-Use this beta folder for experiments only:
+Use this folder for `whisper.cpp` runtime files and experiments:
 
 ```text
-beta_whisper_cpp/
+whisper_cpp/
   README.md
   bin/       whisper.cpp executables
   models/    whisper.cpp ggml models
@@ -36,7 +36,7 @@ bin_cuda/Release/whisper-stream.exe
 models/ggml-small.bin
 ```
 
-The beta supports both CPU-only and CUDA 12.4 Windows builds from `ggml-org/whisper.cpp` `v1.8.4`.
+This setup supports both CPU-only and CUDA 12.4 Windows builds from `ggml-org/whisper.cpp` `v1.8.4`.
 
 Batch test on `../demo.wav` worked and used the RTX 4080 Laptop GPU.
 
@@ -58,13 +58,13 @@ Batch file transcription:
 transcribe_cpp.cmd ..\demo.wav output\demo_whisper_cpp_small
 ```
 
-Streaming beta:
+Streaming:
 
 ```cmd
 stream_cpp.cmd
 ```
 
-Recommended system-audio live beta:
+Recommended system-audio live:
 
 ```cmd
 live_cpp.cmd
@@ -130,4 +130,4 @@ If Japanese text appears like mojibake in `cmd.exe`, the wrapper runs `chcp 6500
 
 - `whisper.cpp` models are different files from `faster-whisper` models.
 - Do not mix `models/faster-whisper-small` with `whisper.cpp`; `whisper.cpp` usually expects `ggml` model files.
-- Keep this folder beta until the latency and Japanese transcript quality are clearly better.
+- Keep comparing latency and Japanese transcript quality against the Python live workflow.

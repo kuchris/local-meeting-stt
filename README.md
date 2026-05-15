@@ -6,6 +6,14 @@ The main workflow records system audio, writes a live transcript, and keeps meet
 
 ## Main Commands
 
+Desktop control panel:
+
+```powershell
+cd electron_app
+npm install
+npm run dev
+```
+
 Live meeting mode:
 
 ```powershell
@@ -59,6 +67,36 @@ drop a .wav file onto drop_cpp_gpu.bat
 drop a .wav file onto drop_cpp_cpu.bat
 ```
 
+## Electron App
+
+An Electron + React + Vite desktop control panel lives in:
+
+```text
+electron_app/
+```
+
+It is the easiest way to run the current toolkit. The app keeps the existing scripts as the backend instead of rewriting STT logic.
+
+Current UI:
+
+- `Live`: Python live recording/transcript, Python live text only, whisper.cpp CPU/GPU live.
+- `Record`: audio-only recording until Enter or for a timed duration.
+- `Transcribe`: select or drop an audio file, then run whisper.cpp CPU/GPU or Qwen CPU/GPU.
+- `Setup`: check/download local assets and choose Windows speaker loopback / microphone devices.
+
+Useful app controls:
+
+- `Ctrl+B` toggles the sidebar between full labels and compact icons.
+- Setup audio selectors use `record_audio.py --list-devices` and pass selected device ids to live/record commands.
+- Process logs and live transcript/output paths stay visible in the right-side panel.
+
+Build check:
+
+```powershell
+cd electron_app
+npm run build
+```
+
 ## What Each Script Does
 
 ```text
@@ -80,7 +118,7 @@ Download the local assets after cloning:
 uv run --with huggingface-hub python download_assets.py
 ```
 
-Download only the `whisper.cpp` beta assets:
+Download only the `whisper.cpp` assets:
 
 ```powershell
 uv run --with huggingface-hub python download_assets.py --skip-faster-whisper --skip-qwen
@@ -105,7 +143,7 @@ models/
 `whisper.cpp` downloads use separate runtime folders:
 
 ```text
-beta_whisper_cpp/
+whisper_cpp/
   bin_cpu/
   bin_cuda/
   models/
@@ -115,28 +153,29 @@ The scripts still work with normal Hugging Face cache downloads if these folders
 
 Do not push model files to normal GitHub history. Use GitHub Releases, external storage, or Git LFS if model distribution is needed.
 
-## whisper.cpp Beta
+## whisper.cpp
 
-Experimental `whisper.cpp` work lives in:
+`whisper.cpp` work lives in:
 
 ```text
-beta_whisper_cpp/
+whisper_cpp/
 ```
 
-Useful beta commands:
+Useful commands:
 
 ```powershell
-cd beta_whisper_cpp
+cd whisper_cpp
 live_cpp.cmd
 live_cpp_cpu.cmd
 transcribe_cpp.cmd ..\demo.wav output\demo
 ```
 
-The beta folder is for comparing `whisper.cpp` latency and CPU/GPU behavior against the main Python `faster-whisper` workflow.
+This folder is for comparing `whisper.cpp` latency and CPU/GPU behavior against the main Python `faster-whisper` workflow.
 
 ## Notes
 
 - Default language is Japanese.
 - Main capture target is Windows system audio, suitable for Teams/meeting audio.
+- Optional mic mixing is available from the scripts and Electron Setup page.
 - Live transcript is rough and low-latency.
 - Post-meeting transcription should be used for a cleaner final transcript.
