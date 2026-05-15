@@ -114,6 +114,8 @@ For backend commands, folder layout, and technical details, see [TECHNICAL.md](T
 
 Apache-2.0. See [LICENSE](LICENSE).
 
-## Star History
+## Support
+
+If this project saves you time, please consider giving it a GitHub star. It helps other people find the repo.
 
 [![Star History Chart](https://api.star-history.com/svg?repos=kuchris/local-meeting-stt&type=Date)](https://www.star-history.com/#kuchris/local-meeting-stt&Date)
