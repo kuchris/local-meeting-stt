@@ -21,7 +21,7 @@ echo Output:
 echo   %OUT%
 echo.
 
-uv run --python 3.12 --with qwen-asr --with torch --with torchvision python post_transcribe_qwen.py "%AUDIO%" -o "%OUT%" --device cpu
+uv run --python 3.12 --with qwen-asr --with torch --with torchvision python post_transcribe_qwen.py "%AUDIO%" -o "%OUT%" --device cpu --max-new-tokens 4096 --chunk-seconds 60 --batch-size 4
 
 echo.
 if errorlevel 1 (

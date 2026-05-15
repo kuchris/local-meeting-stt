@@ -30,12 +30,13 @@ Test whether `whisper.cpp` gives lower-latency live captions than the current Py
 Downloaded:
 
 ```text
-bin/Release/whisper-cli.exe
-bin/Release/whisper-stream.exe
+bin_cpu/Release/whisper-cli.exe
+bin_cuda/Release/whisper-cli.exe
+bin_cuda/Release/whisper-stream.exe
 models/ggml-small.bin
 ```
 
-The installed binary is the CUDA 12.4 Windows build from `ggml-org/whisper.cpp` `v1.8.4`.
+The beta supports both CPU-only and CUDA 12.4 Windows builds from `ggml-org/whisper.cpp` `v1.8.4`.
 
 Batch test on `../demo.wav` worked and used the RTX 4080 Laptop GPU.
 

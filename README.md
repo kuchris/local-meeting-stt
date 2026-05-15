@@ -102,6 +102,15 @@ models/
   Qwen3-ASR-0.6B/
 ```
 
+`whisper.cpp` downloads use separate runtime folders:
+
+```text
+beta_whisper_cpp/
+  bin_cpu/
+  bin_cuda/
+  models/
+```
+
 The scripts still work with normal Hugging Face cache downloads if these folders are missing.
 
 Do not push model files to normal GitHub history. Use GitHub Releases, external storage, or Git LFS if model distribution is needed.

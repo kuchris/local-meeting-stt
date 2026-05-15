@@ -1,6 +1,8 @@
 # Local model files and downloaded runtimes
 models/
 beta_whisper_cpp/bin/
+beta_whisper_cpp/bin_cpu/
+beta_whisper_cpp/bin_cuda/
 beta_whisper_cpp/downloads/
 beta_whisper_cpp/models/
 

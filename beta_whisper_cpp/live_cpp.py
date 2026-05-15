@@ -38,7 +38,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--system-device", help="Substring or id of the loopback device to record")
     parser.add_argument("--mic-device", help="Substring or id of the microphone to record when --include-mic is set")
     parser.add_argument("--gain", type=float, default=1.0, help="Audio gain before saving/transcribing. Default: 1.0")
-    parser.add_argument("--whisper-cli", type=Path, default=Path("bin") / "Release" / "whisper-cli.exe")
+    parser.add_argument("--whisper-cli", type=Path, help="Path to whisper-cli.exe")
     parser.add_argument("--no-gpu", action="store_true", help="Disable whisper.cpp GPU inference")
     parser.add_argument("--threads", type=int, default=8, help="whisper.cpp CPU thread count. Default: 8")
     parser.add_argument("--show-audio-warnings", action="store_true", help="Show low-level SoundCard recording warnings")
@@ -124,8 +124,9 @@ def capture_audio(args: Namespace, chunks: Queue[np.ndarray], stop_event: Event)
 
 def transcribe_with_cpp(args: Namespace, audio_path: Path) -> str:
     output_base = audio_path.with_suffix("")
+    whisper_cli = args.whisper_cli or default_whisper_cli(args.no_gpu)
     command = [
-        str(args.whisper_cli),
+        str(whisper_cli),
         "-m",
         str(args.model),
         "-f",
@@ -165,6 +166,12 @@ def append_transcript(output_path: Path, text: str) -> None:
     with output_path.open("a", encoding="utf-8") as handle:
         handle.write(f"[{timestamp}] {text}\n")
     print(f"[{timestamp}] {text}")
+
+
+def default_whisper_cli(no_gpu: bool) -> Path:
+    if no_gpu:
+        return Path("bin_cpu") / "Release" / "whisper-cli.exe"
+    return Path("bin_cuda") / "Release" / "whisper-cli.exe"
 
 
 def run_live(args: Namespace) -> None:

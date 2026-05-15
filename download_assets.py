@@ -9,7 +9,8 @@ import shutil
 
 
 WHISPER_CPP_RELEASE = "v1.8.4"
-WHISPER_CPP_ASSET = "whisper-cublas-12.4.0-bin-x64.zip"
+WHISPER_CPP_CUDA_ASSET = "whisper-cublas-12.4.0-bin-x64.zip"
+WHISPER_CPP_CPU_ASSET = "whisper-bin-x64.zip"
 
 
 def parse_args() -> Namespace:
@@ -114,10 +115,16 @@ def download_assets(args: Namespace) -> None:
 
     if not args.skip_whisper_cpp:
         beta_root = root / "beta_whisper_cpp"
-        zip_path = beta_root / "downloads" / WHISPER_CPP_ASSET
-        asset_url = github_release_asset_url(WHISPER_CPP_RELEASE, WHISPER_CPP_ASSET)
-        download_url(asset_url, zip_path, args.force)
-        extract_zip(zip_path, beta_root / "bin", args.force)
+        cuda_zip_path = beta_root / "downloads" / WHISPER_CPP_CUDA_ASSET
+        cuda_asset_url = github_release_asset_url(WHISPER_CPP_RELEASE, WHISPER_CPP_CUDA_ASSET)
+        download_url(cuda_asset_url, cuda_zip_path, args.force)
+        extract_zip(cuda_zip_path, beta_root / "bin_cuda", args.force)
+
+        cpu_zip_path = beta_root / "downloads" / WHISPER_CPP_CPU_ASSET
+        cpu_asset_url = github_release_asset_url(WHISPER_CPP_RELEASE, WHISPER_CPP_CPU_ASSET)
+        download_url(cpu_asset_url, cpu_zip_path, args.force)
+        extract_zip(cpu_zip_path, beta_root / "bin_cpu", args.force)
+
         download_hf_file(
             "ggerganov/whisper.cpp",
             "ggml-small.bin",

@@ -14,8 +14,9 @@ def parse_args() -> Namespace:
     parser.add_argument("--model", help="Qwen3-ASR model name or local model path")
     parser.add_argument("--language", default="Japanese", help="Language name passed to Qwen3-ASR. Default: Japanese")
     parser.add_argument("--device", default="auto", help="auto, cuda:0, or cpu. Default: auto")
-    parser.add_argument("--max-new-tokens", type=int, default=2048, help="Maximum output tokens. Default: 2048")
-    parser.add_argument("--batch-size", type=int, default=1, help="Maximum inference batch size. Default: 1")
+    parser.add_argument("--max-new-tokens", type=int, default=4096, help="Maximum output tokens. Default: 4096")
+    parser.add_argument("--chunk-seconds", type=float, default=60.0, help="Manual audio chunk size in seconds. Default: 60")
+    parser.add_argument("--batch-size", type=int, default=4, help="Maximum inference batch size. Default: 4")
     return parser.parse_args()
 
 
@@ -49,6 +50,20 @@ def extract_text(result) -> str:
     return str(result).strip()
 
 
+def load_audio_chunks(audio_path: Path, chunk_seconds: float):
+    from qwen_asr.inference.qwen3_asr import SAMPLE_RATE, normalize_audios, split_audio_into_chunks
+
+    if chunk_seconds <= 0:
+        return str(audio_path)
+
+    wavs = normalize_audios(str(audio_path))
+    chunks = []
+    for wav in wavs:
+        for chunk, _ in split_audio_into_chunks(wav=wav, sr=SAMPLE_RATE, max_chunk_sec=chunk_seconds):
+            chunks.append((chunk, SAMPLE_RATE))
+    return chunks
+
+
 def main() -> None:
     args = parse_args()
     if not args.audio.exists():
@@ -66,6 +81,7 @@ def main() -> None:
     print(f"Model: {model_name_or_path}")
     print(f"Device: {device}")
     print(f"Audio: {args.audio}")
+    print(f"Chunk seconds: {args.chunk_seconds}")
 
     model = Qwen3ASRModel.from_pretrained(
         model_name_or_path,
@@ -74,7 +90,8 @@ def main() -> None:
         max_inference_batch_size=args.batch_size,
         max_new_tokens=args.max_new_tokens,
     )
-    results = model.transcribe(audio=str(args.audio), language=args.language or None)
+    audio_input = load_audio_chunks(args.audio, args.chunk_seconds)
+    results = model.transcribe(audio=audio_input, language=args.language or None)
     text = "\n".join(extract_text(result) for result in results).strip()
     if text:
         text += "\n"
