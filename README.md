@@ -60,6 +60,26 @@ The `.cmd` files are wrappers that run the Python scripts through `uv` with the 
 
 Model files are intentionally ignored by Git.
 
+Download the local assets after cloning:
+
+```powershell
+uv run --with huggingface-hub python download_assets.py
+```
+
+Download only the `whisper.cpp` beta assets:
+
+```powershell
+uv run --with huggingface-hub python download_assets.py --skip-faster-whisper --skip-qwen
+```
+
+Download to another folder with the same layout:
+
+```powershell
+uv run --with huggingface-hub python download_assets.py --target-root D:\meeting-stt-assets
+```
+
+The default repo-root download is recommended. If `--target-root` points outside this repo, pass explicit model/runtime paths to the scripts when using those external assets.
+
 Expected local folders when downloaded:
 
 ```text
