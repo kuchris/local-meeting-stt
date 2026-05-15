@@ -5,10 +5,10 @@ This folder is for testing `whisper.cpp` separately from the current Python work
 Current production-ish workflow stays in the repo root:
 
 ```text
-live_meeting.cmd
-live_transcribe.py
-record_audio.py
-transcribe_audio.py
+python_backend/live_meeting.cmd
+python_backend/live_transcribe.py
+python_backend/record_audio.py
+python_backend/transcribe_audio.py
 ```
 
 Use this folder for `whisper.cpp` runtime files and experiments:
@@ -38,7 +38,7 @@ models/ggml-small.bin
 
 This setup supports both CPU-only and CUDA 12.4 Windows builds from `ggml-org/whisper.cpp` `v1.8.4`.
 
-Batch test on `../demo.wav` worked and used the RTX 4080 Laptop GPU.
+Batch test on `../test/demo.wav` worked and used the RTX 4080 Laptop GPU.
 
 Observed test result:
 
@@ -55,7 +55,7 @@ Output: output/demo_whisper_cpp_small.txt
 Batch file transcription:
 
 ```cmd
-transcribe_cpp.cmd ..\demo.wav output\demo_whisper_cpp_small
+transcribe_cpp.cmd ..\test\demo.wav output\demo_whisper_cpp_small
 ```
 
 Streaming:

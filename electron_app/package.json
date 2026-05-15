@@ -2,6 +2,7 @@
   "name": "local-meeting-stt-electron",
   "version": "0.1.0",
   "private": true,
+  "license": "Apache-2.0",
   "main": "out/main/main.js",
   "scripts": {
     "dev": "set ELECTRON_RUN_AS_NODE=& electron-vite dev",

@@ -1,8 +1,8 @@
-# Electron Control Panel
+# Electron App
 
-Small Electron + React + Vite UI for the local meeting STT scripts in the parent repo.
+Electron + React + Vite control panel for the local meeting STT backend.
 
-The app is a control panel. It calls the working `.cmd`, `.bat`, Python, and `whisper.cpp` workflows from the repo root and streams logs back into the UI.
+The app does not implement speech-to-text itself. It calls the existing Python, `.cmd`, `.bat`, and whisper.cpp workflows from the parent repo and streams logs back into the UI.
 
 ## Run
 
@@ -12,13 +12,13 @@ npm install
 npm run dev
 ```
 
-The `dev` script clears `ELECTRON_RUN_AS_NODE` first. If that variable is set, Electron starts like plain Node and the app window can appear blank.
-
 ## Build Check
 
 ```powershell
 npm run build
 ```
+
+The `dev` and `preview` scripts clear `ELECTRON_RUN_AS_NODE` first. If that variable is set, Electron can start like plain Node and show a blank app window.
 
 ## Tabs
 
@@ -34,12 +34,6 @@ npm run build
 - `View > Clear Logs`: clear the process log and live transcript pane.
 - `Setup > Audio input`: choose Windows speaker loopback and optional microphone.
 
-The Setup device list is populated by:
-
-```powershell
-uv run --with soundcard --with soundfile --with numpy --with soxr python record_audio.py --list-devices
-```
-
 Blank device selection means "use the script default". When a specific device is selected, the app passes `--system-device`, `--include-mic`, and `--mic-device` to supported live/record commands.
 
 ## Backend Notes
@@ -47,3 +41,5 @@ Blank device selection means "use the script default". When a specific device is
 The app resolves all backend paths relative to the parent repo folder. It does not bundle models, Python packages, or whisper.cpp binaries.
 
 Local Electron cache/user data is written under the parent repo's ignored `.electron-user-data/` folder.
+
+See the parent repo [TECHNICAL.md](../TECHNICAL.md) for backend commands, model folders, and asset download details.

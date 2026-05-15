@@ -16,51 +16,51 @@ References:
 
 ## Key Changes
 
-- Add `record_audio.py`:
+- Add `python_backend/record_audio.py`:
   - Records Windows system audio using WASAPI loopback via `soundcard`.
   - Default source: system audio, because Teams meeting audio mainly comes from speaker output.
   - Optional `--include-mic` flag records default microphone too and mixes it with system audio.
   - Writes timestamped `.wav` files under `recordings/`.
   - Uses mono 16 kHz output for ASR compatibility.
-- Add `live_transcribe.py`:
+- Add `python_backend/live_transcribe.py`:
   - Captures short chunks, default `10s`.
   - Uses `faster-whisper` model `small`.
   - Appends rough live transcript to `live_transcript.txt`.
   - Intended for speed, not final accuracy.
-- Add `post_transcribe_qwen.py`:
+- Add `python_backend/post_transcribe_qwen.py`:
   - Uses `qwen-asr` with `Qwen/Qwen3-ASR-0.6B`.
   - Runs after the meeting on the saved `.wav`.
   - Writes final transcript to `<recording_name>_qwen_transcript.txt`.
   - Uses CUDA by default when available.
 - Add Windows wrappers:
-  - `record_meeting.cmd`: records system audio to `recordings/`.
-  - `live_transcribe.cmd`: starts live chunk recording + Whisper small transcript.
-  - `post_transcribe_qwen.cmd`: runs Qwen3-ASR post-pass on a chosen recording.
+  - `python_backend/record_meeting.cmd`: records system audio to `recordings/`.
+  - `python_backend/live_transcribe.cmd`: starts live chunk recording + Whisper small transcript.
+  - `python_backend/post_transcribe_qwen.cmd`: runs Qwen3-ASR post-pass on a chosen recording.
 
 ## Commands
 
 Use uv without adding project dependency files:
 
 ```powershell
-uv run --with soundcard --with soundfile --with numpy --with soxr python record_audio.py --duration 3600
+uv run --with soundcard --with soundfile --with numpy --with soxr python python_backend/record_audio.py --duration 3600
 ```
 
 Live transcription:
 
 ```powershell
-live_transcribe.cmd
+python_backend\live_transcribe.cmd
 ```
 
 Post-pass transcription:
 
 ```powershell
-post_transcribe_qwen.cmd recordings\meeting_YYYYMMDD_HHMMSS.wav
+python_backend\post_transcribe_qwen.cmd recordings\meeting_YYYYMMDD_HHMMSS.wav
 ```
 
 Underlying Qwen command shape:
 
 ```powershell
-uv run --with qwen-asr --with torch python post_transcribe_qwen.py recordings\meeting.wav --model Qwen/Qwen3-ASR-0.6B --language Japanese
+uv run --with qwen-asr --with torch python python_backend/post_transcribe_qwen.py recordings\meeting.wav --model Qwen/Qwen3-ASR-0.6B --language Japanese
 ```
 
 ## Test Plan
@@ -70,7 +70,7 @@ uv run --with qwen-asr --with torch python post_transcribe_qwen.py recordings\me
   - Confirm the default speaker loopback is selected.
 - Recording check:
   - Play Teams/YouTube audio for 10 seconds.
-  - Run `record_audio.py --duration 10`.
+  - Run `python_backend/record_audio.py --duration 10`.
   - Verify a `.wav` file is created and is not silent.
 - Live STT check:
   - Run live script for a short sample.
@@ -79,7 +79,7 @@ uv run --with qwen-asr --with torch python post_transcribe_qwen.py recordings\me
   - Run Qwen on the same short recording.
   - Verify output is non-empty Japanese text.
 - Regression check:
-  - Existing `transcribe_audio.py audio.mp3` still works.
+  - Existing `python_backend/transcribe_audio.py audio.mp3` still works.
 
 ## Assumptions
 

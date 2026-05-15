@@ -19,13 +19,13 @@ No Word document is required for the current use case.
 Reusable script:
 
 ```text
-transcribe_audio.py
+python_backend/transcribe_audio.py
 ```
 
 Basic command:
 
 ```powershell
-uv run --with faster-whisper python transcribe_audio.py audio.mp3 -o audio_transcript.txt
+uv run --with faster-whisper python python_backend/transcribe_audio.py audio.mp3 -o audio_transcript.txt
 ```
 
 The script uses `faster-whisper`, which is a Python library for running Whisper speech-to-text models.
@@ -77,13 +77,13 @@ The current script defaults to CPU:
 CPU command:
 
 ```powershell
-uv run --with faster-whisper python transcribe_audio.py audio.mp3 -o audio_transcript.txt
+uv run --with faster-whisper python python_backend/transcribe_audio.py audio.mp3 -o audio_transcript.txt
 ```
 
 GPU can be tried later with:
 
 ```powershell
-uv run --with faster-whisper python transcribe_audio.py audio.mp3 --device cuda --compute-type float16
+uv run --with faster-whisper python python_backend/transcribe_audio.py audio.mp3 --device cuda --compute-type float16
 ```
 
 Practical rule:
@@ -99,13 +99,13 @@ GPU + medium/large model = faster
 For longer meetings, use `medium` if accuracy matters:
 
 ```powershell
-uv run --with faster-whisper python transcribe_audio.py meeting.mp3 --model medium -o meeting_transcript.txt
+uv run --with faster-whisper python python_backend/transcribe_audio.py meeting.mp3 --model medium -o meeting_transcript.txt
 ```
 
 If CPU speed is a problem, use `small`:
 
 ```powershell
-uv run --with faster-whisper python transcribe_audio.py meeting.mp3 --model small -o meeting_transcript.txt
+uv run --with faster-whisper python python_backend/transcribe_audio.py meeting.mp3 --model small -o meeting_transcript.txt
 ```
 
 Practical expectation:
@@ -139,7 +139,7 @@ microphone/system audio
 Possible future script:
 
 ```text
-live_transcribe.py
+python_backend/live_transcribe.py
 ```
 
 Likely libraries:

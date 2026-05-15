@@ -88,12 +88,12 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
     case "live-meeting": {
       const extra = [...captureArgs(args)];
       if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
-      return { label: "Live meeting", ...runCmd("live_meeting.cmd", extra) };
+      return { label: "Live meeting", ...runCmd(path.join("python_backend", "live_meeting.cmd"), extra) };
     }
     case "live-whisper": {
       const extra = [...captureArgs(args)];
       if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
-      return { label: "Live transcript", ...runCmd("live_transcribe.cmd", extra) };
+      return { label: "Live transcript", ...runCmd(path.join("python_backend", "live_transcribe.cmd"), extra) };
     }
     case "live-cpp-gpu": {
       const extra = [...captureArgs(args)];
@@ -106,10 +106,10 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
       return { label: "Live whisper.cpp CPU", ...runCmd(path.join("whisper_cpp", "live_cpp_cpu.cmd"), extra) };
     }
     case "record-enter":
-      return { label: "Record until Enter", ...runCmd("record_meeting.cmd", ["--until-enter", ...captureArgs(args)]) };
+      return { label: "Record until Enter", ...runCmd(path.join("python_backend", "record_meeting.cmd"), ["--until-enter", ...captureArgs(args)]) };
     case "record-timed": {
       const duration = num(args.durationSeconds) ?? "3600";
-      return { label: "Timed recording", ...runCmd("record_meeting.cmd", ["--duration", duration, ...captureArgs(args)]) };
+      return { label: "Timed recording", ...runCmd(path.join("python_backend", "record_meeting.cmd"), ["--duration", duration, ...captureArgs(args)]) };
     }
     case "cpp-gpu": {
       if (!audioPath) throw new Error("Choose an audio file first.");
@@ -132,7 +132,7 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
     case "qwen-gpu": {
       if (!audioPath) throw new Error("Choose an audio file first.");
       const outputPath = audioPath.replace(/\.[^.\\/]+$/, "_qwen_gpu_transcript.txt");
-      const commandArgs = ["post_transcribe_qwen.py", audioPath, "-o", outputPath, "--device", "cuda:0"];
+      const commandArgs = ["python_backend/post_transcribe_qwen.py", audioPath, "-o", outputPath, "--device", "cuda:0"];
       if (qwenTokens) commandArgs.push("--max-new-tokens", qwenTokens);
       if (chunkSeconds) commandArgs.push("--chunk-seconds", chunkSeconds);
       if (qwenBatch) commandArgs.push("--batch-size", qwenBatch);
@@ -177,7 +177,7 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
           "--with",
           "torchvision",
           "python",
-          "post_transcribe_qwen.py",
+          "python_backend/post_transcribe_qwen.py",
           audioPath,
           "-o",
           outputPath,
@@ -193,7 +193,7 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
       };
     }
     case "download-assets":
-      return { label: "Download assets", executable: "uv", args: ["run", "--with", "huggingface-hub", "python", "download_assets.py"] };
+      return { label: "Download assets", executable: "uv", args: ["run", "--with", "huggingface-hub", "python", "python_backend/download_assets.py"] };
     default:
       throw new Error(`Unknown command: ${kind}`);
   }
@@ -342,7 +342,7 @@ ipcMain.handle("list-audio-devices", async () => {
     "--with",
     "soxr",
     "python",
-    "record_audio.py",
+    "python_backend/record_audio.py",
     "--list-devices"
   ]);
   const status = parseAudioDevices(result.stdout);

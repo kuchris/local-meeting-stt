@@ -72,7 +72,7 @@ def main() -> None:
     try:
         from qwen_asr import Qwen3ASRModel
     except ImportError as exc:
-        raise SystemExit("qwen-asr is not installed. Run through post_transcribe_qwen.cmd or uv --with qwen-asr.") from exc
+        raise SystemExit("qwen-asr is not installed. Run through python_backend/post_transcribe_qwen.cmd or uv --with qwen-asr.") from exc
 
     _, device, dtype = resolve_runtime(args.device)
     output_path = args.output or default_output_path(args.audio)
