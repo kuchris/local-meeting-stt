@@ -1,0 +1,35 @@
+You are summarizing a Japanese meeting transcript.
+
+Please read the transcript and create:
+1. Key points
+2. Decisions made
+3. Action items / TODO list
+4. Open questions
+
+Rules:
+- Use concise bullet points.
+- Keep original meaning. Do not invent details.
+- If speaker names are unclear, do not guess.
+- For TODO items, include owner and deadline only if they are clearly mentioned.
+- If the transcript is messy or has recognition errors, infer carefully and mark uncertain items with "(unclear)".
+- Output in Japanese.
+
+Transcript:
+[PASTE TRANSCRIPT HERE]
+
+以下の会議文字起こしを読んで、要点とTODOを簡潔にまとめてください。
+
+出力形式:
+- 要点
+- 決定事項
+- TODO
+- 未確認事項
+
+条件:
+- 箇条書き
+- 推測しすぎない
+- 担当者や期限が不明な場合は「未定」と書く
+- 日本語で出力
+
+文字起こし:
+[PASTE HERE]

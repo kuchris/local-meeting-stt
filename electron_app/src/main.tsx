@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import type { AssetStatus, AudioDeviceStatus, ProcessEvent } from "./types";
+import type { AppSettings, AssetDownloadEvent, AssetStatus, AudioDeviceStatus, OutputSession, ProcessEvent } from "./types";
 import "./styles.css";
 
 type Tab = "live" | "record" | "transcribe" | "setup";
@@ -13,6 +13,12 @@ type LogLine = {
 };
 
 type MenuName = "file" | "run" | "view" | "window" | "help";
+type AssetDownloadState = {
+  running: boolean;
+  percent: number;
+  text: string;
+  exitCode?: number | null;
+};
 
 const tabs: Array<{ id: Tab; label: string }> = [
   { id: "live", label: "Live" },
@@ -109,6 +115,25 @@ function DownloadIcon() {
   );
 }
 
+function PauseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8.5 5.5v13" />
+      <path d="M15.5 5.5v13" />
+    </svg>
+  );
+}
+
+function AudioFileIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 3.5h7l3 3v14H7V3.5Z" />
+      <path d="M14 3.5v3h3" />
+      <path d="M10 15.5v-4l4 2-4 2Z" />
+    </svg>
+  );
+}
+
 function App() {
   const [tab, setTab] = useState<Tab>("live");
   const [logs, setLogs] = useState<LogLine[]>([]);
@@ -124,25 +149,61 @@ function App() {
   const [micDevice, setMicDevice] = useState("");
   const [audioDevices, setAudioDevices] = useState<AudioDeviceStatus | null>(null);
   const [assets, setAssets] = useState<AssetStatus[]>([]);
+  const [assetDownloads, setAssetDownloads] = useState<Record<string, AssetDownloadState>>({});
   const [lastOutputPath, setLastOutputPath] = useState("");
   const [outputDir, setOutputDir] = useState(() => localStorage.getItem("meetingOutputDir") || "outputs");
+  const [sessions, setSessions] = useState<OutputSession[]>([]);
+  const [selectedSessionId, setSelectedSessionId] = useState("");
   const [liveTranscript, setLiveTranscript] = useState("");
   const [liveTranscriptPath, setLiveTranscriptPath] = useState("");
+  const [activeLabel, setActiveLabel] = useState("");
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [now, setNow] = useState(Date.now());
   const [openMenu, setOpenMenu] = useState<MenuName | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [sessionListWidth, setSessionListWidth] = useState(() => Number(localStorage.getItem("meetingSessionListWidth")) || 300);
+  const [transcribeLibraryWidth, setTranscribeLibraryWidth] = useState(0);
+  const [transcribeColumnWidth, setTranscribeColumnWidth] = useState(() => Number(localStorage.getItem("meetingTranscribeColumnWidth")) || 560);
+  const [workspaceWidth, setWorkspaceWidth] = useState(0);
+  const workspaceRef = useRef<HTMLElement | null>(null);
+  const transcribeLibraryRef = useRef<HTMLElement | null>(null);
   const logsRef = useRef<HTMLPreElement | null>(null);
   const outputRef = useRef<HTMLPreElement | null>(null);
 
   const isRunning = activeProcessId !== null;
+  const selectedSession = sessions.find((session) => session.id === selectedSessionId) ?? null;
+  const selectedAudioPath = selectedSession?.audioPath || audioPath;
+  const elapsedSeconds = startedAt ? Math.max(0, Math.floor((now - startedAt) / 1000)) : 0;
+  const effectiveSessionListWidth = clampSessionListWidth(sessionListWidth, transcribeLibraryWidth);
+  const effectiveTranscribeColumnWidth = clampTranscribeColumnWidth(transcribeColumnWidth, workspaceWidth);
 
   useEffect(() => {
     const unsubscribe = window.meetingApi.onProcessEvent((event) => {
       handleProcessEvent(event);
     });
+    const unsubscribeAssetDownloads = window.meetingApi.onAssetDownloadEvent((event) => {
+      handleAssetDownloadEvent(event);
+    });
+    void loadSettings();
     void refreshAssets();
     void refreshAudioDevices();
-    return unsubscribe;
+    void refreshSessions();
+    return () => {
+      unsubscribe();
+      unsubscribeAssetDownloads();
+    };
   }, []);
+
+  useEffect(() => {
+    void refreshSessions();
+  }, [outputDir]);
+
+  useEffect(() => {
+    if (!isRunning) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [isRunning]);
 
   useEffect(() => {
     const logsElement = logsRef.current;
@@ -155,8 +216,54 @@ function App() {
   }, [liveTranscript, lastOutputPath, tab]);
 
   useEffect(() => {
+    const element = transcribeLibraryRef.current;
+    if (!element) return;
+    const observedElement = element;
+
+    function updateWidth() {
+      setTranscribeLibraryWidth(observedElement.getBoundingClientRect().width);
+    }
+
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(observedElement);
+    return () => observer.disconnect();
+  }, [tab]);
+
+  useEffect(() => {
+    const element = workspaceRef.current;
+    if (!element) return;
+    const observedElement = element;
+
+    function updateWidth() {
+      setWorkspaceWidth(observedElement.getBoundingClientRect().width);
+    }
+
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(observedElement);
+    return () => observer.disconnect();
+  }, [tab]);
+
+  useEffect(() => {
+    if (!settingsLoaded) return;
+    const settings: AppSettings = {
+      outputDir,
+      qwen: {
+        chunkSeconds: qwenChunkSeconds,
+        tokens: qwenTokens,
+        batch: qwenBatch
+      },
+      ui: {
+        sessionListWidth,
+        transcribeColumnWidth
+      }
+    };
     localStorage.setItem("meetingOutputDir", outputDir);
-  }, [outputDir]);
+    localStorage.setItem("meetingSessionListWidth", String(sessionListWidth));
+    localStorage.setItem("meetingTranscribeColumnWidth", String(transcribeColumnWidth));
+    void window.meetingApi.saveSettings(settings);
+  }, [outputDir, qwenChunkSeconds, qwenTokens, qwenBatch, sessionListWidth, transcribeColumnWidth, settingsLoaded]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -177,6 +284,8 @@ function App() {
   function handleProcessEvent(event: ProcessEvent) {
     if (event.type === "start") {
       setActiveProcessId(event.processId);
+      setActiveLabel(event.label);
+      setStartedAt(Date.now());
       pushLog(event.processId, "info", `Started ${event.label}\n${event.command}\n`);
       return;
     }
@@ -192,6 +301,47 @@ function App() {
     if (event.type === "exit") {
       pushLog(event.processId, "exit", `Exited with code ${event.code ?? "null"}${event.signal ? ` (${event.signal})` : ""}\n`);
       setActiveProcessId((current) => (current === event.processId ? null : current));
+      setStartedAt(null);
+      void refreshSessions();
+    }
+  }
+
+  function handleAssetDownloadEvent(event: AssetDownloadEvent) {
+    if (event.type === "start") {
+      setAssetDownloads((current) => ({
+        ...current,
+        [event.assetId]: { running: true, percent: 1, text: "Starting" }
+      }));
+      return;
+    }
+    if (event.type === "progress") {
+      setAssetDownloads((current) => ({
+        ...current,
+        [event.assetId]: {
+          ...current[event.assetId],
+          running: current[event.assetId]?.running ?? true,
+          percent: event.percent,
+          text: event.text
+        }
+      }));
+      return;
+    }
+    if (event.type === "stdout" || event.type === "stderr") {
+      pushLog(0, event.type, event.text);
+      return;
+    }
+    if (event.type === "exit") {
+      setAssetDownloads((current) => ({
+        ...current,
+        [event.assetId]: {
+          ...current[event.assetId],
+          running: false,
+          percent: event.code === 0 ? 100 : current[event.assetId]?.percent ?? 0,
+          text: event.code === 0 ? "Done" : "Paused",
+          exitCode: event.code
+        }
+      }));
+      void refreshAssets();
     }
   }
 
@@ -201,6 +351,26 @@ function App() {
 
   async function refreshAudioDevices() {
     setAudioDevices(await window.meetingApi.listAudioDevices());
+  }
+
+  async function loadSettings() {
+    const settings = await window.meetingApi.loadSettings();
+    if (settings.outputDir) setOutputDir(settings.outputDir);
+    if (typeof settings.qwen?.chunkSeconds === "number") setQwenChunkSeconds(settings.qwen.chunkSeconds);
+    if (typeof settings.qwen?.tokens === "number") setQwenTokens(settings.qwen.tokens);
+    if (typeof settings.qwen?.batch === "number") setQwenBatch(settings.qwen.batch);
+    if (typeof settings.ui?.sessionListWidth === "number") setSessionListWidth(settings.ui.sessionListWidth);
+    if (typeof settings.ui?.transcribeColumnWidth === "number") setTranscribeColumnWidth(settings.ui.transcribeColumnWidth);
+    setSettingsLoaded(true);
+  }
+
+  async function refreshSessions() {
+    const found = await window.meetingApi.listOutputSessions(outputDir.trim() || "outputs");
+    setSessions(found);
+    setSelectedSessionId((current) => {
+      if (current && found.some((session) => session.id === current)) return current;
+      return found[0]?.id || "";
+    });
   }
 
   async function run(kind: string, args: Record<string, unknown> = {}) {
@@ -225,7 +395,10 @@ function App() {
 
   async function pickAudio() {
     const file = await window.meetingApi.pickAudioFile();
-    if (file) setAudioPath(file);
+    if (file) {
+      setAudioPath(file);
+      setSelectedSessionId("");
+    }
   }
 
   async function pickOutputFolder() {
@@ -234,7 +407,20 @@ function App() {
   }
 
   async function downloadAsset(assetId: string) {
-    await run("download-asset", { assetId });
+    const state = assetDownloads[assetId];
+    if (state?.running) {
+      await window.meetingApi.stopAssetDownload(assetId);
+      return;
+    }
+    await window.meetingApi.startAssetDownload(assetId);
+  }
+
+  async function downloadMissingAssets() {
+    for (const asset of assets) {
+      if (!asset.exists && !assetDownloads[asset.id]?.running) {
+        await window.meetingApi.startAssetDownload(asset.id);
+      }
+    }
   }
 
   function updateExpectedOutput(kind: string) {
@@ -245,8 +431,13 @@ function App() {
       "qwen-cpu": "_qwen_cpu_transcript.txt"
     };
     const suffix = suffixes[kind];
-    if (suffix && audioPath) {
-      const sourceName = audioPath.split(/[\\/]/).pop()?.replace(/\.[^.\\/]+$/, "") || "audio";
+    const targetAudioPath = selectedAudioPath;
+    if (suffix && targetAudioPath) {
+      if (targetAudioPath.split(/[\\/]/).pop()?.toLowerCase() === "audio.wav") {
+        setLastOutputPath(`${targetAudioPath.replace(/[\\/]audio\.wav$/i, "")}\\${suffix.replace(/^_/, "")}`);
+        return;
+      }
+      const sourceName = targetAudioPath.split(/[\\/]/).pop()?.replace(/\.[^.\\/]+$/, "") || "audio";
       const baseDir = outputDir.trim() || "outputs";
       setLastOutputPath(`${baseDir.replace(/[\\/]$/, "")}\\${sourceName}${suffix}`);
     }
@@ -271,12 +462,15 @@ function App() {
   function dropAudio(event: React.DragEvent<HTMLDivElement>) {
     event.preventDefault();
     const file = event.dataTransfer.files[0] as (File & { path?: string }) | undefined;
-    if (file?.path) setAudioPath(file.path);
+    if (file?.path) {
+      setAudioPath(file.path);
+      setSelectedSessionId("");
+    }
   }
 
   const qwenArgs = useMemo(
-    () => ({ audioPath, chunkSeconds: qwenChunkSeconds, qwenTokens, qwenBatch }),
-    [audioPath, qwenChunkSeconds, qwenTokens, qwenBatch]
+    () => ({ audioPath: selectedAudioPath, chunkSeconds: qwenChunkSeconds, qwenTokens, qwenBatch }),
+    [selectedAudioPath, qwenChunkSeconds, qwenTokens, qwenBatch]
   );
 
   const captureSettings = useMemo(
@@ -290,6 +484,107 @@ function App() {
 
   function toggleMenu(menu: MenuName) {
     setOpenMenu((current) => (current === menu ? null : menu));
+  }
+
+  function formatBytes(bytes: number) {
+    if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  }
+
+  function formatTime(time: number) {
+    return new Date(time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function formatElapsed(seconds: number) {
+    const minutes = Math.floor(seconds / 60);
+    const rest = seconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
+  }
+
+  function clampSessionListWidth(width: number, knownContainerWidth?: number) {
+    const containerWidth = knownContainerWidth || transcribeLibraryRef.current?.getBoundingClientRect().width || 680;
+    const minWidth = Math.min(220, Math.max(160, containerWidth - 240));
+    const maxWidth = Math.max(minWidth, containerWidth - 228);
+    return Math.round(Math.min(Math.max(width, minWidth), maxWidth));
+  }
+
+  function updateSessionListWidth(width: number) {
+    const nextWidth = clampSessionListWidth(width);
+    setSessionListWidth(nextWidth);
+  }
+
+  function clampTranscribeColumnWidth(width: number, knownWorkspaceWidth?: number) {
+    const containerWidth = knownWorkspaceWidth || workspaceRef.current?.getBoundingClientRect().width || 900;
+    const minWidth = Math.min(520, Math.max(420, containerWidth - 304));
+    const maxWidth = Math.max(minWidth, containerWidth - 304);
+    return Math.round(Math.min(Math.max(width, minWidth), maxWidth));
+  }
+
+  function updateTranscribeColumnWidth(width: number) {
+    const nextWidth = clampTranscribeColumnWidth(width);
+    setTranscribeColumnWidth(nextWidth);
+  }
+
+  function beginSessionResize(event: React.PointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const container = transcribeLibraryRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+
+    function handlePointerMove(moveEvent: PointerEvent) {
+      updateSessionListWidth(moveEvent.clientX - rect.left);
+    }
+
+    function handlePointerUp() {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    }
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    updateSessionListWidth(event.clientX - rect.left);
+  }
+
+  function handleSessionDividerKey(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      updateSessionListWidth(effectiveSessionListWidth - 24);
+    }
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      updateSessionListWidth(effectiveSessionListWidth + 24);
+    }
+  }
+
+  function beginOutputResize(event: React.PointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const container = workspaceRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+
+    function handlePointerMove(moveEvent: PointerEvent) {
+      updateTranscribeColumnWidth(moveEvent.clientX - rect.left);
+    }
+
+    function handlePointerUp() {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    }
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    updateTranscribeColumnWidth(event.clientX - rect.left);
+  }
+
+  function handleOutputDividerKey(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      updateTranscribeColumnWidth(effectiveTranscribeColumnWidth - 24);
+    }
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      updateTranscribeColumnWidth(effectiveTranscribeColumnWidth + 24);
+    }
   }
 
   async function runMenuAction(action: string) {
@@ -456,7 +751,11 @@ function App() {
       </aside>
 
       <section className="workbench">
-        <section className={`workspace ${tab === "setup" ? "setup-workspace" : ""}`}>
+        <section
+          className={`workspace ${tab === "setup" ? "setup-workspace" : ""} ${tab === "transcribe" ? "transcribe-workspace" : ""}`}
+          ref={workspaceRef}
+          style={tab === "transcribe" ? { gridTemplateColumns: `${effectiveTranscribeColumnWidth}px 8px minmax(280px, 1fr)` } : undefined}
+        >
           <section className="primary-column">
             <header className="topbar">
               <div>
@@ -500,40 +799,121 @@ function App() {
             )}
 
             {tab === "transcribe" && (
-              <section className="stack transcribe-stack">
-                <h3>Audio file</h3>
-                <div className="dropzone" onDragOver={(event) => event.preventDefault()} onDrop={dropAudio}>
-                  Drop audio here
-                </div>
-                <div className="file-row">
-                  <input value={audioPath} onChange={(event) => setAudioPath(event.target.value)} placeholder="Audio file path" />
-                  <button onClick={pickAudio}>Choose</button>
-                </div>
-                <div className="advanced">
-                  <label className="field">
-                    <span>Qwen chunk seconds</span>
-                    <input type="number" min="10" value={qwenChunkSeconds} onChange={(event) => setQwenChunkSeconds(Number(event.target.value))} />
-                  </label>
-                  <label className="field">
-                    <span>Qwen tokens</span>
-                    <input type="number" min="256" value={qwenTokens} onChange={(event) => setQwenTokens(Number(event.target.value))} />
-                  </label>
-                  <label className="field">
-                    <span>Qwen batch</span>
-                    <input type="number" min="1" value={qwenBatch} onChange={(event) => setQwenBatch(Number(event.target.value))} />
-                  </label>
-                </div>
-                <div className="grid-actions">
-                  <button disabled={!audioPath || isRunning} onClick={() => run("cpp-gpu", { audioPath })}>CPP GPU</button>
-                  <button disabled={!audioPath || isRunning} onClick={() => run("cpp-cpu", { audioPath })}>CPP CPU</button>
-                  <button disabled={!audioPath || isRunning} onClick={() => run("qwen-gpu", qwenArgs)}>Qwen GPU</button>
-                  <button disabled={!audioPath || isRunning} onClick={() => run("qwen-cpu", qwenArgs)}>Qwen CPU</button>
-                </div>
-                {lastOutputPath && (
-                  <button className="output-path" onClick={() => window.meetingApi.openPath(lastOutputPath)}>
-                    Open latest target: {lastOutputPath}
-                  </button>
-                )}
+              <section
+                className="transcribe-library"
+                ref={transcribeLibraryRef}
+                style={{ gridTemplateColumns: `${effectiveSessionListWidth}px 8px minmax(0, 1fr)` }}
+              >
+                <section className="session-list">
+                  <div className="section-head">
+                    <h3>Sessions</h3>
+                    <button className="tiny-icon light" title="Refresh sessions" aria-label="Refresh sessions" onClick={refreshSessions}>↻</button>
+                  </div>
+                  <div className="session-items">
+                    {sessions.map((session) => (
+                      <button
+                        key={session.id}
+                        className={`session-row ${selectedSessionId === session.id ? "active" : ""}`}
+                        onClick={() => {
+                          setSelectedSessionId(session.id);
+                          setAudioPath("");
+                        }}
+                      >
+                        <strong>{session.name}</strong>
+                        <small>{formatBytes(session.audioSize)} · {formatTime(session.modifiedTime)}</small>
+                        <span className="session-badges">
+                          {(session.transcripts.cppCpu || session.transcripts.cppGpu) && <span>C</span>}
+                          {(session.transcripts.qwenCpu || session.transcripts.qwenGpu) && <span>Q</span>}
+                        </span>
+                      </button>
+                    ))}
+                    {sessions.length === 0 && <div className="empty-sessions">No session audio found in the output folder.</div>}
+                  </div>
+                  <div className="session-footer">
+                    <div className="dropzone compact" onDragOver={(event) => event.preventDefault()} onDrop={dropAudio}>
+                      Drop external audio
+                    </div>
+                    <button className="icon-button" title="Choose external audio" aria-label="Choose external audio" onClick={pickAudio}>
+                      <AudioFileIcon />
+                    </button>
+                  </div>
+                </section>
+
+                <div
+                  className="pane-divider"
+                  role="separator"
+                  aria-label="Resize session list"
+                  aria-orientation="vertical"
+                  aria-valuemin={Math.min(220, Math.max(160, (transcribeLibraryWidth || 680) - 240))}
+                  aria-valuemax={Math.max(160, (transcribeLibraryWidth || 680) - 228)}
+                  aria-valuenow={effectiveSessionListWidth}
+                  tabIndex={0}
+                  onPointerDown={beginSessionResize}
+                  onKeyDown={handleSessionDividerKey}
+                />
+
+                <section className="selected-session">
+                  <div className="section-head">
+                    <h3>Selected Session</h3>
+                    {selectedSession && (
+                      <button
+                        className="tiny-icon light"
+                        title="Open session folder"
+                        aria-label="Open session folder"
+                        onClick={() => window.meetingApi.openPath(selectedSession.folderPath)}
+                      >
+                        <OutputActionIcon action="open" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="selected-audio">
+                    <strong>{selectedSession?.name || "External audio"}</strong>
+                    <small>{selectedAudioPath || "Choose a session or external audio file."}</small>
+                  </div>
+                  <div className="qwen-settings">
+                    <div className="qwen-settings-head">
+                      <strong>Qwen settings</strong>
+                    </div>
+                    <div className="qwen-setting-fields">
+                    <label className="field">
+                      <span>Chunk</span>
+                      <input type="number" min="10" value={qwenChunkSeconds} onChange={(event) => setQwenChunkSeconds(Number(event.target.value))} />
+                    </label>
+                    <label className="field">
+                      <span>Tokens</span>
+                      <input type="number" min="256" value={qwenTokens} onChange={(event) => setQwenTokens(Number(event.target.value))} />
+                    </label>
+                    <label className="field">
+                      <span>Batch</span>
+                      <input type="number" min="1" value={qwenBatch} onChange={(event) => setQwenBatch(Number(event.target.value))} />
+                    </label>
+                    </div>
+                  </div>
+                  <div className="run-block">
+                    <div className="run-block-head">
+                      <strong>Run transcription</strong>
+                      <small>Selected audio</small>
+                    </div>
+                    <div className="grid-actions">
+                      <button disabled={!selectedAudioPath || isRunning} onClick={() => run("cpp-cpu", { audioPath: selectedAudioPath })}>CPP CPU</button>
+                      <button disabled={!selectedAudioPath || isRunning} onClick={() => run("cpp-gpu", { audioPath: selectedAudioPath })}>CPP GPU</button>
+                      <button disabled={!selectedAudioPath || isRunning} onClick={() => run("qwen-cpu", qwenArgs)}>Qwen CPU</button>
+                      <button disabled={!selectedAudioPath || isRunning} onClick={() => run("qwen-gpu", qwenArgs)}>Qwen GPU</button>
+                    </div>
+                  </div>
+                  <div className={`run-progress ${isRunning ? "running" : "idle"}`}>
+                    <div>
+                      <strong>{isRunning ? activeLabel || "Running" : "Idle"}</strong>
+                      <small>{isRunning ? `Elapsed ${formatElapsed(elapsedSeconds)}` : "Progress appears here while transcription runs."}</small>
+                    </div>
+                    <span />
+                  </div>
+                  {lastOutputPath && (
+                    <button className="output-path" onClick={() => window.meetingApi.openPath(lastOutputPath)}>
+                      Open latest target: {lastOutputPath}
+                    </button>
+                  )}
+                </section>
               </section>
             )}
 
@@ -541,28 +921,39 @@ function App() {
               <section className="stack">
                 <h3>Asset status</h3>
                 <div className="asset-list">
-                  {assets.map((asset) => (
-                    <div key={asset.relativePath} className="asset-row">
-                      <span className={asset.exists ? "ok-dot" : "bad-dot"} />
-                      <div>
-                        <strong>{asset.label}</strong>
-                        <small>{asset.relativePath}</small>
+                  {assets.map((asset) => {
+                    const download = assetDownloads[asset.id];
+                    const isDownloading = download?.running === true;
+                    return (
+                      <div key={asset.relativePath} className="asset-row">
+                        <span className={asset.exists ? "ok-dot" : isDownloading ? "busy-dot" : "bad-dot"} />
+                        <div className="asset-main">
+                          <strong>{asset.label}</strong>
+                          <small>{asset.relativePath}</small>
+                          {download && (
+                            <div className={`asset-progress ${isDownloading ? "running" : ""}`}>
+                              <span>
+                                <i style={{ width: `${download.percent}%` }} />
+                              </span>
+                              <small>{download.text}</small>
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          className="asset-download"
+                          title={isDownloading ? `Pause ${asset.label}` : `Download ${asset.label}`}
+                          aria-label={isDownloading ? `Pause ${asset.label}` : `Download ${asset.label}`}
+                          onClick={() => downloadAsset(asset.id)}
+                        >
+                          {isDownloading ? <PauseIcon /> : <DownloadIcon />}
+                        </button>
                       </div>
-                      <button
-                        className="asset-download"
-                        title={`Download ${asset.label}`}
-                        aria-label={`Download ${asset.label}`}
-                        disabled={isRunning}
-                        onClick={() => downloadAsset(asset.id)}
-                      >
-                        <DownloadIcon />
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <div className="setup-actions" aria-label="Setup actions">
                   <button title="Refresh status" aria-label="Refresh status" onClick={refreshAssets}>↻</button>
-                  <button title="Download assets" aria-label="Download assets" disabled={isRunning} onClick={() => run("download-assets")}>↓</button>
+                  <button title="Download missing assets" aria-label="Download missing assets" onClick={downloadMissingAssets}>↓</button>
                   <button title="Open outputs" aria-label="Open outputs" onClick={() => window.meetingApi.openPath(outputDir.trim() || "outputs")}>▣</button>
                 </div>
                 <section className="output-settings">
@@ -586,6 +977,21 @@ function App() {
             )}
             </div>
           </section>
+
+          {tab === "transcribe" && (
+            <div
+              className="pane-divider workspace-divider"
+              role="separator"
+              aria-label="Resize output panel"
+              aria-orientation="vertical"
+              aria-valuemin={Math.min(520, Math.max(420, (workspaceWidth || 900) - 304))}
+              aria-valuemax={Math.max(520, (workspaceWidth || 900) - 304)}
+              aria-valuenow={effectiveTranscribeColumnWidth}
+              tabIndex={0}
+              onPointerDown={beginOutputResize}
+              onKeyDown={handleOutputDividerKey}
+            />
+          )}
 
           <aside className="output-column">
             <div className="output-spacer">

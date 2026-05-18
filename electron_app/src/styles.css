@@ -12,8 +12,8 @@
 
 body {
   margin: 0;
-  min-width: 1140px;
-  overflow: hidden;
+  min-width: 900px;
+  overflow: auto;
   background: #ffffff;
 }
 
@@ -332,13 +332,13 @@ h3 {
   height: calc(100vh - 36px);
   width: 100%;
   display: grid;
-  grid-template-columns: 220px minmax(906px, 1fr);
+  grid-template-columns: 220px minmax(0, 1fr);
   gap: 14px;
   padding: 14px;
 }
 
 .app-shell.sidebar-collapsed {
-  grid-template-columns: 64px minmax(906px, 1fr);
+  grid-template-columns: 64px minmax(0, 1fr);
 }
 
 .sidebar {
@@ -538,6 +538,11 @@ h3 {
   grid-template-columns: 540px minmax(352px, 1fr);
 }
 
+.transcribe-workspace {
+  grid-template-columns: 560px 8px minmax(280px, 1fr);
+  gap: 8px;
+}
+
 .primary-column {
   min-height: 0;
   display: grid;
@@ -662,6 +667,271 @@ small {
   padding: 22px 14px;
   text-align: center;
   font-size: 13px;
+}
+
+.dropzone.compact {
+  padding: 13px 10px;
+}
+
+.transcribe-library {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 300px 8px minmax(0, 1fr);
+  gap: 8px;
+  overflow: hidden;
+}
+
+.session-list,
+.selected-session {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.session-list {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.session-items {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.session-row {
+  min-height: 82px;
+  padding: 10px 11px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 8px;
+  text-align: left;
+  align-items: center;
+  background: #f8f9fa;
+}
+
+.session-row strong {
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.session-row small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-row.active {
+  border-color: #111111;
+  background: #ffffff;
+}
+
+.session-badges {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  display: flex;
+  gap: 4px;
+}
+
+.session-badges span {
+  width: 21px;
+  height: 21px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #111111;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.empty-sessions {
+  min-height: 100px;
+  padding: 14px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.session-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  gap: 8px;
+}
+
+.session-footer .dropzone {
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pane-divider {
+  position: relative;
+  min-height: 0;
+  border-radius: 6px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.pane-divider::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  width: 2px;
+  border-radius: 999px;
+  background: #d1d5db;
+  transform: translateX(-50%);
+}
+
+.pane-divider:hover::before,
+.pane-divider:focus-visible::before {
+  background: #111111;
+}
+
+.pane-divider:focus-visible {
+  outline: 2px solid rgba(17, 17, 17, 0.18);
+  outline-offset: 2px;
+}
+
+.workspace-divider::before {
+  top: 0;
+  bottom: 0;
+}
+
+.selected-audio {
+  display: grid;
+  gap: 5px;
+  padding: 11px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.selected-audio small {
+  overflow-wrap: anywhere;
+}
+
+.qwen-settings {
+  display: grid;
+  gap: 7px;
+}
+
+.qwen-settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qwen-settings-head strong {
+  font-size: 13px;
+}
+
+.qwen-setting-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
+  gap: 7px;
+}
+
+.qwen-setting-fields .field {
+  gap: 4px;
+}
+
+.qwen-setting-fields input {
+  min-height: 34px;
+  padding: 7px 8px;
+}
+
+.run-block {
+  display: grid;
+  gap: 8px;
+}
+
+.run-block-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.run-block-head small {
+  color: #6b7280;
+}
+
+.run-progress {
+  display: grid;
+  gap: 9px;
+  padding: 10px 11px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.run-progress div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.run-progress > span {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.run-progress > span::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  border-radius: inherit;
+  background: #d1d5db;
+}
+
+.run-progress.running > span::before {
+  width: 38%;
+  background: #111111;
+  animation: progress-slide 1.2s ease-in-out infinite;
+}
+
+.run-progress.idle {
+  color: #6b7280;
+}
+
+@keyframes progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(265%);
+  }
 }
 
 .transcribe-stack {
@@ -878,6 +1148,20 @@ small {
   line-height: 1;
 }
 
+.tiny-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tiny-icon.light {
+  background: #ffffff;
+}
+
 .live-box,
 .logs {
   min-height: 0;
@@ -957,6 +1241,39 @@ small {
   word-break: break-word;
 }
 
+.asset-main {
+  min-width: 0;
+}
+
+.asset-progress {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.asset-progress > span {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.asset-progress i {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: inherit;
+  background: #111111;
+  transition: width 160ms ease;
+}
+
+.asset-progress small {
+  margin-top: 0;
+  color: #6b7280;
+  font-family: inherit;
+  font-size: 11px;
+}
+
 .asset-download {
   width: 34px;
   min-height: 34px;
@@ -978,7 +1295,8 @@ small {
 }
 
 .ok-dot,
-.bad-dot {
+.bad-dot,
+.busy-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -992,6 +1310,11 @@ small {
 .bad-dot {
   background: #dc2626;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+.busy-dot {
+  background: #111111;
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.12);
 }
 
 .stderr {
