@@ -20,9 +20,24 @@ Requirements:
 
 - Windows
 - `uv`
-- Node.js / npm
 
-Run:
+Recommended:
+
+```text
+open_electron_app.cmd
+```
+
+Double-click this file from the repo root. If a packaged app already exists, it opens that app. Otherwise, it starts the Electron app in development mode.
+
+Portable app:
+
+```text
+electron_app/dist/Local Meeting STT 0.1.0.exe
+```
+
+Keep the portable `.exe` inside this repo folder so it can find `python_backend/`, `whisper_cpp/`, and `models/`.
+
+Developer run:
 
 ```powershell
 cd electron_app
@@ -30,7 +45,23 @@ npm install
 npm run dev
 ```
 
-If this is the first time using the repo, open the `Setup` tab and click the download button to fetch local models and whisper.cpp runtimes.
+Developer run requires Node.js / npm.
+
+If this is the first time using the app, open the `Setup` tab and download the assets you need.
+
+## Which Assets Do I Need?
+
+You do not need every asset for every mode.
+
+```text
+CPP CPU       -> whisper.cpp CPU + whisper.cpp small model
+CPP GPU       -> whisper.cpp CUDA + whisper.cpp small model
+Live Text     -> faster-whisper small
+Live + WAV    -> faster-whisper small
+Qwen CPU/GPU  -> Qwen3-ASR
+```
+
+In the `Setup` tab, each asset row has its own download button. Use those row buttons when you only want one mode, such as CPP CPU.
 
 ## App Tabs
 
