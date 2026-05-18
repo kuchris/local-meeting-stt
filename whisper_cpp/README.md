@@ -16,7 +16,8 @@ Use this folder for `whisper.cpp` runtime files and experiments:
 ```text
 whisper_cpp/
   README.md
-  bin/       whisper.cpp executables
+  bin_cpu/   whisper.cpp CPU executables
+  bin_cuda/  whisper.cpp CUDA executables
   models/    whisper.cpp ggml models
   output/    test transcripts
 ```
@@ -31,7 +32,10 @@ Downloaded:
 
 ```text
 bin_cpu/Release/whisper-cli.exe
+bin_cpu/Release/whisper-server.exe
+bin_cpu/Release/whisper-stream.exe
 bin_cuda/Release/whisper-cli.exe
+bin_cuda/Release/whisper-server.exe
 bin_cuda/Release/whisper-stream.exe
 models/ggml-small.bin
 ```
@@ -64,6 +68,8 @@ Streaming:
 stream_cpp.cmd
 ```
 
+This is an experimental mic/SDL path. It keeps the model resident, but it may only see microphone devices. Use it for testing or a virtual audio capture device.
+
 Recommended system-audio live:
 
 ```cmd
@@ -76,7 +82,15 @@ CPU-only test:
 live_cpp_cpu.cmd
 ```
 
-The CPU wrapper defaults to `--chunk-seconds 5 --threads 16 --gain 2.0` because `ggml-small.bin` can lag with very short chunks on CPU, `whisper.cpp` otherwise uses fewer CPU threads, and the saved loopback WAV can be quiet.
+The CPU wrapper defaults to `--chunk-seconds 3 --gain 2.0` and auto-selects a live thread count from the local CPU. You can still override it with `--threads 4`, `--threads 6`, etc.
+
+Preferred CPU live path with a resident whisper.cpp model:
+
+```cmd
+live_cpp_server_cpu.cmd
+```
+
+This keeps `whisper-server.exe` running during the live session, while `live_cpp.py` still captures the selected Windows speaker loopback through SoundCard. It avoids the per-chunk model reload cost from `whisper-cli.exe`.
 
 If the saved `audio.wav` is still too quiet, raise gain:
 
@@ -92,17 +106,13 @@ live_cpp_cpu.cmd --gain 1.5
 
 This uses the same Windows SoundCard loopback capture as the Python live workflow, but sends each chunk to `whisper-cli.exe`. Use this when `stream_cpp.cmd` only hears the wrong microphone or prints repeated non-speech text.
 
-`stream_cpp.cmd` selects capture device `-c 0` by default because this machine showed:
+`stream_cpp.cmd` selects SDL capture device `-c 0` by default. Check the startup log to see what SDL detected. Example output may look like:
 
 ```text
-#0 MOTIV Mix Virtual Output (Shure Virtual Audio)
-#1 Headset Microphone (2- INZONE Buds - Chat)
-#2 Microphone Array (Realtek(R) Audio)
-#3 Microphone (4- Shure MV7+)
-#4 Microphone (Steam Streaming Microphone)
+#0 Microphone Array
 ```
 
-If `#0` is not the Teams/system mix you want, override it:
+If another SDL capture ID is the source you want, override it:
 
 ```cmd
 stream_cpp.cmd -c 3
@@ -122,7 +132,13 @@ The streaming wrapper uses:
 --keep 500
 ```
 
-This should feel lower latency than the Python 10-second chunk loop, but device capture still needs testing. `whisper-stream.exe` uses SDL capture devices, so it does not see the same Windows loopback list as the Python SoundCard script.
+This should feel lower latency than the chunked CLI loop, but device capture is the big limitation. `whisper-stream.exe` uses SDL capture devices, so it does not see the same Windows loopback list as the Python SoundCard script. If it only hears silence/noise, Whisper may hallucinate common phrases such as Japanese outro text.
+
+No-sound file benchmark:
+
+```cmd
+bin_cpu\Release\whisper-cli.exe -m models\ggml-small.bin -f ..\test\audio.wav -l ja -otxt -of ..\test\audio_cpp_cpu_sim -t 6 -ng
+```
 
 If Japanese text appears like mojibake in `cmd.exe`, the wrapper runs `chcp 65001` to switch the console to UTF-8.
 

@@ -16,6 +16,7 @@ whisper_cpp/output/
 *_cpp_gpu_transcript.txt
 *_qwen_cpu_transcript.txt
 *_qwen_gpu_transcript.txt
+*_sim.txt
 live_transcript.txt
 
 # Archives and caches

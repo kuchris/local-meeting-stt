@@ -145,10 +145,24 @@ Useful commands:
 cd whisper_cpp
 live_cpp.cmd
 live_cpp_cpu.cmd
+live_cpp_server_cpu.cmd
+stream_cpp.cmd
 transcribe_cpp.cmd ..\test\demo.wav output\demo
 ```
 
 This folder is for comparing whisper.cpp latency and CPU/GPU behavior against the Python faster-whisper workflow.
+
+`live_cpp_cpu.cmd` uses the same SoundCard loopback capture as the Python live workflow, but it calls `whisper-cli.exe` once per chunk. The thread count is auto-selected from the local CPU unless `--threads` is passed.
+
+`live_cpp_server_cpu.cmd` is the preferred whisper.cpp CPU live path. It uses the same SoundCard loopback capture, starts `whisper-server.exe` as a child process, posts each chunk to `/inference`, and appends the returned text to `live_transcript.txt`. This keeps the model resident without losing the app's Windows speaker loopback selection.
+
+`stream_cpp.cmd` is only a standalone experiment. It uses `whisper-stream.exe`, which keeps the model resident but uses SDL capture devices instead of the app's Windows loopback selector. If SDL only lists a microphone, this path will not capture Teams/browser speaker audio.
+
+No-sound whisper.cpp CPU file test:
+
+```powershell
+whisper_cpp\bin_cpu\Release\whisper-cli.exe -m whisper_cpp\models\ggml-small.bin -f test\audio.wav -l ja -otxt -of test\audio_cpp_cpu_sim -t 6 -ng
+```
 
 ## Electron Build Check
 

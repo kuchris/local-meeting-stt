@@ -2,11 +2,15 @@ from __future__ import annotations
 
 from argparse import ArgumentParser, Namespace
 from datetime import datetime
+from io import BytesIO
+import os
 from pathlib import Path
 from queue import Empty, Full, Queue
-from subprocess import run
+import socket
+from subprocess import Popen, TimeoutExpired, run
 from tempfile import TemporaryDirectory
 from threading import Event, Thread
+import time
 import warnings
 
 import numpy as np
@@ -41,8 +45,14 @@ def parse_args() -> Namespace:
     parser.add_argument("--mic-device", help="Substring or id of the microphone to record when --include-mic is set")
     parser.add_argument("--gain", type=float, default=1.0, help="Audio gain before saving/transcribing. Default: 1.0")
     parser.add_argument("--whisper-cli", type=Path, help="Path to whisper-cli.exe")
+    parser.add_argument("--whisper-server", type=Path, help="Path to whisper-server.exe")
+    parser.add_argument("--server", action="store_true", help="Use resident whisper-server.exe instead of spawning whisper-cli.exe per chunk")
+    parser.add_argument("--server-host", default="127.0.0.1", help="whisper-server bind host. Default: 127.0.0.1")
+    parser.add_argument("--server-port", type=int, help="whisper-server port. Default: auto")
+    parser.add_argument("--server-timeout", type=float, default=60.0, help="Seconds to wait for each server inference response. Default: 60")
+    parser.add_argument("--silence-rms", type=float, default=0.003, help="Skip server inference below this chunk RMS. Default: 0.003")
     parser.add_argument("--no-gpu", action="store_true", help="Disable whisper.cpp GPU inference")
-    parser.add_argument("--threads", type=int, default=8, help="whisper.cpp CPU thread count. Default: 8")
+    parser.add_argument("--threads", type=int, help="whisper.cpp CPU thread count. Default: auto")
     parser.add_argument("--show-audio-warnings", action="store_true", help="Show low-level SoundCard recording warnings")
     return parser.parse_args()
 
@@ -161,6 +171,25 @@ def transcribe_with_cpp(args: Namespace, audio_path: Path) -> str:
     return text
 
 
+def transcribe_with_server(args: Namespace, session, url: str, chunk: np.ndarray) -> str:
+    if np.sqrt(np.mean(np.square(chunk))) < args.silence_rms:
+        return ""
+
+    wav_data = BytesIO()
+    sf.write(wav_data, chunk, args.sample_rate, format="WAV", subtype="PCM_16")
+    wav_data.seek(0)
+
+    response = session.post(
+        url,
+        files={"file": ("chunk.wav", wav_data, "audio/wav")},
+        data={"temperature": "0", "response-format": "json"},
+        timeout=args.server_timeout,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    return " ".join(str(payload.get("text", "")).split())
+
+
 def append_transcript(output_path: Path, text: str) -> None:
     if not text:
         return
@@ -176,7 +205,104 @@ def default_whisper_cli(no_gpu: bool) -> Path:
     return Path("bin_cuda") / "Release" / "whisper-cli.exe"
 
 
+def default_whisper_server(no_gpu: bool) -> Path:
+    if no_gpu:
+        return Path("bin_cpu") / "Release" / "whisper-server.exe"
+    return Path("bin_cuda") / "Release" / "whisper-server.exe"
+
+
+def default_live_threads() -> int:
+    logical_threads = max(1, os.cpu_count() or 1)
+    if logical_threads <= 4:
+        return logical_threads
+    if logical_threads <= 8:
+        return 4
+    if logical_threads <= 16:
+        return 6
+    return 8
+
+
+def free_local_port(host: str) -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+        server_socket.bind((host, 0))
+        return int(server_socket.getsockname()[1])
+
+
+def wait_for_port(host: str, port: int, process: Popen, timeout: float = 30.0) -> None:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if process.poll() is not None:
+            raise RuntimeError(f"whisper-server exited early with code {process.returncode}")
+        try:
+            with socket.create_connection((host, port), timeout=0.5):
+                return
+        except OSError:
+            time.sleep(0.2)
+    raise TimeoutError("Timed out waiting for whisper-server to start")
+
+
+def stream_process_output(process: Popen, stop_event: Event) -> None:
+    if process.stdout is None:
+        return
+    for line in process.stdout:
+        if stop_event.is_set():
+            break
+        print(f"[whisper-server] {line.rstrip()}")
+
+
+def start_whisper_server(args: Namespace) -> tuple[Popen, str, Event, Thread]:
+    whisper_server = args.whisper_server or default_whisper_server(args.no_gpu)
+    port = args.server_port or free_local_port(args.server_host)
+    command = [
+        str(whisper_server),
+        "-m",
+        str(args.model),
+        "-l",
+        args.language,
+        "-t",
+        str(args.threads),
+        "-nt",
+        "--host",
+        args.server_host,
+        "--port",
+        str(port),
+    ]
+    if args.no_gpu:
+        command.append("-ng")
+
+    process = Popen(
+        command,
+        cwd=Path(__file__).resolve().parent,
+        stdout=-1,
+        stderr=-2,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    stop_event = Event()
+    output_thread = Thread(target=stream_process_output, args=(process, stop_event), daemon=True)
+    output_thread.start()
+    wait_for_port(args.server_host, port, process)
+    return process, f"http://{args.server_host}:{port}/inference", stop_event, output_thread
+
+
+def stop_whisper_server(process: Popen | None, stop_event: Event | None, output_thread: Thread | None) -> None:
+    if process and process.poll() is None:
+        process.terminate()
+        try:
+            process.wait(timeout=5.0)
+        except TimeoutExpired:
+            process.kill()
+    if stop_event:
+        stop_event.set()
+    if output_thread:
+        output_thread.join(timeout=1.0)
+
+
 def run_live(args: Namespace) -> None:
+    args.threads = args.threads or default_live_threads()
+    if args.server:
+        args.max_backlog = min(args.max_backlog, 2)
     if args.save_recording:
         args.recording_output = args.recording_output or default_recording_path(args.recording_dir)
     if args.recording_output:
@@ -191,24 +317,43 @@ def run_live(args: Namespace) -> None:
     if args.recording_output:
         print(f"Recording: {args.recording_output}")
     print(f"Model: {args.model}")
+    print(f"Threads: {args.threads}")
+    if args.server:
+        print("Mode: whisper-server")
     print("Press Ctrl+C to stop.")
 
     chunks: Queue[np.ndarray] = Queue(maxsize=args.max_backlog)
     stop_event = Event()
     capture_thread = Thread(target=capture_audio, args=(args, chunks, stop_event), daemon=True)
-    capture_thread.start()
+    server_process = None
+    server_output_stop = None
+    server_output_thread = None
 
     try:
-        with TemporaryDirectory() as temp_dir:
-            temp_audio = Path(temp_dir) / "chunk.wav"
+        if args.server:
+            import requests
+
+            server_process, server_url, server_output_stop, server_output_thread = start_whisper_server(args)
+            print(f"Server: {server_url}")
+            capture_thread.start()
+            session = requests.Session()
             while True:
                 mono = chunks.get()
                 chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
-                sf.write(temp_audio, chunk, args.sample_rate, subtype="PCM_16")
-                append_transcript(output_path, transcribe_with_cpp(args, temp_audio))
+                append_transcript(output_path, transcribe_with_server(args, session, server_url, chunk))
+        else:
+            capture_thread.start()
+            with TemporaryDirectory() as temp_dir:
+                temp_audio = Path(temp_dir) / "chunk.wav"
+                while True:
+                    mono = chunks.get()
+                    chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
+                    sf.write(temp_audio, chunk, args.sample_rate, subtype="PCM_16")
+                    append_transcript(output_path, transcribe_with_cpp(args, temp_audio))
     finally:
         stop_event.set()
         capture_thread.join(timeout=2.0)
+        stop_whisper_server(server_process, server_output_stop, server_output_thread)
 
 
 def main() -> None:

@@ -2,6 +2,7 @@ import type { BrowserWindow as BrowserWindowType } from "electron";
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
 import { closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, statSync, writeFileSync, writeSync } from "node:fs";
+import { cpus } from "node:os";
 import path from "node:path";
 
 type CommandArgs = Record<string, unknown>;
@@ -195,6 +196,26 @@ function num(value: unknown): string | undefined {
   return typeof value === "number" && Number.isFinite(value) ? String(value) : undefined;
 }
 
+function logicalThreadCount(): number {
+  return Math.max(1, cpus().length);
+}
+
+function liveThreadCount(): string {
+  const threads = logicalThreadCount();
+  if (threads <= 4) return String(threads);
+  if (threads <= 8) return "4";
+  if (threads <= 16) return "6";
+  return "8";
+}
+
+function postThreadCount(): string {
+  const threads = logicalThreadCount();
+  if (threads <= 4) return String(threads);
+  if (threads <= 8) return "6";
+  if (threads <= 16) return "10";
+  return "16";
+}
+
 function resolveOutputDir(args: CommandArgs): string {
   const configured = str(args.outputDir) ?? "outputs";
   const outputDir = path.isAbsolute(configured) ? configured : path.resolve(dataRoot, configured);
@@ -257,9 +278,14 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
       return { label: "Live whisper.cpp GPU", ...runCmd(path.join("whisper_cpp", "live_cpp.cmd"), extra) };
     }
     case "live-cpp-cpu": {
-      const extra = ["--recording-dir", outputDir, ...captureArgs(args)];
+      const extra = ["--recording-dir", outputDir, "--threads", liveThreadCount(), ...captureArgs(args)];
       if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
       return { label: "Live whisper.cpp CPU", ...runCmd(path.join("whisper_cpp", "live_cpp_cpu.cmd"), extra) };
+    }
+    case "live-cpp-server-cpu": {
+      const extra = ["--recording-dir", outputDir, "--threads", liveThreadCount(), ...captureArgs(args)];
+      if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
+      return { label: "Live whisper.cpp server CPU", ...runCmd(path.join("whisper_cpp", "live_cpp_server_cpu.cmd"), extra) };
     }
     case "record-enter":
       return { label: "Record until Enter", ...runCmd(path.join("python_backend", "record_meeting.cmd"), ["--until-enter", "--output", path.join(timestampedOutputDir(outputDir, "meeting"), "audio.wav"), ...captureArgs(args)]) };
@@ -282,7 +308,7 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
       return {
         label: "whisper.cpp CPU",
         executable: path.join(dataRoot, "whisper_cpp", "bin_cpu", "Release", "whisper-cli.exe"),
-        args: ["-m", path.join(dataRoot, "whisper_cpp", "models", "ggml-small.bin"), "-f", audioPath, "-l", "ja", "-otxt", "-of", outputBase, "-t", "16"]
+        args: ["-m", path.join(dataRoot, "whisper_cpp", "models", "ggml-small.bin"), "-f", audioPath, "-l", "ja", "-otxt", "-of", outputBase, "-t", postThreadCount()]
       };
     }
     case "qwen-gpu": {

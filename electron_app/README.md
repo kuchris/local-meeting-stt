@@ -54,7 +54,7 @@ The `dev` and `preview` scripts clear `ELECTRON_RUN_AS_NODE` first. If that vari
 
 ## Tabs
 
-- `Live`: Python live + WAV, Python live text, whisper.cpp GPU live, whisper.cpp CPU live.
+- `Live`: Python live + WAV, Python live text, whisper.cpp GPU live, whisper.cpp CPU live, and CPP Server live.
 - `Record`: record until Enter or timed WAV recording.
 - `Transcribe`: choose/drop an audio file and run whisper.cpp CPU/GPU or Qwen CPU/GPU.
 - `Setup`: check assets, download all or one asset with per-row progress/pause, choose the output folder, and choose audio capture devices.
@@ -68,6 +68,8 @@ The `dev` and `preview` scripts clear `ELECTRON_RUN_AS_NODE` first. If that vari
 - `Setup > Audio input`: choose Windows speaker loopback and optional microphone.
 
 Blank device selection means "use the script default". When a specific device is selected, the app passes `--system-device`, `--include-mic`, and `--mic-device` to supported live/record commands.
+
+`CPP Server` keeps `whisper-server.exe` running for the live session and posts captured loopback chunks to it. This avoids reloading the whisper.cpp model for every chunk while still using the selected Windows speaker loopback.
 
 ## Backend Notes
 

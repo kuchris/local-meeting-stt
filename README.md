@@ -61,6 +61,7 @@ You do not need every asset for every mode.
 
 ```text
 CPP CPU       -> whisper.cpp CPU + whisper.cpp small model
+CPP Server    -> whisper.cpp CPU + whisper.cpp small model
 CPP GPU       -> whisper.cpp CUDA + whisper.cpp small model
 Live Text     -> faster-whisper small
 Live + WAV    -> faster-whisper small
@@ -81,6 +82,7 @@ Use this during a meeting.
 - `Live Text`: rough live transcript only.
 - `CPP GPU`: whisper.cpp live transcription with GPU build.
 - `CPP CPU`: whisper.cpp live transcription with CPU build.
+- `CPP Server`: whisper.cpp CPU live transcription with a resident server process. This keeps the model loaded while still using the selected Windows speaker loopback.
 
 Lower `Chunk seconds` for lower delay. Higher values are usually more stable.
 
@@ -101,6 +103,12 @@ Drop or choose an audio file, then run:
 - `Qwen GPU` / `Qwen CPU` for Qwen3-ASR post-processing.
 
 Qwen can be slower and use more VRAM, but it is useful to compare final transcript quality.
+
+For a quick whisper.cpp CPU file test without opening or playing sound:
+
+```powershell
+whisper_cpp\bin_cpu\Release\whisper-cli.exe -m whisper_cpp\models\ggml-small.bin -f test\audio.wav -l ja -otxt -of test\audio_cpp_cpu_sim -t 6 -ng
+```
 
 ### Setup
 

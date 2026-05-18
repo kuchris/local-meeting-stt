@@ -631,6 +631,10 @@ function App() {
       await run("live-cpp-cpu", { chunkSeconds, ...captureSettings });
       return;
     }
+    if (action === "live-cpp-server-cpu") {
+      await run("live-cpp-server-cpu", { chunkSeconds, ...captureSettings });
+      return;
+    }
     if (action === "stop") {
       await stop();
       return;
@@ -684,6 +688,7 @@ function App() {
                 <button disabled={isRunning} onClick={() => void runMenuAction("live-whisper")}><span>Live Text</span></button>
                 <button disabled={isRunning} onClick={() => void runMenuAction("live-cpp-gpu")}><span>CPP GPU Live</span></button>
                 <button disabled={isRunning} onClick={() => void runMenuAction("live-cpp-cpu")}><span>CPP CPU Live</span></button>
+                <button disabled={isRunning} onClick={() => void runMenuAction("live-cpp-server-cpu")}><span>CPP Server Live</span></button>
                 <div className="menu-separator" />
                 <button disabled={!isRunning} onClick={() => void runMenuAction("stop")}><span>Stop</span></button>
               </div>
@@ -778,6 +783,7 @@ function App() {
                   <button disabled={isRunning} onClick={() => run("live-whisper", { chunkSeconds, ...captureSettings })}>Live Text</button>
                   <button disabled={isRunning} onClick={() => run("live-cpp-gpu", { chunkSeconds, ...captureSettings })}>CPP GPU</button>
                   <button disabled={isRunning} onClick={() => run("live-cpp-cpu", { chunkSeconds, ...captureSettings })}>CPP CPU</button>
+                  <button disabled={isRunning} onClick={() => run("live-cpp-server-cpu", { chunkSeconds, ...captureSettings })}>CPP Server</button>
                 </div>
                 <button className="danger" disabled={!isRunning} onClick={stop}>Stop active process</button>
               </section>
