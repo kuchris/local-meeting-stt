@@ -42,6 +42,14 @@ To try a single portable `.exe` package later:
 npm run dist:portable
 ```
 
+For the folder-style portable package used by this repo, run from the repo root:
+
+```text
+build_portable_folder.cmd
+```
+
+That creates `electron_app/dist/Local Meeting STT portable/` with the exe, backend scripts, `settings.json`, output/model folders, and `runtime/`.
+
 The `dev` and `preview` scripts clear `ELECTRON_RUN_AS_NODE` first. If that variable is set, Electron can start like plain Node and show a blank app window.
 
 ## Tabs
@@ -49,7 +57,7 @@ The `dev` and `preview` scripts clear `ELECTRON_RUN_AS_NODE` first. If that vari
 - `Live`: Python live + WAV, Python live text, whisper.cpp GPU live, whisper.cpp CPU live.
 - `Record`: record until Enter or timed WAV recording.
 - `Transcribe`: choose/drop an audio file and run whisper.cpp CPU/GPU or Qwen CPU/GPU.
-- `Setup`: check assets, download all or one asset, choose the output folder, and choose audio capture devices.
+- `Setup`: check assets, download all or one asset with per-row progress/pause, choose the output folder, and choose audio capture devices.
 
 ## Controls
 
@@ -63,8 +71,8 @@ Blank device selection means "use the script default". When a specific device is
 
 ## Backend Notes
 
-The app resolves all backend paths relative to the parent repo folder. It does not bundle models, Python packages, or whisper.cpp binaries.
+The app resolves backend scripts from the code root and local data from the data root. In dev/repo mode these are usually the repo root. In folder-portable mode, the data root is the folder beside the exe when it contains `settings.json`.
 
-Local Electron cache/user data is written under the parent repo's ignored `.electron-user-data/` folder.
+Local Electron cache/user data is written under `runtime/electron-user-data/`. `uv` cache/env paths are also kept under `runtime/`.
 
 See the parent repo [TECHNICAL.md](../TECHNICAL.md) for backend commands, model folders, and asset download details.

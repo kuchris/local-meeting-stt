@@ -12,9 +12,11 @@ test/              demo audio, demo transcripts, and drag/drop test .bat files
 recordings/        generated meeting recordings
 outputs/           Electron app output folder for recordings and transcripts
 models/            faster-whisper and Qwen model folders
+runtime/           portable/local runtime data, uv cache, venv, and Electron user data
+settings.json      portable/local UI and output settings
 ```
 
-Ignored local folders include `models/`, `outputs/`, `recordings/`, `whisper_cpp/bin_*`, `whisper_cpp/models/`, `whisper_cpp/output/`, `electron_app/node_modules/`, `electron_app/out/`, and `.electron-user-data/`.
+Ignored local folders include `models/`, `outputs/`, `recordings/`, `runtime/`, `whisper_cpp/bin_*`, `whisper_cpp/models/`, `whisper_cpp/output/`, `electron_app/node_modules/`, `electron_app/out/`, and Electron build output folders.
 
 ## Backend Scripts
 
@@ -96,6 +98,12 @@ Download all local assets:
 uv run --with huggingface-hub python python_backend\download_assets.py
 ```
 
+Download assets into a portable folder:
+
+```powershell
+uv run --with huggingface-hub python python_backend\download_assets.py --target-root "path\to\Local Meeting STT portable"
+```
+
 Download only whisper.cpp assets:
 
 ```powershell
@@ -120,6 +128,8 @@ whisper_cpp/
 ```
 
 Do not commit model files or downloaded runtimes to normal Git history. Use releases, external storage, or Git LFS if distribution is needed later.
+
+The Electron Setup tab uses the same downloader. Per-asset downloads are launched independently and report `ASSET_PROGRESS` lines for row progress. whisper.cpp zip/model downloads use resumable `.part` files where possible. Hugging Face snapshot model folders may still report stage-style progress.
 
 ## whisper.cpp
 
@@ -147,4 +157,33 @@ cd electron_app
 npm run build
 ```
 
-The Electron main process resolves backend paths relative to the parent repo folder. It does not bundle models, Python packages, or whisper.cpp binaries.
+## Portable Folder Build
+
+Create a folder-style portable package:
+
+```powershell
+build_portable_folder.cmd
+```
+
+This writes:
+
+```text
+electron_app/dist/Local Meeting STT portable/
+  Local Meeting STT.exe
+  settings.json
+  README.txt
+  python_backend/
+  whisper_cpp/
+  models/
+  outputs/
+  runtime/
+```
+
+The portable folder copies backend scripts but does not bundle model files or Python packages. Models can be downloaded from the Setup tab into the portable folder. `runtime/uv-cache`, `runtime/venv`, and `runtime/electron-user-data` are local machine state.
+
+The Electron main process uses two roots:
+
+- code root: folder containing `python_backend/record_audio.py`
+- data root: folder beside the portable exe when it contains `settings.json`; otherwise the repo root
+
+Relative output/model/settings paths resolve against the data root.

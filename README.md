@@ -32,10 +32,16 @@ Double-click this file from the repo root. If a packaged app already exists, it 
 Portable app:
 
 ```text
-electron_app/dist/Local Meeting STT 0.1.0.exe
+electron_app/dist/Local Meeting STT portable/Local Meeting STT.exe
 ```
 
-Keep the portable `.exe` inside this repo folder so it can find `python_backend/`, `whisper_cpp/`, and `models/`.
+Build this folder with:
+
+```text
+build_portable_folder.cmd
+```
+
+The folder-style portable package includes the app, backend scripts, `settings.json`, empty model/output folders, and a local `runtime/` folder. Zip the whole folder if you want to share it.
 
 Developer run:
 
@@ -62,6 +68,8 @@ Qwen CPU/GPU  -> Qwen3-ASR
 ```
 
 In the `Setup` tab, each asset row has its own download button. Use those row buttons when you only want one mode, such as CPP CPU.
+
+Asset downloads run per row. Each row has its own progress bar and a pause/cancel button while downloading. Starting the same row again resumes or retries where the downloader/cache allows.
 
 ## App Tabs
 
@@ -134,6 +142,14 @@ outputs/
 
 Post-transcription output is also written to the selected output folder.
 
+The app also scans session folders in the selected output folder. A session is detected when it contains:
+
+```text
+audio.wav
+```
+
+Post-transcription results for session audio are written back into that same session folder.
+
 Test/demo files live in:
 
 ```text
@@ -141,6 +157,20 @@ test/
 ```
 
 Local model files, recordings, generated transcripts, and Electron build/cache files are ignored by Git.
+
+Portable settings are stored in:
+
+```text
+settings.json
+```
+
+Runtime/cache data is stored in:
+
+```text
+runtime/
+```
+
+Both are local/user state and are ignored by Git.
 
 ## Notes
 
