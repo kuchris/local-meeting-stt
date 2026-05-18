@@ -7,18 +7,43 @@
   "scripts": {
     "dev": "set ELECTRON_RUN_AS_NODE=& electron-vite dev",
     "build": "tsc --noEmit && electron-vite build",
-    "preview": "set ELECTRON_RUN_AS_NODE=& electron-vite preview"
+    "preview": "set ELECTRON_RUN_AS_NODE=& electron-vite preview",
+    "dist": "npm run build && electron-builder --win dir",
+    "dist:portable": "npm run build && set ELECTRON_BUILDER_CACHE=..\\.electron-builder-cache&& electron-builder --win portable"
   },
-  "dependencies": {
-    "@vitejs/plugin-react": "^5.1.1",
-    "electron-vite": "^4.0.0",
-    "vite": "^7.2.7",
+  "build": {
+    "appId": "local.meeting.stt",
+    "productName": "Local Meeting STT",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "npmRebuild": false
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^39.8.10",
+    "electron-builder": "^26.8.1",
+    "electron-vite": "^4.0.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "typescript": "^5.9.3",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "electron": "^39.2.7",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3"
-  },
-  "devDependencies": {}
+    "vite": "^7.3.3"
+  }
 }

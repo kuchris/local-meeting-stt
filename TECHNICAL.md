@@ -10,10 +10,11 @@ python_backend/    Python scripts and Windows .cmd wrappers
 whisper_cpp/       whisper.cpp runtimes, models, wrappers, and output
 test/              demo audio, demo transcripts, and drag/drop test .bat files
 recordings/        generated meeting recordings
+outputs/           Electron app output folder for recordings and transcripts
 models/            faster-whisper and Qwen model folders
 ```
 
-Ignored local folders include `models/`, `recordings/`, `whisper_cpp/bin_*`, `whisper_cpp/models/`, `whisper_cpp/output/`, `electron_app/node_modules/`, `electron_app/out/`, and `.electron-user-data/`.
+Ignored local folders include `models/`, `outputs/`, `recordings/`, `whisper_cpp/bin_*`, `whisper_cpp/models/`, `whisper_cpp/output/`, `electron_app/node_modules/`, `electron_app/out/`, and `.electron-user-data/`.
 
 ## Backend Scripts
 

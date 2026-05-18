@@ -11,6 +11,7 @@ import shutil
 WHISPER_CPP_RELEASE = "v1.8.4"
 WHISPER_CPP_CUDA_ASSET = "whisper-cublas-12.4.0-bin-x64.zip"
 WHISPER_CPP_CPU_ASSET = "whisper-bin-x64.zip"
+ASSET_CHOICES = ("faster-whisper", "qwen", "whisper-cpp-cpu", "whisper-cpp-cuda", "whisper-cpp-model")
 
 
 def parse_args() -> Namespace:
@@ -19,6 +20,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--skip-faster-whisper", action="store_true", help="Skip Systran/faster-whisper-small")
     parser.add_argument("--skip-qwen", action="store_true", help="Skip Qwen/Qwen3-ASR-0.6B")
     parser.add_argument("--skip-whisper-cpp", action="store_true", help="Skip whisper.cpp runtime and ggml model")
+    parser.add_argument("--only", choices=ASSET_CHOICES, help="Download only one asset")
     parser.add_argument("--force", action="store_true", help="Remove existing target folders before downloading")
     return parser.parse_args()
 
@@ -98,39 +100,43 @@ def extract_zip(zip_path: Path, destination: Path, force: bool) -> None:
 
 def download_assets(args: Namespace) -> None:
     root = args.target_root.resolve()
+    only = args.only
 
-    if not args.skip_faster_whisper:
+    if (only in (None, "faster-whisper")) and not args.skip_faster_whisper:
         download_hf_snapshot(
             "Systran/faster-whisper-small",
             root / "models" / "faster-whisper-small",
             args.force,
         )
 
-    if not args.skip_qwen:
+    if (only in (None, "qwen")) and not args.skip_qwen:
         download_hf_snapshot(
             "Qwen/Qwen3-ASR-0.6B",
             root / "models" / "Qwen3-ASR-0.6B",
             args.force,
         )
 
-    if not args.skip_whisper_cpp:
+    if (only is None or only.startswith("whisper-cpp-")) and not args.skip_whisper_cpp:
         whisper_cpp_root = root / "whisper_cpp"
-        cuda_zip_path = whisper_cpp_root / "downloads" / WHISPER_CPP_CUDA_ASSET
-        cuda_asset_url = github_release_asset_url(WHISPER_CPP_RELEASE, WHISPER_CPP_CUDA_ASSET)
-        download_url(cuda_asset_url, cuda_zip_path, args.force)
-        extract_zip(cuda_zip_path, whisper_cpp_root / "bin_cuda", args.force)
+        if only in (None, "whisper-cpp-cuda"):
+            cuda_zip_path = whisper_cpp_root / "downloads" / WHISPER_CPP_CUDA_ASSET
+            cuda_asset_url = github_release_asset_url(WHISPER_CPP_RELEASE, WHISPER_CPP_CUDA_ASSET)
+            download_url(cuda_asset_url, cuda_zip_path, args.force)
+            extract_zip(cuda_zip_path, whisper_cpp_root / "bin_cuda", args.force)
 
-        cpu_zip_path = whisper_cpp_root / "downloads" / WHISPER_CPP_CPU_ASSET
-        cpu_asset_url = github_release_asset_url(WHISPER_CPP_RELEASE, WHISPER_CPP_CPU_ASSET)
-        download_url(cpu_asset_url, cpu_zip_path, args.force)
-        extract_zip(cpu_zip_path, whisper_cpp_root / "bin_cpu", args.force)
+        if only in (None, "whisper-cpp-cpu"):
+            cpu_zip_path = whisper_cpp_root / "downloads" / WHISPER_CPP_CPU_ASSET
+            cpu_asset_url = github_release_asset_url(WHISPER_CPP_RELEASE, WHISPER_CPP_CPU_ASSET)
+            download_url(cpu_asset_url, cpu_zip_path, args.force)
+            extract_zip(cpu_zip_path, whisper_cpp_root / "bin_cpu", args.force)
 
-        download_hf_file(
-            "ggerganov/whisper.cpp",
-            "ggml-small.bin",
-            whisper_cpp_root / "models" / "ggml-small.bin",
-            args.force,
-        )
+        if only in (None, "whisper-cpp-model"):
+            download_hf_file(
+                "ggerganov/whisper.cpp",
+                "ggml-small.bin",
+                whisper_cpp_root / "models" / "ggml-small.bin",
+                args.force,
+            )
 
     print(f"Done. Asset root: {root}")
 

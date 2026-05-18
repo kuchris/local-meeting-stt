@@ -623,6 +623,37 @@ small {
   gap: 9px;
 }
 
+.output-folder-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+}
+
+.output-icon-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 38px);
+  gap: 7px;
+}
+
+.icon-button {
+  width: 38px;
+  min-height: 38px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
+.icon-button svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .dropzone {
   border: 1px dashed #d1d5db;
   border-radius: 8px;
@@ -904,7 +935,7 @@ small {
 
 .asset-row {
   display: grid;
-  grid-template-columns: 14px 1fr;
+  grid-template-columns: 14px minmax(0, 1fr) 38px;
   align-items: center;
   gap: 10px;
   padding: 11px 12px;
@@ -924,6 +955,26 @@ small {
   font-family: "Cascadia Mono", Consolas, monospace;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.asset-download {
+  width: 34px;
+  min-height: 34px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  justify-self: end;
+  color: #374151;
+}
+
+.asset-download svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .ok-dot,

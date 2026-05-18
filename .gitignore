@@ -7,6 +7,7 @@ whisper_cpp/downloads/
 whisper_cpp/models/
 
 # Generated recordings and transcripts
+outputs/
 recordings/
 whisper_cpp/output/
 *.wav
@@ -22,6 +23,7 @@ live_transcript.txt
 __pycache__/
 *.pyc
 .cache/
+.electron-builder-cache/
 
 # Local environment files
 .venv/

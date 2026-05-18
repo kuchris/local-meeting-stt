@@ -71,6 +71,44 @@ function TabIcon({ tab }: { tab: Tab }) {
   );
 }
 
+function OutputActionIcon({ action }: { action: "choose" | "open" | "reset" }) {
+  if (action === "choose") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3.5 6.5h6l2 2h9v9.5a2 2 0 0 1-2 2h-15V6.5Z" />
+        <path d="M3.5 6.5V5a1.5 1.5 0 0 1 1.5-1.5h4.5l2 2h7a1.5 1.5 0 0 1 1.5 1.5v1.5" />
+        <path d="M12 12.5v5" />
+        <path d="M9.5 15h5" />
+      </svg>
+    );
+  }
+  if (action === "open") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3.5 6.5h6l2 2h9v9.5a2 2 0 0 1-2 2h-15V6.5Z" />
+        <path d="M13.5 13.5h4v4" />
+        <path d="M11.5 19.5l6-6" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 8.5a6.5 6.5 0 1 1-1.2 8" />
+      <path d="M7 4.5v4h-4" />
+    </svg>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 4.5v9" />
+      <path d="M8.5 10.5 12 14l3.5-3.5" />
+      <path d="M5 18.5h14" />
+    </svg>
+  );
+}
+
 function App() {
   const [tab, setTab] = useState<Tab>("live");
   const [logs, setLogs] = useState<LogLine[]>([]);
@@ -87,6 +125,7 @@ function App() {
   const [audioDevices, setAudioDevices] = useState<AudioDeviceStatus | null>(null);
   const [assets, setAssets] = useState<AssetStatus[]>([]);
   const [lastOutputPath, setLastOutputPath] = useState("");
+  const [outputDir, setOutputDir] = useState(() => localStorage.getItem("meetingOutputDir") || "outputs");
   const [liveTranscript, setLiveTranscript] = useState("");
   const [liveTranscriptPath, setLiveTranscriptPath] = useState("");
   const [openMenu, setOpenMenu] = useState<MenuName | null>(null);
@@ -114,6 +153,10 @@ function App() {
     const outputElement = outputRef.current;
     if (outputElement) outputElement.scrollTop = outputElement.scrollHeight;
   }, [liveTranscript, lastOutputPath, tab]);
+
+  useEffect(() => {
+    localStorage.setItem("meetingOutputDir", outputDir);
+  }, [outputDir]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -167,7 +210,7 @@ function App() {
         setLiveTranscript("");
         setLiveTranscriptPath("");
       }
-      await window.meetingApi.runCommand(kind, args);
+      await window.meetingApi.runCommand(kind, { outputDir: outputDir.trim() || "outputs", ...args });
     } catch (error) {
       pushLog(0, "stderr", `${error instanceof Error ? error.message : String(error)}\n`);
     }
@@ -185,6 +228,15 @@ function App() {
     if (file) setAudioPath(file);
   }
 
+  async function pickOutputFolder() {
+    const folder = await window.meetingApi.pickOutputFolder();
+    if (folder) setOutputDir(folder);
+  }
+
+  async function downloadAsset(assetId: string) {
+    await run("download-asset", { assetId });
+  }
+
   function updateExpectedOutput(kind: string) {
     const suffixes: Record<string, string> = {
       "cpp-gpu": "_cpp_gpu_transcript.txt",
@@ -194,7 +246,9 @@ function App() {
     };
     const suffix = suffixes[kind];
     if (suffix && audioPath) {
-      setLastOutputPath(audioPath.replace(/\.[^.\\/]+$/, suffix));
+      const sourceName = audioPath.split(/[\\/]/).pop()?.replace(/\.[^.\\/]+$/, "") || "audio";
+      const baseDir = outputDir.trim() || "outputs";
+      setLastOutputPath(`${baseDir.replace(/[\\/]$/, "")}\\${sourceName}${suffix}`);
     }
   }
 
@@ -246,11 +300,11 @@ function App() {
       return;
     }
     if (action === "open-recordings") {
-      await window.meetingApi.openPath("recordings");
+      await window.meetingApi.openPath(outputDir.trim() || "outputs");
       return;
     }
     if (action === "open-cpp-output") {
-      await window.meetingApi.openPath("whisper_cpp/output");
+      await window.meetingApi.openPath(outputDir.trim() || "outputs");
       return;
     }
     if (action === "clear-output") {
@@ -321,8 +375,7 @@ function App() {
             {openMenu === "file" && (
               <div className="dropdown-menu">
                 <button onClick={() => void runMenuAction("open-audio")}><span>Open Audio...</span><kbd>Ctrl+O</kbd></button>
-                <button onClick={() => void runMenuAction("open-recordings")}><span>Open Recordings</span></button>
-                <button onClick={() => void runMenuAction("open-cpp-output")}><span>Open CPP Output</span></button>
+                <button onClick={() => void runMenuAction("open-recordings")}><span>Open Outputs</span></button>
                 <div className="menu-separator" />
                 <button onClick={() => void runMenuAction("exit")}><span>Exit</span></button>
               </div>
@@ -495,15 +548,40 @@ function App() {
                         <strong>{asset.label}</strong>
                         <small>{asset.relativePath}</small>
                       </div>
+                      <button
+                        className="asset-download"
+                        title={`Download ${asset.label}`}
+                        aria-label={`Download ${asset.label}`}
+                        disabled={isRunning}
+                        onClick={() => downloadAsset(asset.id)}
+                      >
+                        <DownloadIcon />
+                      </button>
                     </div>
                   ))}
                 </div>
                 <div className="setup-actions" aria-label="Setup actions">
                   <button title="Refresh status" aria-label="Refresh status" onClick={refreshAssets}>↻</button>
                   <button title="Download assets" aria-label="Download assets" disabled={isRunning} onClick={() => run("download-assets")}>↓</button>
-                  <button title="Open recordings" aria-label="Open recordings" onClick={() => window.meetingApi.openPath("recordings")}>▣</button>
-                  <button title="Open CPP output" aria-label="Open CPP output" onClick={() => window.meetingApi.openPath("whisper_cpp/output")}>⌘</button>
+                  <button title="Open outputs" aria-label="Open outputs" onClick={() => window.meetingApi.openPath(outputDir.trim() || "outputs")}>▣</button>
                 </div>
+                <section className="output-settings">
+                  <h3>Output folder</h3>
+                  <div className="output-folder-row">
+                    <input value={outputDir} onChange={(event) => setOutputDir(event.target.value)} placeholder="outputs" />
+                    <div className="output-icon-actions" aria-label="Output folder actions">
+                      <button className="icon-button" title="Choose output folder" aria-label="Choose output folder" onClick={pickOutputFolder}>
+                        <OutputActionIcon action="choose" />
+                      </button>
+                      <button className="icon-button" title="Open output folder" aria-label="Open output folder" onClick={() => window.meetingApi.openPath(outputDir.trim() || "outputs")}>
+                        <OutputActionIcon action="open" />
+                      </button>
+                      <button className="icon-button" title="Reset output folder" aria-label="Reset output folder" onClick={() => setOutputDir("outputs")}>
+                        <OutputActionIcon action="reset" />
+                      </button>
+                    </div>
+                  </div>
+                </section>
               </section>
             )}
             </div>

@@ -15,8 +15,10 @@ import soundfile as sf
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+PYTHON_BACKEND = ROOT / "python_backend"
+for import_path in (PYTHON_BACKEND, ROOT):
+    if str(import_path) not in sys.path:
+        sys.path.insert(0, str(import_path))
 
 from record_audio import mix_audio, resample_audio, select_microphone, select_system_loopback
 

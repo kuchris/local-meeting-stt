@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld("meetingApi", {
   runCommand: (kind: string, args?: Record<string, unknown>) => ipcRenderer.invoke("run-command", kind, args ?? {}),
   stopCommand: (processId: number) => ipcRenderer.invoke("stop-command", processId),
   pickAudioFile: () => ipcRenderer.invoke("pick-audio-file"),
+  pickOutputFolder: () => ipcRenderer.invoke("pick-output-folder"),
   openPath: (targetPath: string) => ipcRenderer.invoke("open-path", targetPath),
   checkAssets: () => ipcRenderer.invoke("check-assets"),
   listAudioDevices: () => ipcRenderer.invoke("list-audio-devices"),

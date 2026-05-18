@@ -68,8 +68,8 @@ Qwen can be slower and use more VRAM, but it is useful to compare final transcri
 Use this to prepare the local machine.
 
 - Check whether models and whisper.cpp binaries exist.
-- Download missing assets.
-- Open recordings and whisper.cpp output folders.
+- Download all assets or download one missing asset from its row.
+- Choose and open the output folder.
 - Choose the Windows speaker loopback device.
 - Enable optional microphone mixing.
 
@@ -84,16 +84,24 @@ Blank audio device selection means the default device is used.
 
 ## Output Folders
 
+The Electron app writes recordings and transcripts to one output folder. The default is:
+
+```text
+outputs/
+```
+
+You can change it from the `Setup` tab.
+
 Live meeting output:
 
 ```text
-recordings/
+outputs/
   live_meeting_YYYYMMDD_HHMMSS/
     audio.wav
     live_transcript.txt
 ```
 
-Post-transcription output is written next to the selected audio file.
+Post-transcription output is also written to the selected output folder.
 
 Test/demo files live in:
 

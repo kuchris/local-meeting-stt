@@ -1,7 +1,7 @@
 import type { BrowserWindow as BrowserWindowType } from "electron";
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 
 type CommandArgs = Record<string, unknown>;
@@ -14,8 +14,39 @@ type AudioDeviceStatus = {
   error?: string;
 };
 
-const repoRoot = path.resolve(process.cwd(), "..");
+function isRepoRoot(candidate: string): boolean {
+  return existsSync(path.join(candidate, "python_backend", "record_audio.py")) && existsSync(path.join(candidate, "electron_app"));
+}
+
+function resolveRepoRoot(): string {
+  const exeDir = path.dirname(process.execPath);
+  const portableDir = process.env.PORTABLE_EXECUTABLE_DIR;
+  const portableFileDir = process.env.PORTABLE_EXECUTABLE_FILE ? path.dirname(process.env.PORTABLE_EXECUTABLE_FILE) : undefined;
+  const candidates = [
+    process.env.LOCAL_MEETING_STT_ROOT,
+    portableDir,
+    portableDir ? path.resolve(portableDir, "..") : undefined,
+    portableDir ? path.resolve(portableDir, "..", "..") : undefined,
+    portableDir ? path.resolve(portableDir, "..", "..", "..") : undefined,
+    portableFileDir,
+    portableFileDir ? path.resolve(portableFileDir, "..") : undefined,
+    portableFileDir ? path.resolve(portableFileDir, "..", "..") : undefined,
+    portableFileDir ? path.resolve(portableFileDir, "..", "..", "..") : undefined,
+    process.cwd(),
+    path.resolve(process.cwd(), ".."),
+    path.resolve(process.cwd(), "..", ".."),
+    path.resolve(process.cwd(), "..", "..", ".."),
+    path.resolve(exeDir, ".."),
+    path.resolve(exeDir, "..", ".."),
+    path.resolve(exeDir, "..", "..", "..")
+  ].filter((candidate): candidate is string => Boolean(candidate));
+
+  return candidates.find(isRepoRoot) ?? path.resolve(process.cwd(), "..");
+}
+
+const repoRoot = resolveRepoRoot();
 const electronDataDir = path.join(repoRoot, ".electron-user-data");
+const appIconPath = path.join(repoRoot, "electron_app", "build", "icon.png");
 const running = new Map<number, ChildProcessWithoutNullStreams>();
 let nextProcessId = 1;
 let mainWindow: BrowserWindowType | null = null;
@@ -33,6 +64,7 @@ function createWindow(): void {
     autoHideMenuBar: true,
     frame: false,
     title: "Local Meeting STT",
+    icon: appIconPath,
     webPreferences: {
       preload: path.join(__dirname, "../preload/preload.js"),
       contextIsolation: true,
@@ -64,6 +96,20 @@ function num(value: unknown): string | undefined {
   return typeof value === "number" && Number.isFinite(value) ? String(value) : undefined;
 }
 
+function resolveOutputDir(args: CommandArgs): string {
+  const configured = str(args.outputDir) ?? "outputs";
+  const outputDir = path.isAbsolute(configured) ? configured : path.resolve(repoRoot, configured);
+  mkdirSync(outputDir, { recursive: true });
+  return outputDir;
+}
+
+function timestampedOutputDir(outputDir: string, prefix: string): string {
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\..+$/, "").replace("T", "_");
+  const sessionDir = path.join(outputDir, `${prefix}_${stamp}`);
+  mkdirSync(sessionDir, { recursive: true });
+  return sessionDir;
+}
+
 function captureArgs(args: CommandArgs): string[] {
   const systemDevice = str(args.systemDevice);
   const micDevice = str(args.micDevice);
@@ -83,37 +129,40 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
   const chunkSeconds = num(args.chunkSeconds);
   const qwenTokens = num(args.qwenTokens);
   const qwenBatch = num(args.qwenBatch);
+  const outputDir = resolveOutputDir(args);
 
   switch (kind) {
     case "live-meeting": {
-      const extra = [...captureArgs(args)];
+      const extra = ["--recording-dir", outputDir, ...captureArgs(args)];
       if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
       return { label: "Live meeting", ...runCmd(path.join("python_backend", "live_meeting.cmd"), extra) };
     }
     case "live-whisper": {
-      const extra = [...captureArgs(args)];
+      const outputPath = path.join(timestampedOutputDir(outputDir, "live_text"), "live_transcript.txt");
+      const extra = ["--output", outputPath, ...captureArgs(args)];
       if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
       return { label: "Live transcript", ...runCmd(path.join("python_backend", "live_transcribe.cmd"), extra) };
     }
     case "live-cpp-gpu": {
-      const extra = [...captureArgs(args)];
+      const extra = ["--recording-dir", outputDir, ...captureArgs(args)];
       if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
       return { label: "Live whisper.cpp GPU", ...runCmd(path.join("whisper_cpp", "live_cpp.cmd"), extra) };
     }
     case "live-cpp-cpu": {
-      const extra = [...captureArgs(args)];
+      const extra = ["--recording-dir", outputDir, ...captureArgs(args)];
       if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
       return { label: "Live whisper.cpp CPU", ...runCmd(path.join("whisper_cpp", "live_cpp_cpu.cmd"), extra) };
     }
     case "record-enter":
-      return { label: "Record until Enter", ...runCmd(path.join("python_backend", "record_meeting.cmd"), ["--until-enter", ...captureArgs(args)]) };
+      return { label: "Record until Enter", ...runCmd(path.join("python_backend", "record_meeting.cmd"), ["--until-enter", "--output-dir", outputDir, ...captureArgs(args)]) };
     case "record-timed": {
       const duration = num(args.durationSeconds) ?? "3600";
-      return { label: "Timed recording", ...runCmd(path.join("python_backend", "record_meeting.cmd"), ["--duration", duration, ...captureArgs(args)]) };
+      return { label: "Timed recording", ...runCmd(path.join("python_backend", "record_meeting.cmd"), ["--duration", duration, "--output-dir", outputDir, ...captureArgs(args)]) };
     }
     case "cpp-gpu": {
       if (!audioPath) throw new Error("Choose an audio file first.");
-      const outputBase = audioPath.replace(/\.[^.\\/]+$/, "_cpp_gpu_transcript");
+      const sourceName = path.basename(audioPath).replace(/\.[^.\\/]+$/, "");
+      const outputBase = path.join(outputDir, `${sourceName}_cpp_gpu_transcript`);
       return {
         label: "whisper.cpp GPU",
         executable: path.join(repoRoot, "whisper_cpp", "bin_cuda", "Release", "whisper-cli.exe"),
@@ -122,7 +171,8 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
     }
     case "cpp-cpu": {
       if (!audioPath) throw new Error("Choose an audio file first.");
-      const outputBase = audioPath.replace(/\.[^.\\/]+$/, "_cpp_cpu_transcript");
+      const sourceName = path.basename(audioPath).replace(/\.[^.\\/]+$/, "");
+      const outputBase = path.join(outputDir, `${sourceName}_cpp_cpu_transcript`);
       return {
         label: "whisper.cpp CPU",
         executable: path.join(repoRoot, "whisper_cpp", "bin_cpu", "Release", "whisper-cli.exe"),
@@ -131,7 +181,8 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
     }
     case "qwen-gpu": {
       if (!audioPath) throw new Error("Choose an audio file first.");
-      const outputPath = audioPath.replace(/\.[^.\\/]+$/, "_qwen_gpu_transcript.txt");
+      const sourceName = path.basename(audioPath).replace(/\.[^.\\/]+$/, "");
+      const outputPath = path.join(outputDir, `${sourceName}_qwen_gpu_transcript.txt`);
       const commandArgs = ["python_backend/post_transcribe_qwen.py", audioPath, "-o", outputPath, "--device", "cuda:0"];
       if (qwenTokens) commandArgs.push("--max-new-tokens", qwenTokens);
       if (chunkSeconds) commandArgs.push("--chunk-seconds", chunkSeconds);
@@ -162,7 +213,8 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
     }
     case "qwen-cpu": {
       if (!audioPath) throw new Error("Choose an audio file first.");
-      const outputPath = audioPath.replace(/\.[^.\\/]+$/, "_qwen_cpu_transcript.txt");
+      const sourceName = path.basename(audioPath).replace(/\.[^.\\/]+$/, "");
+      const outputPath = path.join(outputDir, `${sourceName}_qwen_cpu_transcript.txt`);
       return {
         label: "Qwen CPU",
         executable: "uv",
@@ -194,6 +246,11 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
     }
     case "download-assets":
       return { label: "Download assets", executable: "uv", args: ["run", "--with", "huggingface-hub", "python", "python_backend/download_assets.py"] };
+    case "download-asset": {
+      const assetId = str(args.assetId);
+      if (!assetId) throw new Error("Missing asset id.");
+      return { label: `Download ${assetId}`, executable: "uv", args: ["run", "--with", "huggingface-hub", "python", "python_backend/download_assets.py", "--only", assetId] };
+    }
     default:
       throw new Error(`Unknown command: ${kind}`);
   }
@@ -305,25 +362,38 @@ ipcMain.handle("pick-audio-file", async () => {
   return result.canceled ? null : result.filePaths[0];
 });
 
+ipcMain.handle("pick-output-folder", async () => {
+  const result = await dialog.showOpenDialog({
+    title: "Select output folder",
+    properties: ["openDirectory", "createDirectory"]
+  });
+  return result.canceled ? null : result.filePaths[0];
+});
+
 ipcMain.handle("open-path", async (_, targetPath: string) => {
   if (!targetPath) return { ok: false };
   if (/^https?:\/\//.test(targetPath)) {
     await shell.openExternal(targetPath);
     return { ok: true };
   }
-  await shell.openPath(path.resolve(repoRoot, targetPath));
+  const resolvedPath = path.resolve(repoRoot, targetPath);
+  if (!existsSync(resolvedPath) && !path.extname(resolvedPath)) {
+    mkdirSync(resolvedPath, { recursive: true });
+  }
+  await shell.openPath(resolvedPath);
   return { ok: true };
 });
 
 ipcMain.handle("check-assets", async () => {
   const assets = [
-    ["Qwen3-ASR", "models/Qwen3-ASR-0.6B"],
-    ["faster-whisper small", "models/faster-whisper-small"],
-    ["whisper.cpp CPU", "whisper_cpp/bin_cpu/Release/whisper-cli.exe"],
-    ["whisper.cpp CUDA", "whisper_cpp/bin_cuda/Release/whisper-cli.exe"],
-    ["whisper.cpp small model", "whisper_cpp/models/ggml-small.bin"]
+    ["qwen", "Qwen3-ASR", "models/Qwen3-ASR-0.6B"],
+    ["faster-whisper", "faster-whisper small", "models/faster-whisper-small"],
+    ["whisper-cpp-cpu", "whisper.cpp CPU", "whisper_cpp/bin_cpu/Release/whisper-cli.exe"],
+    ["whisper-cpp-cuda", "whisper.cpp CUDA", "whisper_cpp/bin_cuda/Release/whisper-cli.exe"],
+    ["whisper-cpp-model", "whisper.cpp small model", "whisper_cpp/models/ggml-small.bin"]
   ];
-  return assets.map(([label, relativePath]) => ({
+  return assets.map(([id, label, relativePath]) => ({
+    id,
     label,
     relativePath,
     exists: existsSync(path.join(repoRoot, relativePath))
