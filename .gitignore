@@ -6,6 +6,8 @@ whisper_cpp/bin_cuda/
 whisper_cpp/downloads/
 whisper_cpp/models/
 whisper_cpp/src_vulkan/
+whisper_cpp/build_vulkan/
+whisper_cpp/build_vulkan_loopback/
 
 # Generated recordings and transcripts
 outputs/
