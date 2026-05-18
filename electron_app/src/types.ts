@@ -16,6 +16,8 @@ export type AssetStatus = {
   label: string;
   relativePath: string;
   exists: boolean;
+  downloadable?: boolean;
+  note?: string;
 };
 
 export type AudioDevice = {

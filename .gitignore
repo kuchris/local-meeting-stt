@@ -5,6 +5,7 @@ whisper_cpp/bin_cpu/
 whisper_cpp/bin_cuda/
 whisper_cpp/downloads/
 whisper_cpp/models/
+whisper_cpp/src_vulkan/
 
 # Generated recordings and transcripts
 outputs/

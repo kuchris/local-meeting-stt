@@ -1,18 +1,44 @@
 # Local Meeting STT
 
-Windows desktop app for recording meeting audio and creating local transcripts.
+Windows desktop app for local meeting recording and speech-to-text.
 
-The main target is Teams or browser meeting audio. The app records system audio through Windows loopback, can optionally mix your microphone, and can run either live rough transcription or post-meeting transcription.
+The main target is Teams or browser meeting audio. The app captures Windows system
+audio through loopback, can optionally mix your microphone, and can run live or
+post-meeting transcription without sending recordings to a cloud service.
 
 ![Local Meeting STT app preview](docs/preview.svg)
 
 ## What You Can Do
 
-- Record a meeting as a `.wav` file.
-- Watch a rough live transcript while the meeting runs.
+- Record meeting audio as a local `.wav` file.
+- Watch a live transcript while a meeting runs.
+- Capture speaker/headset output with the custom whisper.cpp Vulkan loopback mode.
+- Compare `base` and `small` whisper.cpp models from the same UI.
 - Transcribe an existing audio file after the meeting.
-- Use whisper.cpp CPU/GPU or Qwen3-ASR CPU/GPU from one UI.
-- Keep recordings, logs, and transcripts local.
+- Use whisper.cpp, faster-whisper, or Qwen3-ASR workflows locally.
+- Keep recordings, logs, transcripts, models, and runtime state on your machine.
+
+## Recommended Live Mode
+
+For current live meeting use, start with:
+
+```text
+CPP Vulkan LB Base
+```
+
+Use:
+
+- `CPP Vulkan LB Base` for lower latency and stability.
+- `CPP Vulkan LB Small` when Japanese recognition accuracy matters more than delay.
+
+Both modes use the custom `whisper-stream-loopback.exe` build documented in:
+
+```text
+whisper_cpp/vulkan-loopback-custom-build.md
+```
+
+This is the output-device loopback path. Do not confuse it with upstream
+`whisper-stream.exe`, which uses SDL capture devices and may only see microphones.
 
 ## Start The App
 
@@ -21,13 +47,14 @@ Requirements:
 - Windows
 - `uv`
 
-Recommended:
+Recommended launcher:
 
 ```text
 open_electron_app.cmd
 ```
 
-Double-click this file from the repo root. If a packaged app already exists, it opens that app. Otherwise, it starts the Electron app in development mode.
+Double-click this file from the repo root. If a packaged app exists, it opens the
+packaged app. Otherwise, it starts the Electron app in development mode.
 
 Portable app:
 
@@ -35,13 +62,15 @@ Portable app:
 electron_app/dist/Local Meeting STT portable/Local Meeting STT.exe
 ```
 
-Build this folder with:
+Build the portable folder with:
 
 ```text
 build_portable_folder.cmd
 ```
 
-The folder-style portable package includes the app, backend scripts, `settings.json`, empty model/output folders, and a local `runtime/` folder. Zip the whole folder if you want to share it.
+The folder-style portable package includes the app, backend scripts, local settings,
+empty model/output folders, and a local runtime folder. Model files are still local
+assets and are not committed to Git.
 
 Developer run:
 
@@ -51,26 +80,38 @@ npm install
 npm run dev
 ```
 
-Developer run requires Node.js / npm.
+Developer run requires Node.js and npm.
 
-If this is the first time using the app, open the `Setup` tab and download the assets you need.
+On first run, open the `Setup` tab and download the assets needed for the mode you
+want to use.
 
 ## Which Assets Do I Need?
 
 You do not need every asset for every mode.
 
 ```text
-CPP CPU       -> whisper.cpp CPU + whisper.cpp small model
-CPP Server    -> whisper.cpp CPU + whisper.cpp small model
-CPP GPU       -> whisper.cpp CUDA + whisper.cpp small model
-Live Text     -> faster-whisper small
-Live + WAV    -> faster-whisper small
-Qwen CPU/GPU  -> Qwen3-ASR
+CPP Vulkan LB Base   -> custom Vulkan loopback binary + ggml-base model
+CPP Vulkan LB Small  -> custom Vulkan loopback binary + ggml-small model
+CPP Vulkan           -> whisper.cpp Vulkan server binary + ggml-base model
+CPP CPU              -> whisper.cpp CPU binary + ggml-small model
+CPP GPU              -> whisper.cpp CUDA/Vulkan binary + ggml-small model
+Live Text            -> faster-whisper small model
+Live + WAV           -> faster-whisper small model
+Qwen CPU/GPU         -> Qwen3-ASR model
 ```
 
-In the `Setup` tab, each asset row has its own download button. Use those row buttons when you only want one mode, such as CPP CPU.
+In the `Setup` tab, each asset row has its own download button. Asset downloads run
+per row and show progress independently.
 
-Asset downloads run per row. Each row has its own progress bar and a pause/cancel button while downloading. Starting the same row again resumes or retries where the downloader/cache allows.
+The Vulkan rows are different:
+
+- `whisper.cpp Vulkan` (`whisper_cpp/bin_vulkan/`) is a local build artifact.
+- `whisper.cpp Vulkan loopback` (`whisper_cpp/bin_vulkan_loopback/`) is a custom
+  local build artifact.
+
+They are shown in Setup so you can see whether they exist, but they are not
+downloaded by the asset downloader. Build or copy them locally before using the
+Vulkan live buttons.
 
 ## App Tabs
 
@@ -78,13 +119,16 @@ Asset downloads run per row. Each row has its own progress bar and a pause/cance
 
 Use this during a meeting.
 
-- `Live + WAV`: records audio and writes a rough live transcript.
-- `Live Text`: rough live transcript only.
-- `CPP GPU`: whisper.cpp live transcription with GPU build.
-- `CPP CPU`: whisper.cpp live transcription with CPU build.
-- `CPP Server`: whisper.cpp CPU live transcription with a resident server process. This keeps the model loaded while still using the selected Windows speaker loopback.
+- `CPP Vulkan LB Base`: stable output-device loopback live transcription with the
+  base model.
+- `CPP Vulkan LB Small`: output-device loopback live transcription with the small
+  model.
+- `CPP Vulkan`: whisper.cpp Vulkan server live path with Python loopback capture.
+- `Live + WAV`: records audio and writes a rough faster-whisper live transcript.
+- `Live Text`: rough faster-whisper live transcript only.
+- `CPP GPU` / `CPP CPU`: older whisper.cpp live paths for comparison.
 
-Lower `Chunk seconds` for lower delay. Higher values are usually more stable.
+The live panel shows a timestamped transcript and a timestamped process log.
 
 ### Record
 
@@ -99,12 +143,13 @@ Use this after a meeting.
 
 Drop or choose an audio file, then run:
 
-- `CPP GPU` / `CPP CPU` for faster whisper.cpp transcription.
+- `CPP GPU` / `CPP CPU` for whisper.cpp transcription.
 - `Qwen GPU` / `Qwen CPU` for Qwen3-ASR post-processing.
 
-Qwen can be slower and use more VRAM, but it is useful to compare final transcript quality.
+Qwen can be slower and use more VRAM, but it is useful to compare final transcript
+quality.
 
-For a quick whisper.cpp CPU file test without opening or playing sound:
+Quick whisper.cpp CPU file test:
 
 ```powershell
 whisper_cpp\bin_cpu\Release\whisper-cli.exe -m whisper_cpp\models\ggml-small.bin -f test\audio.wav -l ja -otxt -of test\audio_cpp_cpu_sim -t 6 -ng
@@ -131,7 +176,8 @@ Blank audio device selection means the default device is used.
 
 ## Output Folders
 
-The Electron app writes recordings and transcripts to one output folder. The default is:
+The Electron app writes recordings and transcripts to one output folder. The default
+is:
 
 ```text
 outputs/
@@ -148,15 +194,18 @@ outputs/
     live_transcript.txt
 ```
 
-Post-transcription output is also written to the selected output folder.
-
-The app also scans session folders in the selected output folder. A session is detected when it contains:
+Vulkan loopback output:
 
 ```text
-audio.wav
+outputs/
+  loopback_stream_base_YYYYMMDD_HHMMSS/
+    live_transcript.txt
+  loopback_stream_small_YYYYMMDD_HHMMSS/
+    live_transcript.txt
 ```
 
-Post-transcription results for session audio are written back into that same session folder.
+Post-transcription output is written to the selected output folder or back into the
+session folder for `audio.wav`.
 
 Test/demo files live in:
 
@@ -164,17 +213,13 @@ Test/demo files live in:
 test/
 ```
 
-Local model files, recordings, generated transcripts, and Electron build/cache files are ignored by Git.
+Local model files, recordings, generated transcripts, and Electron build/cache files
+are ignored by Git.
 
-Portable settings are stored in:
+Portable settings and runtime state:
 
 ```text
 settings.json
-```
-
-Runtime/cache data is stored in:
-
-```text
 runtime/
 ```
 
@@ -184,8 +229,9 @@ Both are local/user state and are ignored by Git.
 
 - Default language is Japanese.
 - Main capture source is system audio, suitable for Teams/browser meeting audio.
-- Live transcript is for low-latency checking, not final quality.
+- Live transcript is for low-latency checking, not final transcript quality.
 - For cleaner final output, record first and run post-transcription after the meeting.
+- The custom Vulkan loopback build is documented under `whisper_cpp/`.
 
 For backend commands, folder layout, and technical details, see [TECHNICAL.md](TECHNICAL.md).
 
@@ -195,6 +241,7 @@ Apache-2.0. See [LICENSE](LICENSE).
 
 ## Support
 
-If this project saves you time, please consider giving it a GitHub star. It helps other people find the repo.
+If this project saves you time, please consider giving it a GitHub star. It helps
+other people find the repo.
 
 [![Star History Chart](https://api.star-history.com/svg?repos=kuchris/local-meeting-stt&type=Date)](https://www.star-history.com/#kuchris/local-meeting-stt&Date)

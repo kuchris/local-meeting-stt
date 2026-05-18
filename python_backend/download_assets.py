@@ -13,7 +13,14 @@ import time
 WHISPER_CPP_RELEASE = "v1.8.4"
 WHISPER_CPP_CUDA_ASSET = "whisper-cublas-12.4.0-bin-x64.zip"
 WHISPER_CPP_CPU_ASSET = "whisper-bin-x64.zip"
-ASSET_CHOICES = ("faster-whisper", "qwen", "whisper-cpp-cpu", "whisper-cpp-cuda", "whisper-cpp-model")
+ASSET_CHOICES = (
+    "faster-whisper",
+    "qwen",
+    "whisper-cpp-cpu",
+    "whisper-cpp-cuda",
+    "whisper-cpp-model",
+    "whisper-cpp-base-model",
+)
 
 
 def progress(asset_id: str, percent: int, message: str) -> None:
@@ -188,6 +195,15 @@ def download_assets(args: Namespace) -> None:
                 "ggerganov/whisper.cpp",
                 "ggml-small.bin",
                 whisper_cpp_root / "models" / "ggml-small.bin",
+                args.force,
+            )
+
+        if only in (None, "whisper-cpp-base-model"):
+            download_hf_file(
+                "whisper-cpp-base-model",
+                "ggerganov/whisper.cpp",
+                "ggml-base.bin",
+                whisper_cpp_root / "models" / "ggml-base.bin",
                 args.force,
             )
 

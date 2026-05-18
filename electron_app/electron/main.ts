@@ -203,8 +203,6 @@ function logicalThreadCount(): number {
 function liveThreadCount(): string {
   const threads = logicalThreadCount();
   if (threads <= 4) return String(threads);
-  if (threads <= 8) return "4";
-  if (threads <= 16) return "6";
   return "8";
 }
 
@@ -286,6 +284,23 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
       const extra = ["--recording-dir", outputDir, "--threads", liveThreadCount(), ...captureArgs(args)];
       if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
       return { label: "Live whisper.cpp server CPU", ...runCmd(path.join("whisper_cpp", "live_cpp_server_cpu.cmd"), extra) };
+    }
+    case "live-cpp-server-vulkan": {
+      const extra = ["--recording-dir", outputDir, ...captureArgs(args)];
+      if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
+      return { label: "Live whisper.cpp server Vulkan", ...runCmd(path.join("whisper_cpp", "live_cpp_server_vulkan.cmd"), extra) };
+    }
+    case "live-cpp-stream-loopback": {
+      const outputPath = path.join(timestampedOutputDir(outputDir, "loopback_stream"), "live_transcript.txt");
+      return { label: "Live whisper.cpp Vulkan LB stream", ...runCmd(path.join("whisper_cpp", "stream_cpp_vulkan_loopback.cmd"), ["-f", outputPath]) };
+    }
+    case "live-cpp-stream-loopback-base": {
+      const outputPath = path.join(timestampedOutputDir(outputDir, "loopback_stream_base"), "live_transcript.txt");
+      return { label: "Live whisper.cpp Vulkan LB stream base", ...runCmd(path.join("whisper_cpp", "stream_cpp_vulkan_loopback_base.cmd"), ["-f", outputPath]) };
+    }
+    case "live-cpp-stream-loopback-small": {
+      const outputPath = path.join(timestampedOutputDir(outputDir, "loopback_stream_small"), "live_transcript.txt");
+      return { label: "Live whisper.cpp Vulkan LB stream small", ...runCmd(path.join("whisper_cpp", "stream_cpp_vulkan_loopback_small.cmd"), ["-f", outputPath]) };
     }
     case "record-enter":
       return { label: "Record until Enter", ...runCmd(path.join("python_backend", "record_meeting.cmd"), ["--until-enter", "--output", path.join(timestampedOutputDir(outputDir, "meeting"), "audio.wav"), ...captureArgs(args)]) };
@@ -392,7 +407,8 @@ function assetLabel(assetId: string): string {
     "faster-whisper": "faster-whisper small",
     "whisper-cpp-cpu": "whisper.cpp CPU",
     "whisper-cpp-cuda": "whisper.cpp CUDA",
-    "whisper-cpp-model": "whisper.cpp small model"
+    "whisper-cpp-model": "whisper.cpp small model",
+    "whisper-cpp-base-model": "whisper.cpp base model"
   };
   return labels[assetId] ?? assetId;
 }
@@ -695,17 +711,18 @@ ipcMain.handle("open-path", async (_, targetPath: string) => {
 
 ipcMain.handle("check-assets", async () => {
   const assets = [
-    ["qwen", "Qwen3-ASR", "models/Qwen3-ASR-0.6B"],
-    ["faster-whisper", "faster-whisper small", "models/faster-whisper-small"],
-    ["whisper-cpp-cpu", "whisper.cpp CPU", "whisper_cpp/bin_cpu/Release/whisper-cli.exe"],
-    ["whisper-cpp-cuda", "whisper.cpp CUDA", "whisper_cpp/bin_cuda/Release/whisper-cli.exe"],
-    ["whisper-cpp-model", "whisper.cpp small model", "whisper_cpp/models/ggml-small.bin"]
+    { id: "qwen", label: "Qwen3-ASR", relativePath: "models/Qwen3-ASR-0.6B", downloadable: true },
+    { id: "faster-whisper", label: "faster-whisper small", relativePath: "models/faster-whisper-small", downloadable: true },
+    { id: "whisper-cpp-cpu", label: "whisper.cpp CPU", relativePath: "whisper_cpp/bin_cpu/Release/whisper-cli.exe", downloadable: true },
+    { id: "whisper-cpp-cuda", label: "whisper.cpp CUDA", relativePath: "whisper_cpp/bin_cuda/Release/whisper-cli.exe", downloadable: true },
+    { id: "whisper-cpp-vulkan", label: "whisper.cpp Vulkan", relativePath: "whisper_cpp/bin_vulkan/Release/whisper-server.exe", downloadable: false, note: "Build locally; not available from the asset downloader." },
+    { id: "whisper-cpp-vulkan-loopback", label: "whisper.cpp Vulkan loopback", relativePath: "whisper_cpp/bin_vulkan_loopback/Release/whisper-stream-loopback.exe", downloadable: false, note: "Custom local build; see whisper_cpp/vulkan-loopback-custom-build.md." },
+    { id: "whisper-cpp-base-model", label: "whisper.cpp base model", relativePath: "whisper_cpp/models/ggml-base.bin", downloadable: true },
+    { id: "whisper-cpp-model", label: "whisper.cpp small model", relativePath: "whisper_cpp/models/ggml-small.bin", downloadable: true }
   ];
-  return assets.map(([id, label, relativePath]) => ({
-    id,
-    label,
-    relativePath,
-    exists: existsSync(path.join(dataRoot, relativePath))
+  return assets.map((asset) => ({
+    ...asset,
+    exists: existsSync(path.join(dataRoot, asset.relativePath))
   }));
 });
 

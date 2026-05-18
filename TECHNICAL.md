@@ -124,10 +124,17 @@ Expected whisper.cpp folders:
 whisper_cpp/
   bin_cpu/
   bin_cuda/
+  bin_vulkan/
+  bin_vulkan_loopback/
   models/
 ```
 
 Do not commit model files or downloaded runtimes to normal Git history. Use releases, external storage, or Git LFS if distribution is needed later.
+
+`bin_cpu/`, `bin_cuda/`, and the ggml models can be downloaded by the asset downloader.
+`bin_vulkan/` and `bin_vulkan_loopback/` are local build artifacts. The Setup tab
+checks whether they exist, but it does not download them. Build or copy them locally
+before using `CPP Vulkan`, `CPP Vulkan LB Base`, or `CPP Vulkan LB Small`.
 
 The Electron Setup tab uses the same downloader. Per-asset downloads are launched independently and report `ASSET_PROGRESS` lines for row progress. whisper.cpp zip/model downloads use resumable `.part` files where possible. Hugging Face snapshot model folders may still report stage-style progress.
 

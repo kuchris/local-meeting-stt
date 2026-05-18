@@ -1,68 +1,83 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="736" viewBox="0 0 1280 736" role="img" aria-labelledby="title desc">
   <title id="title">Local Meeting STT app preview</title>
-  <desc id="desc">A compact desktop control panel for local meeting recording and speech-to-text.</desc>
-  <rect width="1280" height="720" fill="#ffffff"/>
+  <desc id="desc">The Local Meeting STT Live tab with engine controls, live transcript panel, and process log.</desc>
+  <rect width="1280" height="736" fill="#f8f9fb"/>
+
   <rect x="0" y="0" width="1280" height="36" fill="#111111"/>
-  <rect x="10" y="8" width="22" height="22" rx="5" fill="#111111" stroke="#3f3f46"/>
-  <text x="42" y="23" fill="#f8f9fa" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600">Local Meeting STT</text>
-  <text x="176" y="23" fill="#d1d5db" font-family="Segoe UI, Arial, sans-serif" font-size="12">File</text>
-  <text x="216" y="23" fill="#d1d5db" font-family="Segoe UI, Arial, sans-serif" font-size="12">Run</text>
-  <text x="256" y="23" fill="#d1d5db" font-family="Segoe UI, Arial, sans-serif" font-size="12">View</text>
-  <text x="310" y="23" fill="#d1d5db" font-family="Segoe UI, Arial, sans-serif" font-size="12">Window</text>
-  <text x="380" y="23" fill="#d1d5db" font-family="Segoe UI, Arial, sans-serif" font-size="12">Help</text>
+  <rect x="18" y="11" width="12" height="14" rx="2" fill="none" stroke="#9ca3af"/>
+  <rect x="44" y="8" width="22" height="22" rx="4" fill="#111111" stroke="#d1d5db"/>
+  <text x="49" y="23" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="9" font-weight="700">STT</text>
+  <text x="74" y="23" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Local Meeting STT</text>
+  <text x="204" y="23" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="12">File</text>
+  <text x="243" y="23" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="12">Run</text>
+  <text x="286" y="23" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="12">View</text>
+  <text x="334" y="23" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="12">Window</text>
+  <text x="398" y="23" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="12">Help</text>
+  <line x1="1162" y1="18" x2="1171" y2="18" stroke="#d1d5db"/>
+  <rect x="1207" y="12" width="10" height="10" fill="none" stroke="#d1d5db"/>
+  <line x1="1254" y1="13" x2="1262" y2="21" stroke="#d1d5db"/>
+  <line x1="1262" y1="13" x2="1254" y2="21" stroke="#d1d5db"/>
 
-  <rect x="14" y="52" width="220" height="640" rx="10" fill="#f8f9fa" stroke="#e5e7eb"/>
-  <rect x="28" y="68" width="42" height="42" rx="8" fill="#111111"/>
-  <text x="39" y="94" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700">STT</text>
-  <text x="82" y="82" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Meeting STT</text>
-  <text x="82" y="103" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif" font-size="13">Local control panel</text>
-  <line x1="28" y1="124" x2="220" y2="124" stroke="#e5e7eb"/>
-  <rect x="28" y="142" width="192" height="38" rx="6" fill="#111111"/>
-  <text x="42" y="166" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="15">Live</text>
-  <rect x="28" y="190" width="192" height="38" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="42" y="214" fill="#374151" font-family="Segoe UI, Arial, sans-serif" font-size="15">Record</text>
-  <rect x="28" y="238" width="192" height="38" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="42" y="262" fill="#374151" font-family="Segoe UI, Arial, sans-serif" font-size="15">Transcribe</text>
-  <rect x="28" y="286" width="192" height="38" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="42" y="310" fill="#374151" font-family="Segoe UI, Arial, sans-serif" font-size="15">Setup</text>
-  <rect x="28" y="642" width="192" height="34" rx="17" fill="#ffffff" stroke="#e5e7eb"/>
-  <circle cx="86" cy="659" r="4" fill="#9ca3af"/>
-  <text x="102" y="664" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif" font-size="12">Idle</text>
+  <rect x="15" y="49" width="220" height="676" rx="8" fill="#ffffff" stroke="#dfe3e8"/>
+  <rect x="31" y="64" width="41" height="42" rx="7" fill="#111111"/>
+  <text x="41" y="91" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">STT</text>
+  <text x="83" y="82" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Meeting STT</text>
+  <text x="83" y="102" fill="#5f6673" font-family="Segoe UI, Arial, sans-serif" font-size="13">Local control panel</text>
+  <line x1="31" y1="121" x2="219" y2="121" stroke="#e5e7eb"/>
 
-  <rect x="250" y="52" width="990" height="118" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="274" y="88" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700">LIVE</text>
-  <text x="274" y="122" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">Live Meeting</text>
-  <text x="274" y="146" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif" font-size="14">Start a recorder and keep the rough transcript visible while logs stream beside it.</text>
+  <rect x="31" y="139" width="188" height="38" rx="5" fill="#111111"/>
+  <text x="47" y="164" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600">Live</text>
+  <rect x="31" y="184" width="188" height="37" rx="5" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="46" y="208" fill="#1f2937" font-family="Segoe UI, Arial, sans-serif" font-size="16">Record</text>
+  <rect x="31" y="230" width="188" height="37" rx="5" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="46" y="254" fill="#1f2937" font-family="Segoe UI, Arial, sans-serif" font-size="16">Transcribe</text>
+  <rect x="31" y="275" width="188" height="37" rx="5" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="46" y="299" fill="#1f2937" font-family="Segoe UI, Arial, sans-serif" font-size="16">Setup</text>
 
-  <rect x="250" y="186" width="340" height="482" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="274" y="222" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">Engine</text>
-  <text x="274" y="258" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif" font-size="12">Chunk seconds</text>
-  <rect x="274" y="270" width="292" height="38" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="290" y="294" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="16">3</text>
-  <rect x="274" y="330" width="292" height="38" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="382" y="354" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="15">Live + WAV</text>
-  <rect x="274" y="380" width="292" height="38" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="390" y="404" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="15">Live Text</text>
-  <rect x="274" y="430" width="292" height="38" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="393" y="454" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="15">CPP GPU</text>
-  <rect x="274" y="480" width="292" height="38" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="395" y="504" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="15">CPP CPU</text>
-  <rect x="274" y="542" width="292" height="38" rx="6" fill="#fff7f7" stroke="#f4c7c3"/>
-  <text x="360" y="566" fill="#b42318" font-family="Segoe UI, Arial, sans-serif" font-size="15">Stop active process</text>
+  <rect x="31" y="677" width="188" height="33" rx="16" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="116" y="699" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif" font-size="12">Idle</text>
 
-  <rect x="606" y="186" width="634" height="248" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
-  <rect x="606" y="186" width="634" height="48" rx="10" fill="#f8f9fa"/>
-  <line x1="606" y1="234" x2="1240" y2="234" stroke="#e5e7eb"/>
-  <text x="622" y="216" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">Live transcript</text>
-  <text x="626" y="272" fill="#111111" font-family="Cascadia Mono, Consolas, monospace" font-size="15">[10:45:21] はじめまして 音声大丈夫でしょうか</text>
-  <text x="626" y="304" fill="#111111" font-family="Cascadia Mono, Consolas, monospace" font-size="15">[10:45:33] 大丈夫ですよ。よろしくお願いいたします。</text>
+  <rect x="249" y="49" width="320" height="109" rx="8" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="268" y="79" fill="#4b5563" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700">LIVE</text>
+  <text x="268" y="106" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">Live Meeting</text>
+  <text x="268" y="126" fill="#4b5563" font-family="Segoe UI, Arial, sans-serif" font-size="12">Start a live recorder and keep the rough transcript</text>
+  <text x="268" y="142" fill="#4b5563" font-family="Segoe UI, Arial, sans-serif" font-size="12">visible while logs stream beside it.</text>
 
-  <rect x="606" y="452" width="634" height="216" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
-  <rect x="606" y="452" width="634" height="48" rx="10" fill="#f8f9fa"/>
-  <line x1="606" y1="500" x2="1240" y2="500" stroke="#e5e7eb"/>
-  <text x="622" y="482" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">Process log</text>
-  <rect x="1170" y="464" width="54" height="28" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="1185" y="483" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="13">Clear</text>
-  <text x="626" y="536" fill="#6b7280" font-family="Cascadia Mono, Consolas, monospace" font-size="14">Model: models\faster-whisper-small</text>
-  <text x="626" y="564" fill="#6b7280" font-family="Cascadia Mono, Consolas, monospace" font-size="14">System loopback: Speakers (INZONE Buds - Game)</text>
+  <rect x="583" y="49" width="684" height="89" rx="8" fill="#ffffff" stroke="#dfe3e8"/>
+
+  <rect x="249" y="172" width="320" height="554" rx="8" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="265" y="203" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">Engine</text>
+  <text x="265" y="234" fill="#4b5563" font-family="Segoe UI, Arial, sans-serif" font-size="12">Chunk seconds</text>
+  <rect x="266" y="245" width="286" height="37" rx="5" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="279" y="269" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="15">3</text>
+
+  <rect x="266" y="297" width="286" height="37" rx="5" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="370" y="321" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="16">Live + WAV</text>
+  <rect x="266" y="344" width="286" height="37" rx="5" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="379" y="368" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="16">Live Text</text>
+  <rect x="266" y="391" width="286" height="37" rx="5" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="378" y="415" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="16">CPP GPU</text>
+  <rect x="266" y="438" width="286" height="37" rx="5" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="379" y="462" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="16">CPP CPU</text>
+  <rect x="266" y="485" width="286" height="37" rx="5" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="369" y="509" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="16">CPP Vulkan</text>
+  <rect x="266" y="532" width="286" height="37" rx="5" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="340" y="556" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="16">CPP Vulkan LB Base</text>
+  <rect x="266" y="579" width="286" height="37" rx="5" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="337" y="603" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="16">CPP Vulkan LB Small</text>
+  <rect x="266" y="631" width="286" height="37" rx="5" fill="#fffafa" stroke="#f4c7c3"/>
+  <text x="342" y="655" fill="#9ca3af" font-family="Segoe UI, Arial, sans-serif" font-size="16">Stop active process</text>
+
+  <rect x="583" y="153" width="684" height="279" rx="8" fill="#ffffff" stroke="#dfe3e8"/>
+  <rect x="583" y="153" width="684" height="46" rx="8" fill="#f8f9fb"/>
+  <line x1="583" y1="199" x2="1267" y2="199" stroke="#dfe3e8"/>
+  <text x="599" y="183" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">Live transcript</text>
+  <text x="601" y="234" fill="#111111" font-family="Cascadia Mono, Consolas, monospace" font-size="14">Waiting for transcript lines...</text>
+
+  <rect x="583" y="447" width="684" height="279" rx="8" fill="#ffffff" stroke="#dfe3e8"/>
+  <rect x="583" y="447" width="684" height="63" rx="8" fill="#f8f9fb"/>
+  <line x1="583" y1="510" x2="1267" y2="510" stroke="#dfe3e8"/>
+  <text x="599" y="483" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">Process log</text>
+  <rect x="1187" y="460" width="65" height="38" rx="6" fill="#ffffff" stroke="#dfe3e8"/>
+  <text x="1201" y="484" fill="#111111" font-family="Segoe UI, Arial, sans-serif" font-size="15">Clear</text>
 </svg>

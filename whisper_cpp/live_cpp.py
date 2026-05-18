@@ -37,7 +37,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--language", default="ja", help="Language code. Default: ja")
     parser.add_argument("--chunk-seconds", type=float, default=3.0, help="Chunk size in seconds. Default: 3")
     parser.add_argument("--capture-block-seconds", type=float, default=0.5, help="Capture block size in seconds. Default: 0.5")
-    parser.add_argument("--max-backlog", type=int, default=24, help="Maximum queued chunks before old chunks are dropped")
+    parser.add_argument("--max-backlog", type=int, default=1, help="Maximum queued chunks before old chunks are dropped")
     parser.add_argument("--sample-rate", type=int, default=16000, help="ASR sample rate. Default: 16000")
     parser.add_argument("--capture-rate", type=int, default=48000, help="Capture sample rate. Default: 48000")
     parser.add_argument("--include-mic", action="store_true", help="Also record and mix the default microphone")
@@ -79,6 +79,16 @@ def enqueue_chunk(chunks: Queue[np.ndarray], audio: np.ndarray) -> None:
             pass
     chunks.put_nowait(audio)
     print("Warning: transcription is behind; dropped one queued audio chunk.")
+
+
+def get_latest_chunk(chunks: Queue[np.ndarray]) -> np.ndarray:
+    audio = chunks.get()
+    while True:
+        try:
+            audio = chunks.get_nowait()
+            print("Warning: transcription is behind; skipped stale audio chunk.")
+        except Empty:
+            return audio
 
 
 def capture_audio(args: Namespace, chunks: Queue[np.ndarray], stop_event: Event) -> None:
@@ -215,10 +225,6 @@ def default_live_threads() -> int:
     logical_threads = max(1, os.cpu_count() or 1)
     if logical_threads <= 4:
         return logical_threads
-    if logical_threads <= 8:
-        return 4
-    if logical_threads <= 16:
-        return 6
     return 8
 
 
@@ -302,7 +308,7 @@ def stop_whisper_server(process: Popen | None, stop_event: Event | None, output_
 def run_live(args: Namespace) -> None:
     args.threads = args.threads or default_live_threads()
     if args.server:
-        args.max_backlog = min(args.max_backlog, 2)
+        args.max_backlog = min(args.max_backlog, 1)
     if args.save_recording:
         args.recording_output = args.recording_output or default_recording_path(args.recording_dir)
     if args.recording_output:
@@ -338,7 +344,7 @@ def run_live(args: Namespace) -> None:
             capture_thread.start()
             session = requests.Session()
             while True:
-                mono = chunks.get()
+                mono = get_latest_chunk(chunks)
                 chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
                 append_transcript(output_path, transcribe_with_server(args, session, server_url, chunk))
         else:

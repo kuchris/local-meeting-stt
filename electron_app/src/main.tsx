@@ -155,6 +155,8 @@ function App() {
   const [sessions, setSessions] = useState<OutputSession[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState("");
   const [liveTranscript, setLiveTranscript] = useState("");
+  const [livePreviewHistory, setLivePreviewHistory] = useState("");
+  const [livePartialTranscript, setLivePartialTranscript] = useState("");
   const [liveTranscriptPath, setLiveTranscriptPath] = useState("");
   const [activeLabel, setActiveLabel] = useState("");
   const [startedAt, setStartedAt] = useState<number | null>(null);
@@ -170,6 +172,8 @@ function App() {
   const transcribeLibraryRef = useRef<HTMLElement | null>(null);
   const logsRef = useRef<HTMLPreElement | null>(null);
   const outputRef = useRef<HTMLPreElement | null>(null);
+  const activeLabelRef = useRef("");
+  const lbStreamRef = useRef({ running: "", committedTail: "" });
 
   const isRunning = activeProcessId !== null;
   const selectedSession = sessions.find((session) => session.id === selectedSessionId) ?? null;
@@ -213,7 +217,7 @@ function App() {
   useEffect(() => {
     const outputElement = outputRef.current;
     if (outputElement) outputElement.scrollTop = outputElement.scrollHeight;
-  }, [liveTranscript, lastOutputPath, tab]);
+  }, [liveTranscript, livePreviewHistory, livePartialTranscript, lastOutputPath, tab]);
 
   useEffect(() => {
     const element = transcribeLibraryRef.current;
@@ -277,21 +281,74 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const lineTimestampPattern = /^\[\d{2}:\d{2}:\d{2}\]\s*/;
+
+  function currentClockStamp() {
+    return new Date().toLocaleTimeString("en-GB", { hour12: false });
+  }
+
+  function stripLineTimestamp(text: string) {
+    return text.replace(lineTimestampPattern, "");
+  }
+
+  function withLineTimestamp(line: string, stamp = currentClockStamp()) {
+    const value = normalizeJapaneseSpacing(line);
+    if (!value) return "";
+    if (lineTimestampPattern.test(value)) return value;
+    return `[${stamp}] ${value}`;
+  }
+
+  function timestampMultiline(text: string) {
+    const stamp = currentClockStamp();
+    return text
+      .split(/\r?\n/)
+      .map((line) => withLineTimestamp(line, stamp))
+      .filter((line) => line.length > 0)
+      .join("\n");
+  }
+
   function pushLog(processId: number, kind: LogLine["kind"], text: string) {
-    setLogs((current) => [...current, { id: Date.now() + Math.random(), processId, kind, text }].slice(-600));
+    const stamped = timestampMultiline(text);
+    if (!stamped) return;
+    setLogs((current) => [...current, { id: Date.now() + Math.random(), processId, kind, text: `${stamped}\n` }].slice(-600));
+  }
+
+  function stripAnsi(text: string) {
+    return text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, "").replace(/\r/g, "");
+  }
+
+  function formatLbProcessLog(text: string) {
+    return text
+      .split(/\r?\n/)
+      .map((line) => {
+        if (line.startsWith("@@PARTIAL\t")) return `preview: ${line.slice("@@PARTIAL\t".length)}`;
+        if (line.startsWith("@@FINAL\t")) return `final: ${line.slice("@@FINAL\t".length)}`;
+        return line;
+      })
+      .filter((line) => line.trim().length > 0)
+      .join("\n");
   }
 
   function handleProcessEvent(event: ProcessEvent) {
     if (event.type === "start") {
       setActiveProcessId(event.processId);
       setActiveLabel(event.label);
+      activeLabelRef.current = event.label;
       setStartedAt(Date.now());
       pushLog(event.processId, "info", `Started ${event.label}\n${event.command}\n`);
       return;
     }
     if (event.type === "stdout") {
-      updateLiveTranscript(event.text);
-      pushLog(event.processId, "stdout", event.text);
+      const text = stripAnsi(event.text);
+      const handledAsTranscript = updateLiveTranscript(text, activeLabelRef.current);
+      if (activeLabelRef.current.includes("Vulkan LB stream") && handledAsTranscript) {
+        const logText = formatLbProcessLog(text);
+        if (logText) pushLog(event.processId, "stdout", `${logText}\n`);
+        return;
+      }
+      if (!handledAsTranscript) {
+        pushLog(event.processId, "stdout", text);
+      }
       return;
     }
     if (event.type === "stderr") {
@@ -301,6 +358,7 @@ function App() {
     if (event.type === "exit") {
       pushLog(event.processId, "exit", `Exited with code ${event.code ?? "null"}${event.signal ? ` (${event.signal})` : ""}\n`);
       setActiveProcessId((current) => (current === event.processId ? null : current));
+      activeLabelRef.current = "";
       setStartedAt(null);
       void refreshSessions();
     }
@@ -378,7 +436,10 @@ function App() {
       updateExpectedOutput(kind);
       if (kind.startsWith("live-")) {
         setLiveTranscript("");
+        setLivePreviewHistory("");
+        setLivePartialTranscript("");
         setLiveTranscriptPath("");
+        lbStreamRef.current = { running: "", committedTail: "" };
       }
       await window.meetingApi.runCommand(kind, { outputDir: outputDir.trim() || "outputs", ...args });
     } catch (error) {
@@ -407,6 +468,8 @@ function App() {
   }
 
   async function downloadAsset(assetId: string) {
+    const asset = assets.find((item) => item.id === assetId);
+    if (asset?.downloadable === false) return;
     const state = assetDownloads[assetId];
     if (state?.running) {
       await window.meetingApi.stopAssetDownload(assetId);
@@ -417,7 +480,7 @@ function App() {
 
   async function downloadMissingAssets() {
     for (const asset of assets) {
-      if (!asset.exists && !assetDownloads[asset.id]?.running) {
+      if (asset.downloadable !== false && !asset.exists && !assetDownloads[asset.id]?.running) {
         await window.meetingApi.startAssetDownload(asset.id);
       }
     }
@@ -443,10 +506,247 @@ function App() {
     }
   }
 
-  function updateLiveTranscript(text: string) {
+  function appendPreviewLine(current: string, line: string) {
+    const value = normalizeJapaneseSpacing(line);
+    if (!value) return current;
+    const stampedValue = withLineTimestamp(value);
+    if (current.includes(value) || current.includes(stampedValue)) return current;
+    return `${current}${stampedValue}\n`;
+  }
+
+  function appendOrMergeFinalLine(current: string, line: string) {
+    const stampedValue = withLineTimestamp(line);
+    const value = normalizeJapaneseSpacing(stripLineTimestamp(stampedValue));
+    if (!value || isHallucinationLine(value)) return current;
+    if (/^[\u3001\u3002\uff01\uff1f.,!?]+$/.test(value)) return current;
+
+    const lines = current.split(/\n/).filter((item) => item.trim().length > 0);
+    if (lines.length === 0) return `${stampedValue}\n`;
+
+    const valueKey = compactTranscriptKey(value);
+    const lookback = Math.min(4, lines.length);
+    for (let count = lookback; count >= 1; count--) {
+      const start = lines.length - count;
+      const tail = normalizeJapaneseSpacing(lines.slice(start).map(stripLineTimestamp).join(""));
+      if (!tail) continue;
+      if (tail === value || tail.includes(value)) return `${lines.join("\n")}\n`;
+      if (value.includes(tail)) {
+        return `${[...lines.slice(0, start), stampedValue].join("\n")}\n`;
+      }
+
+      const tailKey = compactTranscriptKey(tail);
+      if (tailKey && valueKey) {
+        if (tailKey.includes(valueKey)) return `${lines.join("\n")}\n`;
+        if (valueKey.includes(tailKey)) return `${[...lines.slice(0, start), stampedValue].join("\n")}\n`;
+
+        const overlap = compactOverlapLength(tailKey, valueKey);
+        if (overlap >= 8 || overlap >= Math.floor(Math.min(tailKey.length, valueKey.length) * 0.45)) {
+          return `${[...lines.slice(0, start), stampedValue].join("\n")}\n`;
+        }
+      }
+
+      const merged = mergePartialText(tail, value);
+      if (merged.samePhrase || partialLooksRelated(tail, value)) {
+        return `${[...lines.slice(0, start), withLineTimestamp(merged.merged)].join("\n")}\n`;
+      }
+    }
+
+    return `${lines.join("\n")}\n${stampedValue}\n`;
+  }
+
+  function normalizeJapaneseSpacing(text: string) {
+    return text
+      .trim()
+      .replace(/([\u3040-\u30ff\u3400-\u9fff])\s+([\u3040-\u30ff\u3400-\u9fff])/g, "$1$2")
+      .replace(/\s+([\u3001\u3002\uff01\uff1f])/g, "$1")
+      .replace(/([\u300c\u300e\uff08])\s+/g, "$1")
+      .replace(/\s+/g, " ");
+  }
+
+  function compactTranscriptKey(text: string) {
+    return normalizeJapaneseSpacing(text)
+      .replace(/[\s\u3000\u3001\u3002\uff01\uff1f.,!?'"`()[\]{}<>\u300c\u300d\u300e\u300f\uff08\uff09\u3010\u3011]/g, "")
+      .toLowerCase();
+  }
+
+  function compactOverlapLength(previous: string, incoming: string) {
+    const maxOverlap = Math.min(previous.length, incoming.length);
+    for (let size = maxOverlap; size >= 4; size--) {
+      if (previous.slice(-size) === incoming.slice(0, size)) return size;
+    }
+    return 0;
+  }
+
+  function mergePartialText(previous: string, incoming: string) {
+    const current = normalizeJapaneseSpacing(previous);
+    const next = normalizeJapaneseSpacing(incoming);
+    if (!current) return { merged: next, samePhrase: true };
+    if (!next) return { merged: current, samePhrase: true };
+    if (next.includes(current)) return { merged: next, samePhrase: true };
+    if (current.includes(next)) return { merged: current, samePhrase: true };
+
+    const minOverlap = 3;
+    const maxOverlap = Math.min(current.length, next.length);
+    for (let size = maxOverlap; size >= minOverlap; size--) {
+      if (current.slice(-size) === next.slice(0, size)) {
+        return { merged: `${current}${next.slice(size)}`, samePhrase: true };
+      }
+      if (next.slice(-size) === current.slice(0, size)) {
+        return { merged: `${next}${current.slice(size)}`, samePhrase: true };
+      }
+    }
+
+    return { merged: next, samePhrase: false };
+  }
+
+  function partialLooksRelated(previous: string, next: string) {
+    const a = normalizeJapaneseSpacing(previous);
+    const b = normalizeJapaneseSpacing(next);
+    if (!a || !b) return true;
+    if (a.includes(b) || b.includes(a)) return true;
+
+    const compactA = a.replace(/\s+/g, "");
+    const compactB = b.replace(/\s+/g, "");
+    if (compactA.includes(compactB) || compactB.includes(compactA)) return true;
+
+    const minOverlap = 4;
+    const maxOverlap = Math.min(compactA.length, compactB.length);
+    for (let size = maxOverlap; size >= minOverlap; size--) {
+      if (compactA.slice(-size) === compactB.slice(0, size)) return true;
+      if (compactB.slice(-size) === compactA.slice(0, size)) return true;
+    }
+    return false;
+  }
+
+  function collapseRepeats(text: string) {
+    let result = text;
+    for (let unit = 2; unit <= 24; unit++) {
+      result = result.replace(new RegExp(`(.{${unit}})\\1{3,}`, "g"), "$1");
+    }
+    return result;
+  }
+
+  function cleanTranscriptText(text: string) {
+    const normalized = normalizeJapaneseSpacing(text);
+    const collapsed = collapseRepeats(normalized);
+    if (normalized.length - collapsed.length > 120) return "";
+    return collapsed;
+  }
+
+  function isHallucinationLine(line: string) {
+    const compact = line.replace(/\s+/g, "").replace(/[\u3001\u3002\uff01\uff1f]/g, "");
+    if (!compact) return true;
+    const blocked = [
+      "\u3054\u8996\u8074\u3042\u308a\u304c\u3068\u3046\u3054\u3056\u3044\u307e\u3057\u305f",
+      "\u3054\u8996\u8074\u3042\u308a\u304c\u3068\u3046\u3054\u3056\u3044\u307e\u3059",
+      "\u30c1\u30e3\u30f3\u30cd\u30eb\u767b\u9332\u304a\u9858\u3044\u3057\u307e\u3059",
+      "\u6700\u5f8c\u307e\u3067\u3054\u8996\u8074\u3044\u305f\u3060\u304d\u3042\u308a\u304c\u3068\u3046\u3054\u3056\u3044\u307e\u3057\u305f"
+    ];
+    if (blocked.includes(compact)) return true;
+    if (/^[\uff08(\[\u3010].*(\u97f3\u697d|\u62cd\u624b|\u7b11|BGM|\u30ce\u30a4\u30ba).*[)\uff09\]\u3011]$/.test(line.trim())) return true;
+    return false;
+  }
+
+  function lbTailKey(text: string) {
+    const value = text.trim();
+    return value.length > 14 ? value.slice(-14) : value;
+  }
+
+  function commitLbStreamLine(line: string) {
+    const value = cleanTranscriptText(line);
+    if (!value || isHallucinationLine(value)) return;
+    setLivePreviewHistory((history) => appendOrMergeFinalLine(history, value));
+    setLiveTranscript((current) => appendOrMergeFinalLine(current, value));
+  }
+
+  // Consolidates the sliding-window hypotheses from the Vulkan loopback stream:
+  // overlap-merges each window into a running text, commits completed sentences,
+  // and surfaces only the trailing unstable sentence as the live partial.
+  function ingestLbStreamLine(raw: string) {
+    const normalized = normalizeJapaneseSpacing(raw);
+    if (!normalized) return;
+    const incoming = collapseRepeats(normalized);
+    // A large collapse means whisper emitted a degenerate repetition loop; drop it.
+    if (normalized.length - incoming.length > 24) return;
+    const state = lbStreamRef.current;
+
+    let trimmed = incoming;
+    if (state.committedTail) {
+      const idx = trimmed.lastIndexOf(state.committedTail);
+      if (idx >= 0) trimmed = trimmed.slice(idx + state.committedTail.length);
+    }
+    if (!trimmed) {
+      setLivePartialTranscript(withLineTimestamp(state.running));
+      return;
+    }
+
+    const merge = mergePartialText(state.running, trimmed);
+    if (state.running && !merge.samePhrase && !partialLooksRelated(state.running, trimmed)) {
+      commitLbStreamLine(state.running);
+      state.committedTail = lbTailKey(state.running);
+      state.running = trimmed;
+    } else {
+      state.running = merge.merged;
+    }
+
+    const parts = state.running.split(/(?<=[。！？])/);
+    if (parts.length >= 2) {
+      const done = parts.slice(0, -1).join("").trim();
+      state.running = parts[parts.length - 1];
+      if (done) {
+        commitLbStreamLine(done);
+        state.committedTail = lbTailKey(done);
+      }
+    } else if (state.running.length > 160) {
+      const clause = state.running.lastIndexOf("、", 120);
+      const splitAt = clause > 40 ? clause + 1 : 120;
+      const done = state.running.slice(0, splitAt).trim();
+      state.running = state.running.slice(splitAt);
+      if (done) {
+        commitLbStreamLine(done);
+        state.committedTail = lbTailKey(done);
+      }
+    }
+
+    setLivePartialTranscript(withLineTimestamp(state.running));
+  }
+
+  function updateLiveTranscript(text: string, processLabel = "") {
     const transcriptMatch = text.match(/Transcript:\s*(.+)/);
     if (transcriptMatch) {
       setLiveTranscriptPath(transcriptMatch[1].trim());
+    }
+
+    const controlLines = text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+
+    let handledControl = false;
+    controlLines.forEach((line) => {
+      if (line.startsWith("@@PARTIAL\t")) {
+        const partialText = line.slice("@@PARTIAL\t".length);
+        setLivePartialTranscript(withLineTimestamp(cleanTranscriptText(partialText)));
+        handledControl = true;
+        return;
+      }
+      if (line.startsWith("@@FINAL\t")) {
+        const finalText = cleanTranscriptText(line.slice("@@FINAL\t".length));
+        setLivePartialTranscript("");
+        commitLbStreamLine(finalText);
+        handledControl = true;
+        return;
+      }
+    });
+    if (handledControl) return true;
+
+    if (processLabel.includes("Vulkan LB stream")) {
+      const rawLines = text
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+      rawLines.forEach((line) => commitLbStreamLine(line));
+      return rawLines.length > 0;
     }
 
     const transcriptLines = text
@@ -455,8 +755,12 @@ function App() {
       .filter((line) => /^\[\d{2}:\d{2}:\d{2}\]\s+/.test(line));
 
     if (transcriptLines.length > 0) {
-      setLiveTranscript((current) => `${current}${transcriptLines.join("\n")}\n`);
+      setLiveTranscript((current) => transcriptLines.reduce((next, line) => appendPreviewLine(next, line), current));
+      setLivePreviewHistory((current) => transcriptLines.reduce((next, line) => appendPreviewLine(next, line), current));
+      return true;
     }
+
+    return false;
   }
 
   function dropAudio(event: React.DragEvent<HTMLDivElement>) {
@@ -635,6 +939,22 @@ function App() {
       await run("live-cpp-server-cpu", { chunkSeconds, ...captureSettings });
       return;
     }
+    if (action === "live-cpp-server-vulkan") {
+      await run("live-cpp-server-vulkan", { chunkSeconds, ...captureSettings });
+      return;
+    }
+    if (action === "live-cpp-stream-loopback") {
+      await run("live-cpp-stream-loopback", captureSettings);
+      return;
+    }
+    if (action === "live-cpp-stream-loopback-base") {
+      await run("live-cpp-stream-loopback-base", captureSettings);
+      return;
+    }
+    if (action === "live-cpp-stream-loopback-small") {
+      await run("live-cpp-stream-loopback-small", captureSettings);
+      return;
+    }
     if (action === "stop") {
       await stop();
       return;
@@ -688,7 +1008,6 @@ function App() {
                 <button disabled={isRunning} onClick={() => void runMenuAction("live-whisper")}><span>Live Text</span></button>
                 <button disabled={isRunning} onClick={() => void runMenuAction("live-cpp-gpu")}><span>CPP GPU Live</span></button>
                 <button disabled={isRunning} onClick={() => void runMenuAction("live-cpp-cpu")}><span>CPP CPU Live</span></button>
-                <button disabled={isRunning} onClick={() => void runMenuAction("live-cpp-server-cpu")}><span>CPP Server Live</span></button>
                 <div className="menu-separator" />
                 <button disabled={!isRunning} onClick={() => void runMenuAction("stop")}><span>Stop</span></button>
               </div>
@@ -783,7 +1102,9 @@ function App() {
                   <button disabled={isRunning} onClick={() => run("live-whisper", { chunkSeconds, ...captureSettings })}>Live Text</button>
                   <button disabled={isRunning} onClick={() => run("live-cpp-gpu", { chunkSeconds, ...captureSettings })}>CPP GPU</button>
                   <button disabled={isRunning} onClick={() => run("live-cpp-cpu", { chunkSeconds, ...captureSettings })}>CPP CPU</button>
-                  <button disabled={isRunning} onClick={() => run("live-cpp-server-cpu", { chunkSeconds, ...captureSettings })}>CPP Server</button>
+                  <button disabled={isRunning} onClick={() => run("live-cpp-server-vulkan", { chunkSeconds, ...captureSettings })}>CPP Vulkan</button>
+                  <button disabled={isRunning} onClick={() => run("live-cpp-stream-loopback-base", captureSettings)}>CPP Vulkan LB Base</button>
+                  <button disabled={isRunning} onClick={() => run("live-cpp-stream-loopback-small", captureSettings)}>CPP Vulkan LB Small</button>
                 </div>
                 <button className="danger" disabled={!isRunning} onClick={stop}>Stop active process</button>
               </section>
@@ -936,6 +1257,7 @@ function App() {
                         <div className="asset-main">
                           <strong>{asset.label}</strong>
                           <small>{asset.relativePath}</small>
+                          {asset.note && <small>{asset.note}</small>}
                           {download && (
                             <div className={`asset-progress ${isDownloading ? "running" : ""}`}>
                               <span>
@@ -950,6 +1272,7 @@ function App() {
                           title={isDownloading ? `Pause ${asset.label}` : `Download ${asset.label}`}
                           aria-label={isDownloading ? `Pause ${asset.label}` : `Download ${asset.label}`}
                           onClick={() => downloadAsset(asset.id)}
+                          disabled={asset.downloadable === false}
                         >
                           {isDownloading ? <PauseIcon /> : <DownloadIcon />}
                         </button>
@@ -1059,7 +1382,7 @@ function App() {
               </div>
               <pre ref={outputRef}>
                 {tab === "live"
-                  ? liveTranscript || "Waiting for transcript lines..."
+                  ? `${livePreviewHistory || liveTranscript}${livePartialTranscript ? `> ${livePartialTranscript}` : ""}` || "Waiting for transcript lines..."
                   : lastOutputPath || "Output path will appear after you start a job."}
               </pre>
               {tab === "live" && liveTranscriptPath && <small>{liveTranscriptPath}</small>}

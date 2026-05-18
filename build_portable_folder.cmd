@@ -57,6 +57,26 @@ copy /y "%CD%\whisper_cpp\*.cmd" "%RELEASE_DIR%\whisper_cpp\" >nul
 copy /y "%CD%\whisper_cpp\*.py" "%RELEASE_DIR%\whisper_cpp\" >nul
 copy /y "%CD%\whisper_cpp\README.md" "%RELEASE_DIR%\whisper_cpp\" >nul
 
+if exist "%CD%\whisper_cpp\bin_vulkan" (
+  echo Copying Vulkan runtime...
+  robocopy "%CD%\whisper_cpp\bin_vulkan" "%RELEASE_DIR%\whisper_cpp\bin_vulkan" /E >nul
+  if errorlevel 8 (
+    echo Failed to copy bin_vulkan.
+    pause
+    exit /b 1
+  )
+)
+
+if exist "%CD%\whisper_cpp\bin_vulkan_loopback" (
+  echo Copying Vulkan loopback runtime...
+  robocopy "%CD%\whisper_cpp\bin_vulkan_loopback" "%RELEASE_DIR%\whisper_cpp\bin_vulkan_loopback" /E >nul
+  if errorlevel 8 (
+    echo Failed to copy bin_vulkan_loopback.
+    pause
+    exit /b 1
+  )
+)
+
 > "%RELEASE_DIR%\settings.json" (
   echo {
   echo   "outputDir": "outputs",
