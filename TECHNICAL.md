@@ -16,7 +16,9 @@ runtime/           portable/local runtime data, uv cache, venv, and Electron use
 settings.json      portable/local UI and output settings
 ```
 
-Ignored local folders include `models/`, `outputs/`, `recordings/`, `runtime/`, `whisper_cpp/bin_*`, `whisper_cpp/models/`, `whisper_cpp/output/`, `electron_app/node_modules/`, `electron_app/out/`, and Electron build output folders.
+Ignored local folders include `models/`, `outputs/`, `recordings/`, `runtime/`, `whisper_cpp/bin_cpu/`, `whisper_cpp/bin_cuda/`, `whisper_cpp/bin_vulkan/`, `whisper_cpp/models/`, `whisper_cpp/output/`, `electron_app/node_modules/`, `electron_app/out/`, and Electron build output folders.
+
+`whisper_cpp/bin_openvino/` is intentionally not ignored in this repo so the OpenVINO NPU/GPU runtime can be shipped with the app. `whisper_cpp/build_openvino/` is a local CMake build tree and should not be needed for normal users.
 
 ## Backend Scripts
 
@@ -27,6 +29,7 @@ python_backend/transcribe_audio.py      batch transcribes an existing audio file
 python_backend/post_transcribe_qwen.py  post-processes a recording with Qwen3-ASR
 python_backend/download_assets.py       downloads ignored local models and whisper.cpp runtime files
 python_backend/whisper_models.py        resolves local faster-whisper model paths
+python_backend/repair_wav_header.py     repairs WAV RIFF/data sizes before post transcription
 ```
 
 The `.cmd` wrappers run these scripts through `uv` with temporary dependencies.
@@ -86,6 +89,9 @@ drop a .wav file onto test\drop_qwen_gpu.bat
 drop a .wav file onto test\drop_qwen_cpu.bat
 drop a .wav file onto test\drop_cpp_gpu.bat
 drop a .wav file onto test\drop_cpp_cpu.bat
+drop a .wav file onto test\drop_vulkan.bat
+drop a .wav file onto test\drop_openvino_npu.bat
+drop a .wav file onto test\drop_openvino_gpu.bat
 ```
 
 The wrappers `cd` back to the repo root before running backend commands, so they still work from inside `test/`.
@@ -126,15 +132,25 @@ whisper_cpp/
   bin_cuda/
   bin_vulkan/
   bin_vulkan_loopback/
+  bin_openvino/
   models/
 ```
 
-Do not commit model files or downloaded runtimes to normal Git history. Use releases, external storage, or Git LFS if distribution is needed later.
+Do not commit model files to normal Git history. Use releases, external storage, or Git LFS if distribution is needed later.
 
 `bin_cpu/`, `bin_cuda/`, and the ggml models can be downloaded by the asset downloader.
 `bin_vulkan/` and `bin_vulkan_loopback/` are local build artifacts. The Setup tab
 checks whether they exist, but it does not download them. Build or copy them locally
 before using `CPP Vulkan`, `CPP Vulkan LB Base`, or `CPP Vulkan LB Small`.
+
+`bin_openvino/` contains the separate OpenVINO whisper.cpp runtime used by `CPP OV NPU`
+and `CPP OV GPU`. It is copied into the folder-style portable package when present.
+The OpenVINO encoder files are expected beside the ggml model:
+
+```text
+whisper_cpp/models/ggml-small-encoder-openvino.xml
+whisper_cpp/models/ggml-small-encoder-openvino.bin
+```
 
 The Electron Setup tab uses the same downloader. Per-asset downloads are launched independently and report `ASSET_PROGRESS` lines for row progress. whisper.cpp zip/model downloads use resumable `.part` files where possible. Hugging Face snapshot model folders may still report stage-style progress.
 
@@ -153,6 +169,9 @@ cd whisper_cpp
 live_cpp.cmd
 live_cpp_cpu.cmd
 live_cpp_server_cpu.cmd
+live_cpp_server_vulkan.cmd
+live_cpp_server_openvino.cmd
+live_cpp_server_openvino_gpu.cmd
 stream_cpp.cmd
 transcribe_cpp.cmd ..\test\demo.wav output\demo
 ```
@@ -163,12 +182,51 @@ This folder is for comparing whisper.cpp latency and CPU/GPU behavior against th
 
 `live_cpp_server_cpu.cmd` is the preferred whisper.cpp CPU live path. It uses the same SoundCard loopback capture, starts `whisper-server.exe` as a child process, posts each chunk to `/inference`, and appends the returned text to `live_transcript.txt`. This keeps the model resident without losing the app's Windows speaker loopback selection.
 
+`live_cpp_server_vulkan.cmd` uses the same resident-server path with the Vulkan build.
+`select_vulkan_device.cmd` checks available Vulkan devices and sets
+`GGML_VK_VISIBLE_DEVICES` when a suitable device is selected.
+
+`live_cpp_server_openvino.cmd` uses OpenVINO with `-oved NPU`.
+`live_cpp_server_openvino_gpu.cmd` uses OpenVINO with `-oved GPU`.
+Both keep the model server resident and use the app's Python loopback capture.
+
 `stream_cpp.cmd` is only a standalone experiment. It uses `whisper-stream.exe`, which keeps the model resident but uses SDL capture devices instead of the app's Windows loopback selector. If SDL only lists a microphone, this path will not capture Teams/browser speaker audio.
+
+The custom Vulkan loopback build is different from upstream `whisper-stream.exe`.
+It captures the Windows output device through WASAPI loopback and supports:
+
+```text
+--save-wav path\to\audio.wav
+```
+
+The Electron loopback live buttons pass both `-f live_transcript.txt` and
+`--save-wav audio.wav`, so loopback live sessions can be post-transcribed later.
 
 No-sound whisper.cpp CPU file test:
 
 ```powershell
 whisper_cpp\bin_cpu\Release\whisper-cli.exe -m whisper_cpp\models\ggml-small.bin -f test\audio.wav -l ja -otxt -of test\audio_cpp_cpu_sim -t 6 -ng
+```
+
+OpenVINO file tests:
+
+```powershell
+test\drop_openvino_npu.bat test\audio.wav
+test\drop_openvino_gpu.bat test\audio.wav
+```
+
+OpenVINO post-transcription uses small model settings optimized for this repo:
+
+```text
+-oved NPU/GPU -t 8 -bs 1 -bo 1 -nf -nt -np
+```
+
+The Electron app repairs WAV headers before post-transcription for whisper.cpp and
+Qwen jobs. This helps with live recordings whose RIFF/data sizes were not finalized
+before the post command starts:
+
+```powershell
+repair_wav_header.cmd outputs\some_session\audio.wav
 ```
 
 ## Electron Build Check
@@ -201,6 +259,17 @@ electron_app/dist/Local Meeting STT portable/
 ```
 
 The portable folder copies backend scripts but does not bundle model files or Python packages. Models can be downloaded from the Setup tab into the portable folder. `runtime/uv-cache`, `runtime/venv`, and `runtime/electron-user-data` are local machine state.
+
+When present, the portable folder also copies:
+
+```text
+whisper_cpp/bin_vulkan/
+whisper_cpp/bin_vulkan_loopback/
+whisper_cpp/bin_openvino/
+```
+
+The release zip is built from the folder-style portable package and uploaded to the
+GitHub Release page for the matching tag.
 
 The Electron main process uses two roots:
 
