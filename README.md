@@ -1,194 +1,99 @@
+<p align="center">
+  <img src="docs/icon.png" width="96" alt="Local Meeting STT icon">
+</p>
+
 # Local Meeting STT
 
-Windows desktop app for local meeting recording and speech-to-text.
+Local-first Windows meeting transcription for Teams, browser meetings, and other
+desktop audio.
 
-The main target is Teams or browser meeting audio. The app captures Windows system
-audio through loopback, can optionally mix your microphone, and can run live or
-post-meeting transcription without sending recordings to a cloud service.
+The app captures Windows speaker/headset output through loopback, can optionally
+mix your microphone, and keeps recordings/transcripts on your machine. It is built
+as a practical control panel for local STT backends such as whisper.cpp,
+faster-whisper, OpenVINO, Vulkan, and Qwen3-ASR.
 
 ![Local Meeting STT app preview](docs/preview.svg)
 
-## What You Can Do
+## Why This Exists
 
-- Record meeting audio as a local `.wav` file.
-- Watch a live transcript while a meeting runs.
-- Capture speaker/headset output with the custom whisper.cpp Vulkan loopback mode.
-- Compare `base` and `small` whisper.cpp models from the same UI.
-- Transcribe an existing audio file after the meeting.
-- Use whisper.cpp, faster-whisper, or Qwen3-ASR workflows locally.
-- Keep recordings, logs, transcripts, models, and runtime state on your machine.
-
-## Recommended Live Mode
-
-For current live meeting use, start with:
+Most speech-to-text demos capture only the microphone. Meeting audio is usually
+coming from the speaker output, so this app focuses on Windows loopback capture:
 
 ```text
-CPP Vulkan LB Base
+Teams/browser audio -> Windows speaker loopback -> local transcript + saved WAV
 ```
 
-Use:
+Use it if you want:
 
-- `CPP Vulkan LB Base` for lower latency and stability.
-- `CPP Vulkan LB Small` when Japanese recognition accuracy matters more than delay.
+- Local/offline meeting transcription without uploading audio to a cloud service.
+- Live captions from Windows speaker output, not only microphone input.
+- A saved `.wav` file as the source of truth for post-meeting transcription.
+- Hardware backend experiments on Windows: CPU, Vulkan, OpenVINO NPU/GPU, CUDA.
+- Japanese-focused local STT testing, while still usable for other Whisper languages.
 
-Both modes use the custom `whisper-stream-loopback.exe` build documented in:
+## Quick Start
+
+Download the latest portable zip from:
 
 ```text
-whisper_cpp/vulkan-loopback-custom-build.md
+https://github.com/kuchris/local-meeting-stt/releases
 ```
 
-This is the output-device loopback path. Do not confuse it with upstream
-`whisper-stream.exe`, which uses SDL capture devices and may only see microphones.
+Then:
 
-## Start The App
+1. Extract the zip.
+2. Run `Local Meeting STT.exe`.
+3. Open `Setup`.
+4. Download or place the model files needed for your mode.
+5. Choose your Windows speaker loopback device.
+6. Start with `CPP Vulkan LB Base` in the `Live` tab.
 
-Requirements:
-
-- Windows
-- `uv`
-
-Recommended launcher:
+For repo/dev use, double-click from the repo root:
 
 ```text
 open_electron_app.cmd
 ```
 
-Double-click this file from the repo root. If a packaged app exists, it opens the
-packaged app. Otherwise, it starts the Electron app in development mode.
+If a packaged app exists, the launcher opens it. Otherwise it starts Electron in
+development mode.
 
-Portable app:
+## Recommended Modes
 
-```text
-electron_app/dist/Local Meeting STT portable/Local Meeting STT.exe
-```
-
-Build the portable folder with:
+Start simple:
 
 ```text
-build_portable_folder.cmd
+Live meeting:        CPP Vulkan LB Base
+Better live quality: CPP Vulkan LB Small
+Post transcription:  CPP NPU, CPP OV GPU, CPP Vulkan, or Qwen CPU/CUDA
 ```
 
-The folder-style portable package includes the app, backend scripts, local settings,
-empty model/output folders, and a local runtime folder. Model files are still local
-assets and are not committed to Git.
-
-Developer run:
-
-```powershell
-cd electron_app
-npm install
-npm run dev
-```
-
-Developer run requires Node.js and npm.
-
-On first run, open the `Setup` tab and download the assets needed for the mode you
-want to use.
-
-## Which Assets Do I Need?
-
-You do not need every asset for every mode.
+Mode guide:
 
 ```text
-CPP Vulkan LB Base   -> custom Vulkan loopback binary + ggml-base model
-CPP Vulkan LB Small  -> custom Vulkan loopback binary + ggml-small model
-CPP Vulkan           -> whisper.cpp Vulkan server binary + ggml-base model
-CPP OV NPU/GPU       -> whisper.cpp OpenVINO binary + ggml-small model + OpenVINO encoder
-CPP CPU              -> whisper.cpp CPU binary + ggml-small model
-CPP GPU              -> whisper.cpp CUDA/Vulkan binary + ggml-small model
-Live Text            -> faster-whisper small model
-Live + WAV           -> faster-whisper small model
-Qwen CPU/GPU         -> Qwen3-ASR model
+CPP Vulkan LB Base   -> recommended live mode, low delay, speaker loopback
+CPP Vulkan LB Small  -> live mode with better Whisper accuracy, more load
+CPP Vulkan           -> resident whisper.cpp server with Vulkan backend
+CPP OV NPU           -> resident whisper.cpp OpenVINO server on Intel NPU
+CPP OV GPU           -> resident whisper.cpp OpenVINO server on Intel GPU
+CPP CPU              -> whisper.cpp CPU mode
+CPP GPU              -> whisper.cpp CUDA mode for NVIDIA systems
+Live + WAV           -> faster-whisper live transcript plus saved WAV
+Live Text            -> faster-whisper live transcript only
+Qwen CPU/GPU         -> Qwen3-ASR post-transcription comparison path
 ```
 
-In the `Setup` tab, each asset row has its own download button. Asset downloads run
-per row and show progress independently.
+Note: `Qwen GPU` currently means CUDA-style GPU acceleration. It is mainly for
+NVIDIA systems, not Intel Vulkan.
 
-The Vulkan rows are different:
+## What Gets Saved
 
-- `whisper.cpp Vulkan` (`whisper_cpp/bin_vulkan/`) is a local build artifact.
-- `whisper.cpp Vulkan loopback` (`whisper_cpp/bin_vulkan_loopback/`) is a custom
-  local build artifact.
-
-They are shown in Setup so you can see whether they exist, but they are not
-downloaded by the asset downloader. Build or copy them locally before using the
-Vulkan live buttons.
-
-## App Tabs
-
-### Live
-
-Use this during a meeting.
-
-- `CPP Vulkan LB Base`: stable output-device loopback live transcription with the
-  base model.
-- `CPP Vulkan LB Small`: output-device loopback live transcription with the small
-  model.
-- `CPP Vulkan`: whisper.cpp Vulkan server live path with Python loopback capture.
-- `CPP OV NPU`: whisper.cpp OpenVINO server live path using the Intel NPU.
-- `CPP OV GPU`: whisper.cpp OpenVINO server live path using the Intel GPU.
-- `Live + WAV`: records audio and writes a rough faster-whisper live transcript.
-- `Live Text`: rough faster-whisper live transcript only.
-- `CPP GPU` / `CPP CPU`: older whisper.cpp live paths for comparison.
-
-The live panel shows a timestamped transcript and a timestamped process log.
-
-### Record
-
-Use this when you only want a clean audio recording.
-
-- `Until Enter`: record until you stop it.
-- `Timed WAV`: record for the number of seconds shown.
-
-### Transcribe
-
-Use this after a meeting.
-
-Drop or choose an audio file, then run:
-
-- `CPP GPU` / `CPP CPU` for whisper.cpp transcription.
-- `Qwen GPU` / `Qwen CPU` for Qwen3-ASR post-processing.
-
-Qwen can be slower and use more VRAM, but it is useful to compare final transcript
-quality.
-
-Quick whisper.cpp CPU file test:
-
-```powershell
-whisper_cpp\bin_cpu\Release\whisper-cli.exe -m whisper_cpp\models\ggml-small.bin -f test\audio.wav -l ja -otxt -of test\audio_cpp_cpu_sim -t 6 -ng
-```
-
-### Setup
-
-Use this to prepare the local machine.
-
-- Check whether models and whisper.cpp binaries exist.
-- Download all assets or download one missing asset from its row.
-- Choose and open the output folder.
-- Choose the Windows speaker loopback device.
-- Enable optional microphone mixing.
-
-Blank audio device selection means the default device is used.
-
-## Useful Controls
-
-- `Ctrl+B`: collapse or expand the sidebar.
-- `File > Open Audio...`: choose an audio file for post-transcription.
-- `View > Clear Logs`: clear the process log and live transcript panel.
-- `Help > GitHub Repository`: open the project repository.
-
-## Output Folders
-
-The Electron app writes recordings and transcripts to one output folder. The default
-is:
+The app writes recordings and transcripts to one output folder. Default:
 
 ```text
 outputs/
 ```
 
-You can change it from the `Setup` tab.
-
-Live meeting output:
+Normal live output:
 
 ```text
 outputs/
@@ -197,46 +102,161 @@ outputs/
     live_transcript.txt
 ```
 
-Vulkan loopback output:
+Vulkan loopback live output:
 
 ```text
 outputs/
   loopback_stream_base_YYYYMMDD_HHMMSS/
+    audio.wav
     live_transcript.txt
   loopback_stream_small_YYYYMMDD_HHMMSS/
+    audio.wav
     live_transcript.txt
 ```
 
-Post-transcription output is written to the selected output folder or back into the
-session folder for `audio.wav`.
+Post-transcription writes transcript files back into the selected session folder
+when the selected audio is a session `audio.wav`.
 
-Test/demo files live in:
+## Portable Package
 
-```text
-test/
-```
-
-Local model files, recordings, generated transcripts, and Electron build/cache files
-are ignored by Git.
-
-Portable settings and runtime state:
+Build a folder-style portable package from the repo root:
 
 ```text
-settings.json
-runtime/
+build_portable_folder.cmd
 ```
 
-Both are local/user state and are ignored by Git.
+It creates:
+
+```text
+electron_app/dist/Local Meeting STT portable/
+  Local Meeting STT.exe
+  settings.json
+  README.txt
+  python_backend/
+  whisper_cpp/
+  models/
+  outputs/
+  runtime/
+```
+
+The portable folder includes backend scripts and local runtimes when available,
+including:
+
+```text
+whisper_cpp/bin_vulkan/
+whisper_cpp/bin_vulkan_loopback/
+whisper_cpp/bin_openvino/
+```
+
+Model files are still local assets. Put or download them into:
+
+```text
+models/
+whisper_cpp/models/
+```
+
+## Assets
+
+You do not need every model or runtime for every mode.
+
+```text
+CPP Vulkan LB Base   -> bin_vulkan_loopback + ggml-base model
+CPP Vulkan LB Small  -> bin_vulkan_loopback + ggml-small model
+CPP Vulkan           -> bin_vulkan + ggml-base model
+CPP OV NPU/GPU       -> bin_openvino + ggml-small model + OpenVINO encoder
+CPP CPU              -> bin_cpu + ggml-small model
+CPP GPU              -> bin_cuda + ggml-small model
+Live Text / Live WAV -> faster-whisper small model
+Qwen CPU/GPU         -> Qwen3-ASR model
+```
+
+The `Setup` tab shows asset status and has per-row download buttons where
+downloading is supported. Vulkan and OpenVINO runtimes are local/release artifacts,
+not normal model downloads.
+
+## App Tabs
+
+### Live
+
+Use this during a meeting. The live panel shows a timestamped transcript and process
+log. For most users, `CPP Vulkan LB Base` is the first mode to try.
+
+### Record
+
+Use this when you only want a clean audio recording.
+
+- `Until Enter`: record until you stop it.
+- `Timed WAV`: record for the selected duration.
+
+### Transcribe
+
+Use this after a meeting.
+
+Drop or choose an audio file, then run one of:
+
+- `CPP CPU`
+- `CPP GPU`
+- `CPP Vulkan`
+- `CPP NPU`
+- `CPP OV GPU`
+- `Qwen CPU`
+- `Qwen GPU`
+
+The live transcript is for following the meeting. The saved WAV is the better input
+for final post-transcription.
+
+### Setup
+
+Use this to prepare the local machine.
+
+- Check whether models and local runtimes exist.
+- Download supported missing assets.
+- Choose and open the output folder.
+- Choose the Windows speaker loopback device.
+- Enable optional microphone mixing.
+
+Blank audio device selection means the script default device is used.
+
+## Developer Run
+
+Requirements:
+
+- Windows
+- Node.js and npm
+- `uv`
+
+Run:
+
+```powershell
+cd electron_app
+npm install
+npm run dev
+```
+
+Build check:
+
+```powershell
+cd electron_app
+npm run build
+```
+
+## Useful Controls
+
+- `Ctrl+B`: collapse or expand the sidebar.
+- `File > Open Audio...`: choose an audio file for post-transcription.
+- `View > Clear Logs`: clear the process log and live transcript panel.
+- `Help > GitHub Repository`: open the project repository.
 
 ## Notes
 
 - Default language is Japanese.
-- Main capture source is system audio, suitable for Teams/browser meeting audio.
-- Live transcript is for low-latency checking, not final transcript quality.
+- Main capture source is Windows system audio.
+- Live transcript quality depends heavily on model size and hardware.
 - For cleaner final output, record first and run post-transcription after the meeting.
 - The custom Vulkan loopback build is documented under `whisper_cpp/`.
 
-For backend commands, folder layout, and technical details, see [TECHNICAL.md](TECHNICAL.md).
+For backend commands, folder layout, and technical details, see
+[TECHNICAL.md](TECHNICAL.md).
 
 ## License
 
@@ -244,7 +264,7 @@ Apache-2.0. See [LICENSE](LICENSE).
 
 ## Support
 
-If this project saves you time, please consider giving it a GitHub star. It helps
-other people find the repo.
+If this project saves you time, please give it a GitHub star. Stars help other
+people find local-first Windows speech-to-text tools.
 
 [![Star History Chart](https://api.star-history.com/svg?repos=kuchris/local-meeting-stt&type=Date)](https://www.star-history.com/#kuchris/local-meeting-stt&Date)
