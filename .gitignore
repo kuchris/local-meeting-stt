@@ -57,6 +57,7 @@ runtime/
 # Electron app local dependencies and build output
 electron_app/node_modules/
 electron_app/dist/
+electron_app/dist-release/
 electron_app/dist-electron/
 electron_app/out/
 .electron-user-data/

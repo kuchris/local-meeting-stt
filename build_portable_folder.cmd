@@ -7,7 +7,7 @@ set "APP_NAME=Local Meeting STT"
 set "ELECTRON_DIR=%CD%\electron_app"
 set "DIST_DIR=%ELECTRON_DIR%\dist"
 set "PORTABLE_EXE=%DIST_DIR%\Local Meeting STT portable.exe"
-set "VERSIONED_PORTABLE_EXE=%DIST_DIR%\Local Meeting STT 0.1.0.exe"
+set "VERSIONED_PORTABLE_EXE="
 set "RELEASE_DIR=%DIST_DIR%\Local Meeting STT portable"
 
 echo Building portable exe...
@@ -22,13 +22,14 @@ if errorlevel 1 (
 )
 popd
 
-if not exist "%PORTABLE_EXE%" if exist "%VERSIONED_PORTABLE_EXE%" set "PORTABLE_EXE=%VERSIONED_PORTABLE_EXE%"
+for %%F in ("%DIST_DIR%\Local Meeting STT *.exe") do set "VERSIONED_PORTABLE_EXE=%%~fF"
+if not exist "%PORTABLE_EXE%" if defined VERSIONED_PORTABLE_EXE set "PORTABLE_EXE=%VERSIONED_PORTABLE_EXE%"
 
 if not exist "%PORTABLE_EXE%" (
   echo.
   echo Missing portable exe:
   echo %DIST_DIR%\Local Meeting STT portable.exe
-  echo %VERSIONED_PORTABLE_EXE%
+  echo %DIST_DIR%\Local Meeting STT *.exe
   pause
   exit /b 1
 )
