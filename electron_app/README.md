@@ -54,9 +54,9 @@ The `dev` and `preview` scripts clear `ELECTRON_RUN_AS_NODE` first. If that vari
 
 ## Tabs
 
-- `Live`: Python live + WAV, Python live text, whisper.cpp GPU live, whisper.cpp CPU live, and CPP Server live.
+- `Live`: Python live + WAV, Python live text, whisper.cpp CPU/GPU, Vulkan loopback, Vulkan server, and OpenVINO NPU/GPU live modes.
 - `Record`: record until Enter or timed WAV recording.
-- `Transcribe`: choose/drop an audio file and run whisper.cpp CPU/GPU or Qwen CPU/GPU.
+- `Transcribe`: choose/drop an audio file and run whisper.cpp CPU/GPU/Vulkan/OpenVINO or Qwen CPU/GPU.
 - `Setup`: check assets, download all or one asset with per-row progress/pause, choose the output folder, and choose audio capture devices.
 
 ## Controls

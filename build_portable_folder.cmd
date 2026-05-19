@@ -77,6 +77,16 @@ if exist "%CD%\whisper_cpp\bin_vulkan_loopback" (
   )
 )
 
+if exist "%CD%\whisper_cpp\bin_openvino" (
+  echo Copying OpenVINO runtime...
+  robocopy "%CD%\whisper_cpp\bin_openvino" "%RELEASE_DIR%\whisper_cpp\bin_openvino" /E >nul
+  if errorlevel 8 (
+    echo Failed to copy bin_openvino.
+    pause
+    exit /b 1
+  )
+)
+
 > "%RELEASE_DIR%\settings.json" (
   echo {
   echo   "outputDir": "outputs",

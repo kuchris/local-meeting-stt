@@ -33,6 +33,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--save-recording", action="store_true", help="Also save the captured audio")
     parser.add_argument("--recording-output", type=Path, help="Recording output WAV path")
     parser.add_argument("--recording-dir", type=Path, default=Path("output"), help="Directory for timestamped sessions")
+    parser.add_argument("--session-prefix", default="cpp_live", help="Prefix for timestamped live session folders. Default: cpp_live")
     parser.add_argument("--model", type=Path, default=Path("models") / "ggml-small.bin", help="whisper.cpp ggml model path")
     parser.add_argument("--language", default="ja", help="Language code. Default: ja")
     parser.add_argument("--chunk-seconds", type=float, default=3.0, help="Chunk size in seconds. Default: 3")
@@ -53,13 +54,18 @@ def parse_args() -> Namespace:
     parser.add_argument("--silence-rms", type=float, default=0.003, help="Skip server inference below this chunk RMS. Default: 0.003")
     parser.add_argument("--no-gpu", action="store_true", help="Disable whisper.cpp GPU inference")
     parser.add_argument("--threads", type=int, help="whisper.cpp CPU thread count. Default: auto")
+    parser.add_argument("--openvino-device", help="OpenVINO encoder device for whisper-server, for example NPU, GPU, or CPU")
+    parser.add_argument("--beam-size", type=int, help="whisper.cpp beam size")
+    parser.add_argument("--best-of", type=int, help="whisper.cpp best-of count")
+    parser.add_argument("--no-fallback", action="store_true", help="Disable temperature fallback while decoding")
     parser.add_argument("--show-audio-warnings", action="store_true", help="Show low-level SoundCard recording warnings")
     return parser.parse_args()
 
 
-def default_recording_path(output_dir: Path) -> Path:
+def default_recording_path(output_dir: Path, prefix: str) -> Path:
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return output_dir / f"cpp_live_{stamp}" / "audio.wav"
+    safe_prefix = "".join(char if char.isalnum() or char in "-_" else "_" for char in prefix).strip("_") or "cpp_live"
+    return output_dir / f"{safe_prefix}_{stamp}" / "audio.wav"
 
 
 def default_transcript_path(recording_path: Path | None) -> Path:
@@ -275,6 +281,14 @@ def start_whisper_server(args: Namespace) -> tuple[Popen, str, Event, Thread]:
     ]
     if args.no_gpu:
         command.append("-ng")
+    if args.openvino_device:
+        command.extend(["-oved", args.openvino_device])
+    if args.beam_size is not None:
+        command.extend(["-bs", str(args.beam_size)])
+    if args.best_of is not None:
+        command.extend(["-bo", str(args.best_of)])
+    if args.no_fallback:
+        command.append("-nf")
 
     process = Popen(
         command,
@@ -310,7 +324,7 @@ def run_live(args: Namespace) -> None:
     if args.server:
         args.max_backlog = min(args.max_backlog, 1)
     if args.save_recording:
-        args.recording_output = args.recording_output or default_recording_path(args.recording_dir)
+        args.recording_output = args.recording_output or default_recording_path(args.recording_dir, args.session_prefix)
     if args.recording_output:
         args.recording_output.parent.mkdir(parents=True, exist_ok=True)
     output_path = args.output or default_transcript_path(args.recording_output)

@@ -25,6 +25,9 @@ type OutputSession = {
     live: boolean;
     cppCpu: boolean;
     cppGpu: boolean;
+    cppVulkan: boolean;
+    cppNpu: boolean;
+    cppOpenvinoGpu: boolean;
     qwenCpu: boolean;
     qwenGpu: boolean;
   };
@@ -290,17 +293,27 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
       if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
       return { label: "Live whisper.cpp server Vulkan", ...runCmd(path.join("whisper_cpp", "live_cpp_server_vulkan.cmd"), extra) };
     }
+    case "live-cpp-server-openvino": {
+      const extra = ["--recording-dir", outputDir, ...captureArgs(args)];
+      if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
+      return { label: "Live whisper.cpp server OpenVINO NPU", ...runCmd(path.join("whisper_cpp", "live_cpp_server_openvino.cmd"), extra) };
+    }
+    case "live-cpp-server-openvino-gpu": {
+      const extra = ["--recording-dir", outputDir, ...captureArgs(args)];
+      if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
+      return { label: "Live whisper.cpp server OpenVINO GPU", ...runCmd(path.join("whisper_cpp", "live_cpp_server_openvino_gpu.cmd"), extra) };
+    }
     case "live-cpp-stream-loopback": {
-      const outputPath = path.join(timestampedOutputDir(outputDir, "loopback_stream"), "live_transcript.txt");
-      return { label: "Live whisper.cpp Vulkan LB stream", ...runCmd(path.join("whisper_cpp", "stream_cpp_vulkan_loopback.cmd"), ["-f", outputPath]) };
+      const sessionDir = timestampedOutputDir(outputDir, "loopback_stream");
+      return { label: "Live whisper.cpp Vulkan LB stream", ...runCmd(path.join("whisper_cpp", "stream_cpp_vulkan_loopback.cmd"), ["-f", path.join(sessionDir, "live_transcript.txt"), "--save-wav", path.join(sessionDir, "audio.wav")]) };
     }
     case "live-cpp-stream-loopback-base": {
-      const outputPath = path.join(timestampedOutputDir(outputDir, "loopback_stream_base"), "live_transcript.txt");
-      return { label: "Live whisper.cpp Vulkan LB stream base", ...runCmd(path.join("whisper_cpp", "stream_cpp_vulkan_loopback_base.cmd"), ["-f", outputPath]) };
+      const sessionDir = timestampedOutputDir(outputDir, "loopback_stream_base");
+      return { label: "Live whisper.cpp Vulkan LB stream base", ...runCmd(path.join("whisper_cpp", "stream_cpp_vulkan_loopback_base.cmd"), ["-f", path.join(sessionDir, "live_transcript.txt"), "--save-wav", path.join(sessionDir, "audio.wav")]) };
     }
     case "live-cpp-stream-loopback-small": {
-      const outputPath = path.join(timestampedOutputDir(outputDir, "loopback_stream_small"), "live_transcript.txt");
-      return { label: "Live whisper.cpp Vulkan LB stream small", ...runCmd(path.join("whisper_cpp", "stream_cpp_vulkan_loopback_small.cmd"), ["-f", outputPath]) };
+      const sessionDir = timestampedOutputDir(outputDir, "loopback_stream_small");
+      return { label: "Live whisper.cpp Vulkan LB stream small", ...runCmd(path.join("whisper_cpp", "stream_cpp_vulkan_loopback_small.cmd"), ["-f", path.join(sessionDir, "live_transcript.txt"), "--save-wav", path.join(sessionDir, "audio.wav")]) };
     }
     case "record-enter":
       return { label: "Record until Enter", ...runCmd(path.join("python_backend", "record_meeting.cmd"), ["--until-enter", "--output", path.join(timestampedOutputDir(outputDir, "meeting"), "audio.wav"), ...captureArgs(args)]) };
@@ -324,6 +337,71 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
         label: "whisper.cpp CPU",
         executable: path.join(dataRoot, "whisper_cpp", "bin_cpu", "Release", "whisper-cli.exe"),
         args: ["-m", path.join(dataRoot, "whisper_cpp", "models", "ggml-small.bin"), "-f", audioPath, "-l", "ja", "-otxt", "-of", outputBase, "-t", postThreadCount()]
+      };
+    }
+    case "cpp-vulkan": {
+      if (!audioPath) throw new Error("Choose an audio file first.");
+      const outputBase = transcriptOutputPath(audioPath, outputDir, "cpp_vulkan_transcript").replace(/\.txt$/, "");
+      return { label: "whisper.cpp Vulkan", ...runCmd(path.join("whisper_cpp", "post_cpp_vulkan.cmd"), [audioPath, outputBase, "8"]) };
+    }
+    case "cpp-npu": {
+      if (!audioPath) throw new Error("Choose an audio file first.");
+      const outputBase = transcriptOutputPath(audioPath, outputDir, "cpp_npu_transcript").replace(/\.txt$/, "");
+      return {
+        label: "whisper.cpp NPU",
+        executable: path.join(dataRoot, "whisper_cpp", "bin_openvino", "Release", "whisper-cli.exe"),
+        args: [
+          "-m",
+          path.join(dataRoot, "whisper_cpp", "models", "ggml-small.bin"),
+          "-f",
+          audioPath,
+          "-l",
+          "ja",
+          "-oved",
+          "NPU",
+          "-t",
+          "8",
+          "-bs",
+          "1",
+          "-bo",
+          "1",
+          "-nf",
+          "-nt",
+          "-np",
+          "-otxt",
+          "-of",
+          outputBase
+        ]
+      };
+    }
+    case "cpp-openvino-gpu": {
+      if (!audioPath) throw new Error("Choose an audio file first.");
+      const outputBase = transcriptOutputPath(audioPath, outputDir, "cpp_openvino_gpu_transcript").replace(/\.txt$/, "");
+      return {
+        label: "whisper.cpp OpenVINO GPU",
+        executable: path.join(dataRoot, "whisper_cpp", "bin_openvino", "Release", "whisper-cli.exe"),
+        args: [
+          "-m",
+          path.join(dataRoot, "whisper_cpp", "models", "ggml-small.bin"),
+          "-f",
+          audioPath,
+          "-l",
+          "ja",
+          "-oved",
+          "GPU",
+          "-t",
+          "8",
+          "-bs",
+          "1",
+          "-bo",
+          "1",
+          "-nf",
+          "-nt",
+          "-np",
+          "-otxt",
+          "-of",
+          outputBase
+        ]
       };
     }
     case "qwen-gpu": {
@@ -399,6 +477,10 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
     default:
       throw new Error(`Unknown command: ${kind}`);
   }
+}
+
+function shouldRepairInputAudio(kind: string): boolean {
+  return ["cpp-gpu", "cpp-cpu", "cpp-vulkan", "cpp-npu", "cpp-openvino-gpu", "qwen-gpu", "qwen-cpu"].includes(kind);
 }
 
 function assetLabel(assetId: string): string {
@@ -553,6 +635,14 @@ function parseAudioDevices(output: string): AudioDeviceStatus {
 }
 
 ipcMain.handle("run-command", async (_, kind: string, rawArgs: CommandArgs = {}) => {
+  const inputAudioPath = str(rawArgs.audioPath);
+  if (inputAudioPath && shouldRepairInputAudio(kind)) {
+    try {
+      repairPcmWavHeader(inputAudioPath);
+    } catch {
+      // Let the target command report the actual read error.
+    }
+  }
   const command = buildCommand(kind, rawArgs);
   const processId = nextProcessId++;
   const child = spawn(command.executable, command.args, {
@@ -686,6 +776,9 @@ ipcMain.handle("list-output-sessions", async (_, rawOutputDir: string) => {
         live: existsSync(path.join(folderPath, "live_transcript.txt")),
         cppCpu: existsSync(path.join(folderPath, "cpp_cpu_transcript.txt")),
         cppGpu: existsSync(path.join(folderPath, "cpp_gpu_transcript.txt")),
+        cppVulkan: existsSync(path.join(folderPath, "cpp_vulkan_transcript.txt")),
+        cppNpu: existsSync(path.join(folderPath, "cpp_npu_transcript.txt")),
+        cppOpenvinoGpu: existsSync(path.join(folderPath, "cpp_openvino_gpu_transcript.txt")),
         qwenCpu: existsSync(path.join(folderPath, "qwen_cpu_transcript.txt")),
         qwenGpu: existsSync(path.join(folderPath, "qwen_gpu_transcript.txt"))
       }
@@ -716,6 +809,9 @@ ipcMain.handle("check-assets", async () => {
     { id: "whisper-cpp-cpu", label: "whisper.cpp CPU", relativePath: "whisper_cpp/bin_cpu/Release/whisper-cli.exe", downloadable: true },
     { id: "whisper-cpp-cuda", label: "whisper.cpp CUDA", relativePath: "whisper_cpp/bin_cuda/Release/whisper-cli.exe", downloadable: true },
     { id: "whisper-cpp-vulkan", label: "whisper.cpp Vulkan", relativePath: "whisper_cpp/bin_vulkan/Release/whisper-server.exe", downloadable: false, note: "Build locally; not available from the asset downloader." },
+    { id: "whisper-cpp-openvino", label: "whisper.cpp OpenVINO", relativePath: "whisper_cpp/bin_openvino/Release/whisper-server.exe", downloadable: false, note: "Separate local build; requires the OpenVINO encoder model." },
+    { id: "whisper-cpp-openvino-model-xml", label: "whisper.cpp OpenVINO small encoder XML", relativePath: "whisper_cpp/models/ggml-small-encoder-openvino.xml", downloadable: false, note: "Generated locally from the small model for OpenVINO." },
+    { id: "whisper-cpp-openvino-model-bin", label: "whisper.cpp OpenVINO small encoder BIN", relativePath: "whisper_cpp/models/ggml-small-encoder-openvino.bin", downloadable: false, note: "Generated locally from the small model for OpenVINO." },
     { id: "whisper-cpp-vulkan-loopback", label: "whisper.cpp Vulkan loopback", relativePath: "whisper_cpp/bin_vulkan_loopback/Release/whisper-stream-loopback.exe", downloadable: false, note: "Custom local build; see whisper_cpp/vulkan-loopback-custom-build.md." },
     { id: "whisper-cpp-base-model", label: "whisper.cpp base model", relativePath: "whisper_cpp/models/ggml-base.bin", downloadable: true },
     { id: "whisper-cpp-model", label: "whisper.cpp small model", relativePath: "whisper_cpp/models/ggml-small.bin", downloadable: true }

@@ -490,6 +490,9 @@ function App() {
     const suffixes: Record<string, string> = {
       "cpp-gpu": "_cpp_gpu_transcript.txt",
       "cpp-cpu": "_cpp_cpu_transcript.txt",
+      "cpp-vulkan": "_cpp_vulkan_transcript.txt",
+      "cpp-npu": "_cpp_npu_transcript.txt",
+      "cpp-openvino-gpu": "_cpp_openvino_gpu_transcript.txt",
       "qwen-gpu": "_qwen_gpu_transcript.txt",
       "qwen-cpu": "_qwen_cpu_transcript.txt"
     };
@@ -1103,6 +1106,8 @@ function App() {
                   <button disabled={isRunning} onClick={() => run("live-cpp-gpu", { chunkSeconds, ...captureSettings })}>CPP GPU</button>
                   <button disabled={isRunning} onClick={() => run("live-cpp-cpu", { chunkSeconds, ...captureSettings })}>CPP CPU</button>
                   <button disabled={isRunning} onClick={() => run("live-cpp-server-vulkan", { chunkSeconds, ...captureSettings })}>CPP Vulkan</button>
+                  <button disabled={isRunning} onClick={() => run("live-cpp-server-openvino", { chunkSeconds, ...captureSettings })}>CPP OV NPU</button>
+                  <button disabled={isRunning} onClick={() => run("live-cpp-server-openvino-gpu", { chunkSeconds, ...captureSettings })}>CPP OV GPU</button>
                   <button disabled={isRunning} onClick={() => run("live-cpp-stream-loopback-base", captureSettings)}>CPP Vulkan LB Base</button>
                   <button disabled={isRunning} onClick={() => run("live-cpp-stream-loopback-small", captureSettings)}>CPP Vulkan LB Small</button>
                 </div>
@@ -1149,7 +1154,7 @@ function App() {
                         <strong>{session.name}</strong>
                         <small>{formatBytes(session.audioSize)} · {formatTime(session.modifiedTime)}</small>
                         <span className="session-badges">
-                          {(session.transcripts.cppCpu || session.transcripts.cppGpu) && <span>C</span>}
+                          {(session.transcripts.cppCpu || session.transcripts.cppGpu || session.transcripts.cppVulkan || session.transcripts.cppNpu || session.transcripts.cppOpenvinoGpu) && <span>C</span>}
                           {(session.transcripts.qwenCpu || session.transcripts.qwenGpu) && <span>Q</span>}
                         </span>
                       </button>
@@ -1224,6 +1229,9 @@ function App() {
                     <div className="grid-actions">
                       <button disabled={!selectedAudioPath || isRunning} onClick={() => run("cpp-cpu", { audioPath: selectedAudioPath })}>CPP CPU</button>
                       <button disabled={!selectedAudioPath || isRunning} onClick={() => run("cpp-gpu", { audioPath: selectedAudioPath })}>CPP GPU</button>
+                      <button disabled={!selectedAudioPath || isRunning} onClick={() => run("cpp-vulkan", { audioPath: selectedAudioPath })}>CPP Vulkan</button>
+                      <button disabled={!selectedAudioPath || isRunning} onClick={() => run("cpp-npu", { audioPath: selectedAudioPath })}>CPP NPU</button>
+                      <button disabled={!selectedAudioPath || isRunning} onClick={() => run("cpp-openvino-gpu", { audioPath: selectedAudioPath })}>CPP OV GPU</button>
                       <button disabled={!selectedAudioPath || isRunning} onClick={() => run("qwen-cpu", qwenArgs)}>Qwen CPU</button>
                       <button disabled={!selectedAudioPath || isRunning} onClick={() => run("qwen-gpu", qwenArgs)}>Qwen GPU</button>
                     </div>

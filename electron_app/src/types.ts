@@ -45,6 +45,9 @@ export type OutputSession = {
     live: boolean;
     cppCpu: boolean;
     cppGpu: boolean;
+    cppVulkan: boolean;
+    cppNpu: boolean;
+    cppOpenvinoGpu: boolean;
     qwenCpu: boolean;
     qwenGpu: boolean;
   };

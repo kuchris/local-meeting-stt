@@ -1,0 +1,2 @@
+C:/Users/alten/Desktop/ku/local-meeting-stt/whisper_cpp/build_openvino/src/whisper.dir/Release/whisper.obj
+C:/Users/alten/Desktop/ku/local-meeting-stt/whisper_cpp/build_openvino/src/whisper.openvino.dir/Release/whisper-openvino-encoder.obj

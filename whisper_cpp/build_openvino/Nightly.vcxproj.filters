@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\build_openvino\CMakeFiles\f58f9501ea9093096d66dff06d4a8fbc\Nightly.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\build_openvino\CMakeFiles\Nightly" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{3DD4AB53-FC46-323A-8FFB-86E3F8EF3C44}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

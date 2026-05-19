@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -59,6 +60,55 @@ std::string narrow(const std::wstring & text) {
         result.assign(buffer.data());
     }
     return result;
+}
+
+bool write_wav_header(std::ofstream & file, uint32_t sample_rate, uint32_t data_size) {
+    if (!file.is_open()) {
+        return false;
+    }
+
+    const uint16_t channels = 1;
+    const uint16_t bits_per_sample = 16;
+    const uint32_t byte_rate = sample_rate * channels * bits_per_sample / 8;
+    const uint16_t block_align = channels * bits_per_sample / 8;
+    const uint32_t riff_size = 36 + data_size;
+    const uint32_t fmt_size = 16;
+    const uint16_t audio_format = 1;
+
+    file.seekp(0, std::ios::beg);
+    file.write("RIFF", 4);
+    file.write(reinterpret_cast<const char *>(&riff_size), 4);
+    file.write("WAVE", 4);
+    file.write("fmt ", 4);
+    file.write(reinterpret_cast<const char *>(&fmt_size), 4);
+    file.write(reinterpret_cast<const char *>(&audio_format), 2);
+    file.write(reinterpret_cast<const char *>(&channels), 2);
+    file.write(reinterpret_cast<const char *>(&sample_rate), 4);
+    file.write(reinterpret_cast<const char *>(&byte_rate), 4);
+    file.write(reinterpret_cast<const char *>(&block_align), 2);
+    file.write(reinterpret_cast<const char *>(&bits_per_sample), 2);
+    file.write("data", 4);
+    file.write(reinterpret_cast<const char *>(&data_size), 4);
+    file.seekp(0, std::ios::end);
+    return true;
+}
+
+void write_wav_samples(std::ofstream & file, const float * samples, size_t n_samples, uint32_t sample_rate, uint32_t & data_size) {
+    if (!file.is_open() || samples == nullptr || n_samples == 0) {
+        return;
+    }
+
+    for (size_t i = 0; i < n_samples; ++i) {
+        const float value = (std::max)(-1.0f, (std::min)(1.0f, samples[i]));
+        const int16_t pcm = static_cast<int16_t>(value * 32767.0f);
+        file.write(reinterpret_cast<const char *>(&pcm), sizeof(pcm));
+        data_size += sizeof(pcm);
+    }
+
+    const auto pos = file.tellp();
+    write_wav_header(file, sample_rate, data_size);
+    file.seekp(pos, std::ios::beg);
+    file.flush();
 }
 
 IMMDevice * select_render_device(IMMDeviceEnumerator * enumerator, int render_id) {
@@ -219,6 +269,14 @@ bool audio_async::clear() {
     return true;
 }
 
+bool audio_async::set_recording_path(const std::string & path) {
+    if (m_running) {
+        return false;
+    }
+    m_recording_path = path;
+    return true;
+}
+
 bool audio_async::append_samples(const float * samples, size_t n_samples) {
     if (n_samples > m_audio.size()) {
         samples += n_samples - m_audio.size();
@@ -270,6 +328,8 @@ void audio_async::capture_loop() {
     IAudioClient * audio_client = nullptr;
     IAudioCaptureClient * capture_client = nullptr;
     WAVEFORMATEX * mix_format = nullptr;
+    std::ofstream recording;
+    uint32_t recording_data_size = 0;
 
     HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS(&enumerator));
     if (FAILED(hr)) goto done;
@@ -290,6 +350,16 @@ void audio_async::capture_loop() {
 
     fprintf(stderr, "loopback: capture started at %u Hz, %u channels, %u bits\n",
             mix_format->nSamplesPerSec, mix_format->nChannels, mix_format->wBitsPerSample);
+
+    if (!m_recording_path.empty()) {
+        recording.open(m_recording_path, std::ios::binary);
+        if (recording.is_open()) {
+            write_wav_header(recording, static_cast<uint32_t>(m_sample_rate), 0);
+            fprintf(stderr, "loopback: recording wav: %s\n", m_recording_path.c_str());
+        } else {
+            fprintf(stderr, "loopback: failed to open recording wav: %s\n", m_recording_path.c_str());
+        }
+    }
 
     while (!m_stop) {
         UINT32 packet_frames = 0;
@@ -322,6 +392,7 @@ void audio_async::capture_loop() {
         }
         std::vector<float> resampled = resample_linear(mono, mix_format->nSamplesPerSec, m_sample_rate);
         append_samples(resampled.data(), resampled.size());
+        write_wav_samples(recording, resampled.data(), resampled.size(), static_cast<uint32_t>(m_sample_rate), recording_data_size);
         capture_client->ReleaseBuffer(frames);
     }
 
@@ -335,6 +406,9 @@ done:
     }
     if (mix_format) {
         CoTaskMemFree(mix_format);
+    }
+    if (recording.is_open()) {
+        recording.close();
     }
     release(capture_client);
     release(audio_client);

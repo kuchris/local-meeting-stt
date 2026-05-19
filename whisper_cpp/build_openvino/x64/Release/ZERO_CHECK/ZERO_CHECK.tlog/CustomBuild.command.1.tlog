@@ -1,0 +1,10 @@
+^C:\USERS\ALTEN\DESKTOP\KU\LOCAL-MEETING-STT\WHISPER_CPP\BUILD_OPENVINO\CMAKEFILES\F58F9501EA9093096D66DFF06D4A8FBC\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/alten/Desktop/ku/local-meeting-stt/whisper_cpp/src_vulkan_loopback -BC:/Users/alten/Desktop/ku/local-meeting-stt/whisper_cpp/build_openvino --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/alten/Desktop/ku/local-meeting-stt/whisper_cpp/build_openvino/whisper.cpp.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

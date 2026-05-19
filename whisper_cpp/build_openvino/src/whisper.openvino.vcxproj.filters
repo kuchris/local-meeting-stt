@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\src\openvino\whisper-openvino-encoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\src\openvino\whisper-openvino-encoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\src\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{9F4F3CB9-D8D9-3D34-848D-6C321F226971}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{E6886C39-AE59-3783-BBB1-CB5EE7406689}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

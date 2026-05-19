@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\examples\quantize\quantize.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\examples\quantize\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{E6886C39-AE59-3783-BBB1-CB5EE7406689}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

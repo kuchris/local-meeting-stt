@@ -1,0 +1,12 @@
+# CMake generation dependency list for this directory.
+C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.20/Modules/CheckCSourceCompiles.cmake
+C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.20/Modules/CheckIncludeFile.cmake
+C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.20/Modules/CheckLibraryExists.cmake
+C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.20/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.20/Modules/FindPackageMessage.cmake
+C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.20/Modules/FindThreads.cmake
+C:/Users/alten/Desktop/ku/local-meeting-stt/runtime/uv-cache/archive-v0/ROKHPo2XrYKUqvNOCJIBr/Lib/site-packages/openvino/cmake/OpenVINOConfig-version.cmake
+C:/Users/alten/Desktop/ku/local-meeting-stt/runtime/uv-cache/archive-v0/ROKHPo2XrYKUqvNOCJIBr/Lib/site-packages/openvino/cmake/OpenVINOConfig.cmake
+C:/Users/alten/Desktop/ku/local-meeting-stt/runtime/uv-cache/archive-v0/ROKHPo2XrYKUqvNOCJIBr/Lib/site-packages/openvino/cmake/OpenVINOTargets-release.cmake
+C:/Users/alten/Desktop/ku/local-meeting-stt/runtime/uv-cache/archive-v0/ROKHPo2XrYKUqvNOCJIBr/Lib/site-packages/openvino/cmake/OpenVINOTargets.cmake
+C:/Users/alten/Desktop/ku/local-meeting-stt/whisper_cpp/src_vulkan_loopback/src/CMakeLists.txt

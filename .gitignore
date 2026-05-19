@@ -8,6 +8,7 @@ whisper_cpp/models/
 whisper_cpp/src_vulkan/
 whisper_cpp/build_vulkan/
 whisper_cpp/build_vulkan_loopback/
+whisper_cpp/openvino_tools/
 
 # Generated recordings and transcripts
 outputs/
@@ -17,9 +18,25 @@ whisper_cpp/output/
 *_transcript.txt
 *_cpp_cpu_transcript.txt
 *_cpp_gpu_transcript.txt
+*_cpp_vulkan_transcript.txt
+*_cpp_npu_transcript.txt
+*_cpp_openvino_gpu_transcript.txt
 *_qwen_cpu_transcript.txt
 *_qwen_gpu_transcript.txt
 *_sim.txt
+*_sim_*.txt
+*_sim.log
+*_sim_*.log
+*_fast_t*.txt
+*_fast_t*.log
+*_cached_check.txt
+*_cached_check.log
+*_opt_*.txt
+*_opt_*.log
+*_smoke.txt
+*_smoke.log
+*_fair.txt
+*_fair.log
 live_transcript.txt
 
 # Archives and caches

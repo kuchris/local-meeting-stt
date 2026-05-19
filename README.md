@@ -93,6 +93,7 @@ You do not need every asset for every mode.
 CPP Vulkan LB Base   -> custom Vulkan loopback binary + ggml-base model
 CPP Vulkan LB Small  -> custom Vulkan loopback binary + ggml-small model
 CPP Vulkan           -> whisper.cpp Vulkan server binary + ggml-base model
+CPP OV NPU/GPU       -> whisper.cpp OpenVINO binary + ggml-small model + OpenVINO encoder
 CPP CPU              -> whisper.cpp CPU binary + ggml-small model
 CPP GPU              -> whisper.cpp CUDA/Vulkan binary + ggml-small model
 Live Text            -> faster-whisper small model
@@ -124,6 +125,8 @@ Use this during a meeting.
 - `CPP Vulkan LB Small`: output-device loopback live transcription with the small
   model.
 - `CPP Vulkan`: whisper.cpp Vulkan server live path with Python loopback capture.
+- `CPP OV NPU`: whisper.cpp OpenVINO server live path using the Intel NPU.
+- `CPP OV GPU`: whisper.cpp OpenVINO server live path using the Intel GPU.
 - `Live + WAV`: records audio and writes a rough faster-whisper live transcript.
 - `Live Text`: rough faster-whisper live transcript only.
 - `CPP GPU` / `CPP CPU`: older whisper.cpp live paths for comparison.

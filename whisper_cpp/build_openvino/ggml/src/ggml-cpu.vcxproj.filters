@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\ggml-cpu.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\ggml-cpu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\repack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\hbm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\quants.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\traits.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\amx\amx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\amx\mmq.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\binary-ops.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\unary-ops.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\vec.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\ops.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\arch\x86\quants.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\arch\x86\repack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\repack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\hbm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\quants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\traits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\amx\amx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\amx\mmq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\ggml-cpu-impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\binary-ops.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\unary-ops.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\simd-mappings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\vec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\ggml-cpu\ops.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\alten\Desktop\ku\local-meeting-stt\whisper_cpp\src_vulkan_loopback\ggml\src\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{9F4F3CB9-D8D9-3D34-848D-6C321F226971}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{E6886C39-AE59-3783-BBB1-CB5EE7406689}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

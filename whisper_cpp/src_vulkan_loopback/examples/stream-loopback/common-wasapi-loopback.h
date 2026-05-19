@@ -16,6 +16,7 @@ public:
     bool resume();
     bool pause();
     bool clear();
+    bool set_recording_path(const std::string & path);
     void get(int ms, std::vector<float> & audio);
 
 private:
@@ -25,6 +26,7 @@ private:
     int m_len_ms = 0;
     int m_sample_rate = 0;
     int m_render_id = -1;
+    std::string m_recording_path;
 
     std::atomic_bool m_running{false};
     std::atomic_bool m_stop{false};
