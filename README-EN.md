@@ -4,11 +4,13 @@
 
 <h1 align="center">Local Meeting STT</h1>
 
-[![Release](https://img.shields.io/github/v/release/kuchris/local-meeting-stt)](https://github.com/kuchris/local-meeting-stt/releases/latest)
-[![Stars](https://img.shields.io/github/stars/kuchris/local-meeting-stt)](https://github.com/kuchris/local-meeting-stt/stargazers)
-[![Forks](https://img.shields.io/github/forks/kuchris/local-meeting-stt)](https://github.com/kuchris/local-meeting-stt/forks)
-[![Issues](https://img.shields.io/github/issues/kuchris/local-meeting-stt)](https://github.com/kuchris/local-meeting-stt/issues)
-[![License](https://img.shields.io/github/license/kuchris/local-meeting-stt)](LICENSE)
+<p align="center">
+  <a href="https://github.com/kuchris/local-meeting-stt/releases/latest"><img src="https://img.shields.io/github/v/release/kuchris/local-meeting-stt" alt="Release"></a>
+  <a href="https://github.com/kuchris/local-meeting-stt/stargazers"><img src="https://img.shields.io/github/stars/kuchris/local-meeting-stt" alt="Stars"></a>
+  <a href="https://github.com/kuchris/local-meeting-stt/forks"><img src="https://img.shields.io/github/forks/kuchris/local-meeting-stt" alt="Forks"></a>
+  <a href="https://github.com/kuchris/local-meeting-stt/issues"><img src="https://img.shields.io/github/issues/kuchris/local-meeting-stt" alt="Issues"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/kuchris/local-meeting-stt" alt="License"></a>
+</p>
 
 **English** · [中文](README-ZH.md) · [日本語](README-JA.md)
 
