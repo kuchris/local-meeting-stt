@@ -10,7 +10,7 @@
 [![Issues](https://img.shields.io/github/issues/kuchris/local-meeting-stt)](https://github.com/kuchris/local-meeting-stt/issues)
 [![License](https://img.shields.io/github/license/kuchris/local-meeting-stt)](LICENSE)
 
-[中文](README.md) · **English** · [日本語](README-JA.md)
+**English** · [中文](README-ZH.md) · [日本語](README-JA.md)
 
 A Windows desktop app for local meeting captions, audio recording, and
 post-meeting transcription. Capture Teams, browser meetings, or other desktop

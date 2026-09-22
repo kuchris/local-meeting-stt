@@ -10,7 +10,7 @@
 [![Issues](https://img.shields.io/github/issues/kuchris/local-meeting-stt)](https://github.com/kuchris/local-meeting-stt/issues)
 [![License](https://img.shields.io/github/license/kuchris/local-meeting-stt)](LICENSE)
 
-[中文](README.md) · [English](README-EN.md) · **日本語**
+[English](README.md) · [中文](README-ZH.md) · **日本語**
 
 会議のリアルタイム字幕、録音、会議後の文字起こしをローカルで行う Windows デスクトップアプリです。スピーカー／ヘッドセットのループバック音声から Teams、ブラウザー会議などのデスクトップ音声を取得し、必要に応じてマイク音声も混ぜられます。録音と音声認識は自分のパソコン上で処理します。
 
