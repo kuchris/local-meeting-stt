@@ -2,7 +2,7 @@
   <img src="docs/icon.png" width="96" alt="Local Meeting STT アイコン">
 </p>
 
-# Local Meeting STT
+<h1 align="center">Local Meeting STT</h1>
 
 [![Release](https://img.shields.io/github/v/release/kuchris/local-meeting-stt)](https://github.com/kuchris/local-meeting-stt/releases/latest)
 [![Stars](https://img.shields.io/github/stars/kuchris/local-meeting-stt)](https://github.com/kuchris/local-meeting-stt/stargazers)
