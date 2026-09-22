@@ -59,6 +59,7 @@ function resolveRepoRoot(): string {
     portableFileDir ? path.resolve(portableFileDir, "..") : undefined,
     portableFileDir ? path.resolve(portableFileDir, "..", "..") : undefined,
     portableFileDir ? path.resolve(portableFileDir, "..", "..", "..") : undefined,
+    exeDir,
     process.cwd(),
     path.resolve(process.cwd(), ".."),
     path.resolve(process.cwd(), "..", ".."),

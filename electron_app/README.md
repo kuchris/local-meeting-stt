@@ -142,6 +142,17 @@ migration.
 
 ## Backend paths
 
+To validate an extracted portable ZIP (use a disposable copy):
+
+```powershell
+node electron_app/tests/portable_smoke.cjs "path/to/Local Meeting STT portable"
+```
+
+Run from the repository root with `PLAYWRIGHT_MODULE` configured as above.
+The optional `--qwen` flag reuses this checkout's local Qwen model/cache through
+junctions and transcribes the public benchmark sample. It tests packaged backend
+paths, including spaces, but does not verify first-time dependency downloads.
+
 Backend scripts resolve from the code root and local data from the data root.
 Both usually point to the repository root in development. In folder-portable
 mode, the data root is the folder beside the executable when it contains

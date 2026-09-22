@@ -147,9 +147,19 @@ renderer tests, three-language layout checks, native settings/IPC tests, and
 backend lifecycle/replay checks.
 
 To build a folder-style portable app, run `build_portable_folder.cmd` from the
-repository root. It creates `electron_app/dist/Local Meeting STT portable/` with
-the executable, backend scripts, settings, and available local runtimes. Model
-folders remain local assets. This source update does not publish a new release.
+repository root. Each build creates a fresh `electron_app/dist/release-VERSION-ID/`
+directory with a portable folder, versioned ZIP, and `SHA256SUMS.txt`. The package
+contains the executable, backend scripts, clean English settings, and available
+Vulkan/OpenVINO runtimes. Models, Python environments, caches, and recordings are
+excluded. CPU/CUDA runtimes can be downloaded in Settings & models.
+
+Download packaged builds from [Releases](https://github.com/kuchris/local-meeting-stt/releases/latest).
+Extract the whole ZIP into a writable folder and run `Local Meeting STT.exe`;
+keep its DLLs and resource folders together. Install
+[uv](https://docs.astral.sh/uv/getting-started/installation/) on PATH first.
+Node.js/npm is not needed to run the package. First use requires internet to
+install Python dependencies and download models. Extract upgrades into a separate
+folder, then copy your models and recordings as needed. Windows builds are unsigned.
 
 For command-line workflows and the backend directory layout, see
 [TECHNICAL.md](TECHNICAL.md).
