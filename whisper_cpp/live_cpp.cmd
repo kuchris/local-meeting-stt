@@ -2,4 +2,4 @@
 setlocal
 chcp 65001 >nul
 cd /d "%~dp0"
-uv run --with soundcard --with soundfile --with numpy --with soxr python -u live_cpp.py --save-recording --gain 2.0 %*
+uv run --with soundcard --with soundfile --with numpy --with soxr --with requests python -u live_cpp.py --server --save-recording --gain 2.0 --beam-size 1 --best-of 1 %*

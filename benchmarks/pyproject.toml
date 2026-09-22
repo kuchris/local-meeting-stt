@@ -1,0 +1,22 @@
+[project]
+name = "meeting-asr-benchmarks"
+version = "0.1.0"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+  "torch==2.11.0",
+  "transformers==5.16.1",
+  "faster-whisper==1.2.1",
+  "ctranslate2==4.8.2",
+  "soundfile==0.14.0",
+  "numpy==2.4.3",
+  "huggingface-hub==1.32.0",
+  "librosa==0.11.0",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true

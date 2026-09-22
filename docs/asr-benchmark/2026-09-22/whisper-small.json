@@ -1,0 +1,440 @@
+{
+  "status": "complete",
+  "model": "whisper-small",
+  "model_source": [
+    "Systran/faster-whisper-small",
+    "536b0662742c02347bc0e980a01041f333bce120"
+  ],
+  "utc": "2026-09-22T06:01:33.817106+00:00",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "gpu": "NVIDIA GeForce RTX 5070 Ti",
+  "torch_cuda": "12.8",
+  "packages": {
+    "torch": "2.11.0+cu128",
+    "transformers": "5.16.1",
+    "faster-whisper": "1.2.1",
+    "ctranslate2": "4.8.2",
+    "numpy": "2.4.3"
+  },
+  "manifest_sha256": "c6af0ab9fddffb105aa1838c538b9184cbf9d9668892b94a752323125cf4989a",
+  "lock_sha256": "d3942b1b79a9cf1b717f036865d00f7e18bf138d04602b9da6c622757cf2b2d5",
+  "protocol": {
+    "language": "Japanese",
+    "batch_size": 1,
+    "beam_size": 1,
+    "chunk_seconds": 3.0,
+    "replay_samples": 4,
+    "replay_mode": "virtual arrivals from measured inference",
+    "streaming": "independent fixed chunks; no lookahead/overlap, no native model streaming",
+    "normalization": "NFKC + lowercase, remove whitespace/punctuation/control; preserve number spelling",
+    "whisper": "FP16, VAD enabled, no previous text; Qwen BF16/SDPA, no compile",
+    "limitations": "Small clean read-speech subset; no meeting, WASAPI, UI, or word-aligned latency validation"
+  },
+  "utterances": [
+    {
+      "id": "1828",
+      "file": "10020345318418093976.wav",
+      "reference": "インターネットで「敵対的環境コース」について検索すると、おそらく現地企業の住所が出てくるでしょう。",
+      "text": "インターネットで適対的環境コースについて検索すると、おそらく現地企業の重所が出てくるでしょう。",
+      "audio_seconds": 10.44,
+      "inference_seconds": 0.20088719995692372,
+      "errors": 2,
+      "reference_chars": 45,
+      "cer": 0.044444444444444446
+    },
+    {
+      "id": "1834",
+      "file": "10086073819084529371.wav",
+      "reference": "また、北側に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の聖域（神社）を訪れましょう。",
+      "text": "また北側に行くなら世界的に有名なマリアゾーの聖地であるファティマの聖母の聖域、神社を訪れましょう。",
+      "audio_seconds": 14.22,
+      "inference_seconds": 0.18335850001312792,
+      "errors": 2,
+      "reference_chars": 46,
+      "cer": 0.043478260869565216
+    },
+    {
+      "id": "1813",
+      "file": "10112379500600537933.wav",
+      "reference": "バルセロナの公用語はカタルーニャ語とスペイン語です。約半数がカタルーニャ語を好み、大多数がカタルーニャ語を理解し、ほぼ全員がスペイン語を知っています。",
+      "text": "バルセアの行動はカタルネゴとスペインコです。約半数がカタルネゴを好み、大多数がカタルネゴを理解し、ほぼ全員がスペインゴを知っています。",
+      "audio_seconds": 12.84,
+      "inference_seconds": 0.2423184000654146,
+      "errors": 19,
+      "reference_chars": 71,
+      "cer": 0.2676056338028169
+    },
+    {
+      "id": "1869",
+      "file": "10174984673310355687.wav",
+      "reference": "その長い顎には70本以上の鋭い歯が並び、口蓋には別の歯列があり、つまりここを通ったら逃げ道はないということになります。",
+      "text": "その長い顎には70本以上の数という幅並び、公外には別の指列があり、つまりここを通ったら握りちゃわないということになります。",
+      "audio_seconds": 12.54,
+      "inference_seconds": 0.17516890005208552,
+      "errors": 12,
+      "reference_chars": 56,
+      "cer": 0.21428571428571427
+    },
+    {
+      "id": "1744",
+      "file": "10193386983118883224.wav",
+      "reference": "ロスビー数が小さいほど磁気反転に関して星の活性が低下するわけです。",
+      "text": "ロスビー数が小さいほど、時期判定に関して星の活性が低下するわけです。",
+      "audio_seconds": 12.06,
+      "inference_seconds": 0.13164799998048693,
+      "errors": 4,
+      "reference_chars": 32,
+      "cer": 0.125
+    },
+    {
+      "id": "1731",
+      "file": "10203675650837159328.wav",
+      "reference": "群島や湖では、必ずしもヨットは必要ありません。",
+      "text": "軍頭や水海では必ずしもよっては必要ありません",
+      "audio_seconds": 6.96,
+      "inference_seconds": 0.08842869999352843,
+      "errors": 7,
+      "reference_chars": 21,
+      "cer": 0.3333333333333333
+    },
+    {
+      "id": "1910",
+      "file": "10214476888438240131.wav",
+      "reference": "パリジャンは、自己中心的で横柄で失礼な人が多いと言われています。",
+      "text": "パリジャンは自己中心的な大平で失礼の人が多いと言われています。",
+      "audio_seconds": 8.88,
+      "inference_seconds": 0.11870300001464784,
+      "errors": 4,
+      "reference_chars": 30,
+      "cer": 0.13333333333333333
+    },
+    {
+      "id": "1771",
+      "file": "10228875750894489453.wav",
+      "reference": "メインステージの音楽が終わっても、フェスティバルには夜遅くまで演奏を流し続けるセクションがあるかもしれないことを覚えておいてください。",
+      "text": "メインステージの音楽を終わっても、フェスティバルには喜を遅くまで、演奏を流し続けるセクションがあるかもしれないことを覚えておいてください。",
+      "audio_seconds": 12.96,
+      "inference_seconds": 0.19985380000434816,
+      "errors": 3,
+      "reference_chars": 65,
+      "cer": 0.046153846153846156
+    },
+    {
+      "id": "1764",
+      "file": "10256418415643044307.wav",
+      "reference": "参列者の数が多すぎて、全員がサンピエトロ広場での葬儀に参加することは不可能でした。",
+      "text": "3列車の数が多すぎて、全員が3ピエトル広場での装備に参加することは不可能でした。",
+      "audio_seconds": 9.48,
+      "inference_seconds": 0.147035300033167,
+      "errors": 7,
+      "reference_chars": 39,
+      "cer": 0.1794871794871795
+    },
+    {
+      "id": "2003",
+      "file": "10281646305484957883.wav",
+      "reference": "香港の最高の景色を見るには、島から出て九龍のウォーターフロントに向かいましょう。",
+      "text": "香港の最高の景色を見るには島から出て、クーロンのウォーターフロントに向かいましょう。",
+      "audio_seconds": 9.66,
+      "inference_seconds": 0.14131169999018312,
+      "errors": 4,
+      "reference_chars": 38,
+      "cer": 0.10526315789473684
+    },
+    {
+      "id": "1980",
+      "file": "10300959819649327821.wav",
+      "reference": "残念ながら、運転手の行動を100%の確率で予測することはできないので、交通の流れを研究することは困難です。",
+      "text": "残念ながら運転士の行動を100%の確率で予測することはできないので、 交通の流れを研究することは困難です。",
+      "audio_seconds": 11.94,
+      "inference_seconds": 0.18530690006446093,
+      "errors": 1,
+      "reference_chars": 49,
+      "cer": 0.02040816326530612
+    },
+    {
+      "id": "1822",
+      "file": "1030930262884292674.wav",
+      "reference": "都市はモロッコのスルタンによってダルル・バディアとして再建され、貿易拠点を設立したスペイン人貿易商によってカサブランカと名付けられました。",
+      "text": "都市はモロッコのスルタンによってダルルバリアとして再検され、貿易拠点を設立したスペイン人貿易省によってガサブランカと名付けられました。",
+      "audio_seconds": 14.04,
+      "inference_seconds": 0.24553209997247905,
+      "errors": 5,
+      "reference_chars": 66,
+      "cer": 0.07575757575757576
+    }
+  ],
+  "replays": [
+    {
+      "id": "1828",
+      "file": "10020345318418093976.wav",
+      "reference": "インターネットで「敵対的環境コース」について検索すると、おそらく現地企業の住所が出てくるでしょう。",
+      "text": "インターネットで期待的環境コースについて検索するとおそらく現地企業の重症が出てくるでしょう",
+      "chunks": [
+        {
+          "audio_start": 0.0,
+          "audio_end": 3.0,
+          "text": "インターネットで",
+          "inference_seconds": 0.05151400004979223,
+          "start": 3.0,
+          "finish": 3.0515140000497922,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.05151400004979223
+        },
+        {
+          "audio_start": 3.0,
+          "audio_end": 6.0,
+          "text": "期待的環境コースについて検索すると",
+          "inference_seconds": 0.0870541000040248,
+          "start": 6.0,
+          "finish": 6.087054100004025,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.0870541000040248
+        },
+        {
+          "audio_start": 6.0,
+          "audio_end": 9.0,
+          "text": "おそらく現地企業の重症が出てくるでしょう",
+          "inference_seconds": 0.08657310006674379,
+          "start": 9.0,
+          "finish": 9.086573100066744,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.08657310006674379
+        },
+        {
+          "audio_start": 9.0,
+          "audio_end": 10.44,
+          "text": "",
+          "inference_seconds": 0.002999400021508336,
+          "start": 10.44,
+          "finish": 10.442999400021508,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.002999400021508336
+        }
+      ],
+      "first_caption_seconds": 3.0515140000497922,
+      "final_caption_lag_seconds": 0.002999400021508336,
+      "errors": 4,
+      "reference_chars": 45,
+      "cer": 0.08888888888888889
+    },
+    {
+      "id": "1834",
+      "file": "10086073819084529371.wav",
+      "reference": "また、北側に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の聖域（神社）を訪れましょう。",
+      "text": "また北側に行くなら世界的に言う。有名なマリアゾーの聖地である ファティマの聖…この正義、神社を訪れましょう",
+      "chunks": [
+        {
+          "audio_start": 0.0,
+          "audio_end": 3.0,
+          "text": "",
+          "inference_seconds": 0.003278300049714744,
+          "start": 3.0,
+          "finish": 3.0032783000497147,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.003278300049714744
+        },
+        {
+          "audio_start": 3.0,
+          "audio_end": 6.0,
+          "text": "また北側に行くなら世界的に言う。",
+          "inference_seconds": 0.07855900004506111,
+          "start": 6.0,
+          "finish": 6.078559000045061,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.07855900004506111
+        },
+        {
+          "audio_start": 6.0,
+          "audio_end": 9.0,
+          "text": "有名なマリアゾーの聖地である ファティマの聖…",
+          "inference_seconds": 0.10425490001216531,
+          "start": 9.0,
+          "finish": 9.104254900012165,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.10425490001216531
+        },
+        {
+          "audio_start": 9.0,
+          "audio_end": 12.0,
+          "text": "この正義、神社を訪れましょう",
+          "inference_seconds": 0.06491419998928905,
+          "start": 12.0,
+          "finish": 12.064914199989289,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.06491419998928905
+        },
+        {
+          "audio_start": 12.0,
+          "audio_end": 14.22,
+          "text": "",
+          "inference_seconds": 0.002761899959295988,
+          "start": 14.22,
+          "finish": 14.222761899959297,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.002761899959295988
+        }
+      ],
+      "first_caption_seconds": 6.078559000045061,
+      "final_caption_lag_seconds": 0.002761899959295988,
+      "errors": 7,
+      "reference_chars": 46,
+      "cer": 0.15217391304347827
+    },
+    {
+      "id": "1813",
+      "file": "10112379500600537933.wav",
+      "reference": "バルセロナの公用語はカタルーニャ語とスペイン語です。約半数がカタルーニャ語を好み、大多数がカタルーニャ語を理解し、ほぼ全員がスペイン語を知っています。",
+      "text": "バレセー、あの、こういう英語は語るねごとスペイン語です。ネガを好み大多数が語るネガを理解し全員がスピングを知っています。",
+      "chunks": [
+        {
+          "audio_start": 0.0,
+          "audio_end": 3.0,
+          "text": "バレセー、あの、こういう",
+          "inference_seconds": 0.05871260003186762,
+          "start": 3.0,
+          "finish": 3.0587126000318676,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.05871260003186762
+        },
+        {
+          "audio_start": 3.0,
+          "audio_end": 6.0,
+          "text": "英語は語るねごとスペイン語です。",
+          "inference_seconds": 0.08298880001530051,
+          "start": 6.0,
+          "finish": 6.0829888000153005,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.08298880001530051
+        },
+        {
+          "audio_start": 6.0,
+          "audio_end": 9.0,
+          "text": "ネガを好み大多数が語るネガを理解し",
+          "inference_seconds": 0.09041070006787777,
+          "start": 9.0,
+          "finish": 9.090410700067878,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.09041070006787777
+        },
+        {
+          "audio_start": 9.0,
+          "audio_end": 12.0,
+          "text": "全員がスピングを知っています。",
+          "inference_seconds": 0.0683193999575451,
+          "start": 12.0,
+          "finish": 12.068319399957545,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.0683193999575451
+        },
+        {
+          "audio_start": 12.0,
+          "audio_end": 12.84,
+          "text": "",
+          "inference_seconds": 0.0014976999955251813,
+          "start": 12.84,
+          "finish": 12.841497699995525,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.0014976999955251813
+        }
+      ],
+      "first_caption_seconds": 3.0587126000318676,
+      "final_caption_lag_seconds": 0.0014976999955251813,
+      "errors": 37,
+      "reference_chars": 71,
+      "cer": 0.5211267605633803
+    },
+    {
+      "id": "1869",
+      "file": "10174984673310355687.wav",
+      "reference": "その長い顎には70本以上の鋭い歯が並び、口蓋には別の歯列があり、つまりここを通ったら逃げ道はないということになります。",
+      "text": "その長い箱に70本以上の数といはが並び、公害には別につまりここを通ったらに秘密じゃないとということになります",
+      "chunks": [
+        {
+          "audio_start": 0.0,
+          "audio_end": 3.0,
+          "text": "その長い箱に",
+          "inference_seconds": 0.05263369996100664,
+          "start": 3.0,
+          "finish": 3.0526336999610066,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.05263369996100664
+        },
+        {
+          "audio_start": 3.0,
+          "audio_end": 6.0,
+          "text": "70本以上の数といはが並び、公害には別に",
+          "inference_seconds": 0.0821230000583455,
+          "start": 6.0,
+          "finish": 6.0821230000583455,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.0821230000583455
+        },
+        {
+          "audio_start": 6.0,
+          "audio_end": 9.0,
+          "text": "つまりここを通ったらに秘密じゃないと",
+          "inference_seconds": 0.07059530005790293,
+          "start": 9.0,
+          "finish": 9.070595300057903,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.07059530005790293
+        },
+        {
+          "audio_start": 9.0,
+          "audio_end": 12.0,
+          "text": "ということになります",
+          "inference_seconds": 0.04739970003720373,
+          "start": 12.0,
+          "finish": 12.047399700037204,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.04739970003720373
+        },
+        {
+          "audio_start": 12.0,
+          "audio_end": 12.54,
+          "text": "",
+          "inference_seconds": 0.0012881000293418765,
+          "start": 12.54,
+          "finish": 12.541288100029341,
+          "queue_seconds": 0.0,
+          "lag_seconds": 0.0012881000293418765
+        }
+      ],
+      "first_caption_seconds": 3.0526336999610066,
+      "final_caption_lag_seconds": 0.0012881000293418765,
+      "errors": 19,
+      "reference_chars": 56,
+      "cer": 0.3392857142857143
+    }
+  ],
+  "load_seconds": 0.7781748999841511,
+  "cold_first_3s": {
+    "text": "インターネットで",
+    "inference_seconds": 6.710732400068082
+  },
+  "silence_3s": {
+    "text": "",
+    "inference_seconds": 0.0033107000635936856
+  },
+  "torch_peak_allocated_mib": null,
+  "device_memory_mib": {
+    "first_sample": 1941,
+    "sampled_peak": 2932,
+    "scope": "whole GPU including desktop and other apps; sampled every 0.5s"
+  },
+  "summary": {
+    "utterance_cer": 0.12544802867383512,
+    "utterance_audio_seconds": 136.02,
+    "utterance_inference_seconds": 2.0595525001408532,
+    "utterance_rtf": 0.015141541686081849,
+    "utterance_inference_median_seconds": 0.17926370003260672,
+    "chunked_cer": 0.3073394495412844,
+    "chunk_inference_p50_seconds": 0.06491419998928905,
+    "chunk_inference_p95_seconds": 0.09179512006230649,
+    "chunk_end_lag_p95_seconds": 0.09179512006230649,
+    "max_queue_seconds": 0.0,
+    "first_caption_p50_seconds": 3.055673149996437,
+    "final_caption_lag_p50_seconds": 0.0021297999774105847
+  }
+}

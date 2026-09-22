@@ -15,6 +15,7 @@ from faster_whisper import WhisperModel
 
 from record_audio import mix_audio, resample_audio, select_microphone, select_system_loopback
 from whisper_models import resolve_whisper_model
+from session_control import capture_worker, next_chunk, watch_stop_request
 
 
 def parse_args() -> Namespace:
@@ -27,9 +28,9 @@ def parse_args() -> Namespace:
     parser.add_argument("--language", default="ja", help="Language code, or empty string to auto-detect. Default: ja")
     parser.add_argument("--device", default="cpu", help="Whisper inference device. Default: cpu")
     parser.add_argument("--compute-type", default="int8", help="Whisper compute type. Default: int8")
-    parser.add_argument("--chunk-seconds", type=float, default=3.0, help="Chunk size in seconds. Default: 10")
+    parser.add_argument("--chunk-seconds", type=float, default=3.0, help="Chunk size in seconds. Default: 3")
     parser.add_argument("--capture-block-seconds", type=float, default=0.5, help="Continuous capture block size in seconds. Default: 0.5")
-    parser.add_argument("--max-backlog", type=int, default=24, help="Maximum queued audio chunks before old chunks are dropped")
+    parser.add_argument("--max-backlog", type=int, default=1, help="Maximum queued audio chunks before old chunks are dropped")
     parser.add_argument("--sample-rate", type=int, default=16000, help="ASR sample rate. Default: 16000")
     parser.add_argument("--capture-rate", type=int, default=48000, help="Capture sample rate. Default: 48000")
     parser.add_argument("--include-mic", action="store_true", help="Also record and mix the default microphone")
@@ -153,20 +154,30 @@ def run_live(args: Namespace) -> None:
     model = WhisperModel(model_name_or_path, device=args.device, compute_type=args.compute_type)
     chunks: Queue[np.ndarray] = Queue(maxsize=args.max_backlog)
     stop_event = Event()
-    capture_thread = Thread(target=capture_audio, args=(args, chunks, stop_event), daemon=True)
+    watch_stop_request(stop_event)
+    capture_errors: list[Exception] = []
+    capture_thread = Thread(target=capture_worker, args=(capture_audio, args, chunks, stop_event, capture_errors), daemon=True)
     capture_thread.start()
+    print("Ready: model loaded; audio capture started.")
 
     try:
         with TemporaryDirectory() as temp_dir:
             temp_audio = Path(temp_dir) / "chunk.wav"
             while True:
-                mono = chunks.get()
+                mono = next_chunk(chunks, stop_event, capture_errors)
+                if mono is None:
+                    break
                 chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
                 sf.write(temp_audio, chunk, args.sample_rate, subtype="PCM_16")
                 append_transcript(output_path, transcribe_file(model, temp_audio, language))
     finally:
         stop_event.set()
-        capture_thread.join(timeout=2.0)
+        capture_thread.join(timeout=5.0)
+        if capture_thread.is_alive():
+            raise RuntimeError("Audio device did not stop; recording may be incomplete")
+        if capture_errors:
+            raise RuntimeError(f"Audio capture failed: {capture_errors[0]}") from capture_errors[0]
+    print("Stopped: recording closed; exiting model worker.")
 
 
 def main() -> None:

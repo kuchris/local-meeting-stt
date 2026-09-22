@@ -1,5 +1,11 @@
 :root {
-  font-family: "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "Segoe UI",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   color: #111111;
   background: #ffffff;
   font-synthesis: none;
@@ -31,7 +37,10 @@ button {
   background: #ffffff;
   color: #111111;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
 }
 
 button:hover:not(:disabled) {
@@ -107,7 +116,7 @@ h3 {
 .window-titlebar {
   height: 36px;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   background: #111111;
   color: #ffffff;
@@ -1324,4 +1333,403 @@ small {
 .exit,
 .info {
   color: #374151;
+}
+
+/* Meeting workspace: fixed session actions, a flexible transcript, optional diagnostics. */
+.app-shell {
+  grid-template-columns: 188px minmax(0, 1fr);
+  gap: 8px;
+}
+.sidebar {
+  border-color: #e8e9ed;
+}
+.sidebar-footer {
+  display: grid;
+  gap: 5px;
+  padding: 8px 2px;
+}
+.sidebar-footer strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.sidebar-footer small {
+  font-size: 11px;
+}
+.sidebar.collapsed .sidebar-footer {
+  display: none;
+}
+.meeting-workbench {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px 18px 0;
+  gap: 0;
+}
+.meeting-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex: 0 0 auto;
+  padding: 0 0 20px;
+}
+.meeting-header h2 {
+  font-size: 25px;
+  letter-spacing: -0.5px;
+}
+.meeting-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.meeting-clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+}
+.primary-action,
+.stop-meeting {
+  background: #202227;
+  color: #ffffff;
+  border-color: #202227;
+  padding: 0 18px;
+  min-width: 112px;
+}
+.primary-action:hover:not(:disabled),
+.stop-meeting:hover:not(:disabled) {
+  background: #383b42;
+  color: #ffffff;
+}
+.primary-action:disabled,
+.stop-meeting:disabled {
+  background: #eef0f3;
+  color: #717784;
+  border-color: #e5e7eb;
+}
+.job-status {
+  font-size: 12px;
+  color: #606775;
+  background: #f3f4f6;
+  padding: 5px 9px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.job-status.running,
+.job-status.stopping {
+  color: #a92c2c;
+  background: #fcf0ef;
+}
+.job-status.error {
+  color: #a92c2c;
+  background: #fcf0ef;
+}
+.job-status.complete {
+  color: #216840;
+  background: #edf7f0;
+}
+.active-job {
+  flex-shrink: 0;
+  margin: -8px 0 13px;
+  font-size: 11px;
+  color: #6b7280;
+}
+.job-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 10px 12px;
+  background: #fff1f0;
+  color: #9d2525;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.job-error > span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  max-height: 90px;
+  overflow: auto;
+  font-size: 13px;
+}
+.job-error button {
+  min-height: 30px;
+  color: #9d2525;
+  background: transparent;
+  padding: 0 9px;
+}
+.capture-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px 18px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 0 16px;
+}
+.capture-toolbar .field {
+  gap: 5px;
+  min-width: 130px;
+  max-width: 250px;
+}
+.capture-toolbar select {
+  max-width: 250px;
+  font-size: 13px;
+}
+.capture-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.capture-toggle input {
+  width: 14px;
+  min-height: 14px;
+  margin: 0;
+  accent-color: #202227;
+}
+.capture-summary {
+  flex-basis: 100%;
+  font-size: 11px;
+  color: #626977;
+  overflow-wrap: anywhere;
+}
+.capture-warning {
+  flex-basis: 100%;
+  font-size: 12px;
+  color: #a92c2c;
+  overflow-wrap: anywhere;
+}
+.quiet-action {
+  min-height: 34px;
+  padding: 0 10px;
+}
+.transcript-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 12px;
+  padding: 13px 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.meeting-transcript {
+  flex: 1;
+  min-height: 70px;
+  overflow: auto;
+  margin: 0;
+  padding: 8px 8px 18px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: "Yu Gothic UI", "Meiryo", "Segoe UI", sans-serif;
+  font-size: 23px;
+  line-height: 1.8;
+  color: #23262c;
+}
+.partial-caption {
+  color: #747b87;
+}
+.partial-caption small {
+  display: block;
+  font:
+    11px/1.5 "Segoe UI",
+    sans-serif;
+}
+.transcript-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0 12px;
+  color: #626977;
+  font-size: 11px;
+}
+.transcript-footer span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.transcript-footer button {
+  min-height: 30px;
+  font-size: 12px;
+}
+.asset-notice {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  color: #7f4c10;
+  background: #fff8ed;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+}
+.asset-notice button {
+  min-height: 28px;
+  font-size: 12px;
+}
+.meeting-details {
+  flex: 0 0 auto;
+  border-top: 1px solid #e5e7eb;
+  max-height: 45%;
+  overflow: auto;
+}
+.details-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  color: #626977;
+  font-size: 11px;
+}
+.details-heading button {
+  min-height: 32px;
+  font-size: 12px;
+}
+.advanced-live {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 4px 0 14px;
+}
+.advanced-live .field {
+  max-width: 230px;
+}
+.advanced-live input {
+  max-width: 120px;
+}
+.meeting-details .logs-head {
+  background: #f7f8fa;
+  border: 0;
+  padding: 8px 10px;
+}
+.meeting-details .logs-head button {
+  min-height: 26px;
+  font-size: 11px;
+}
+.meeting-log {
+  padding: 10px;
+  margin: 0;
+  max-height: 145px;
+  overflow: auto;
+  background: #f7f8fa;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font:
+    12px/1.55 Consolas,
+    monospace;
+}
+.recording-workspace {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 24px;
+}
+.recording-workspace h3 {
+  font-size: 20px;
+  font-weight: 500;
+}
+.recording-workspace p {
+  color: #626977;
+  font-size: 13px;
+}
+.recording-symbol {
+  color: #b53434;
+  font-size: 38px;
+}
+.secondary-workspace {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  margin-bottom: 12px;
+}
+.secondary-workspace > .panel {
+  padding: 14px 0;
+  border: 0;
+  border-radius: 0;
+}
+.secondary-workspace .transcribe-library {
+  grid-template-columns: 320px 8px minmax(0, 1fr);
+}
+.secondary-workspace .selected-session {
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.secondary-workspace .session-list {
+  min-height: 0;
+}
+.secondary-workspace.setup .stack {
+  max-width: 850px;
+}
+.secondary-workspace .output-settings {
+  display: grid;
+  gap: 9px;
+}
+.meeting-workbench [hidden] {
+  display: none !important;
+}
+.language-switch {
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 12px 0 8px;
+  color: #d5d7dd;
+  flex-shrink: 0;
+}
+.language-switch select {
+  width: 100px;
+  min-height: 25px;
+  padding: 2px 4px;
+  background: #191a1c;
+  border: 1px solid #45474c;
+  border-radius: 4px;
+  color: #f1f2f4;
+  font-size: 12px;
+}
+.tab-label {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.meeting-header h2 {
+  overflow-wrap: anywhere;
+}
+.meeting-actions {
+  flex-shrink: 0;
+}
+.capture-toolbar .capture-toggle {
+  white-space: nowrap;
+}
+@media (max-width: 1200px) {
+  .app-shell {
+    grid-template-columns: 166px minmax(0, 1fr);
+  }
+  .meeting-workbench {
+    padding-left: 12px;
+    padding-right: 10px;
+  }
+  .capture-toolbar {
+    gap: 10px 12px;
+  }
+  .capture-toolbar .field,
+  .capture-toolbar select {
+    max-width: 210px;
+  }
 }

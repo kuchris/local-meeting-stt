@@ -1,9 +1,11 @@
 import type { BrowserWindow as BrowserWindowType } from "electron";
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
-import { closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, statSync, writeFileSync, writeSync } from "node:fs";
+import { closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, statSync, unlinkSync, writeFileSync, writeSync } from "node:fs";
 import { cpus } from "node:os";
 import path from "node:path";
+import type { AppSettings } from "../src/types";
+import { DEFAULT_LOCALE, isLocale, translate } from "../src/i18n";
 
 type CommandArgs = Record<string, unknown>;
 type AudioDevice = { name: string; id: string; kind: "loopback" | "mic" };
@@ -30,18 +32,6 @@ type OutputSession = {
     cppOpenvinoGpu: boolean;
     qwenCpu: boolean;
     qwenGpu: boolean;
-  };
-};
-type AppSettings = {
-  outputDir?: string;
-  qwen?: {
-    chunkSeconds?: number;
-    tokens?: number;
-    batch?: number;
-  };
-  ui?: {
-    sessionListWidth?: number;
-    transcribeColumnWidth?: number;
   };
 };
 type AssetDownloadEvent =
@@ -102,6 +92,8 @@ const settingsPath = path.join(dataRoot, "settings.json");
 const running = new Map<number, ChildProcessWithoutNullStreams>();
 const assetDownloads = new Map<string, ChildProcessWithoutNullStreams>();
 const recordingPaths = new Map<number, Set<string>>();
+const stopFiles = new Map<number, string>();
+const stoppingJobs = new Map<number, Promise<void>>();
 let nextProcessId = 1;
 let mainWindow: BrowserWindowType | null = null;
 
@@ -138,11 +130,11 @@ function createWindow(): void {
 }
 
 function sendProcessEvent(event: unknown): void {
-  mainWindow?.webContents.send("process-event", event);
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("process-event", event);
 }
 
 function sendAssetDownloadEvent(event: AssetDownloadEvent): void {
-  mainWindow?.webContents.send("asset-download-event", event);
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("asset-download-event", event);
 }
 
 function processEnv(): NodeJS.ProcessEnv {
@@ -164,6 +156,7 @@ function defaultSettings(): AppSettings {
       batch: 4
     },
     ui: {
+      locale: DEFAULT_LOCALE,
       sessionListWidth: 300,
       transcribeColumnWidth: 560
     }
@@ -404,66 +397,25 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
         ]
       };
     }
-    case "qwen-gpu": {
-      if (!audioPath) throw new Error("Choose an audio file first.");
-      const outputPath = transcriptOutputPath(audioPath, outputDir, "qwen_gpu_transcript");
-      const commandArgs = ["python_backend/post_transcribe_qwen.py", audioPath, "-o", outputPath, "--device", "cuda:0"];
-      if (qwenTokens) commandArgs.push("--max-new-tokens", qwenTokens);
-      if (chunkSeconds) commandArgs.push("--chunk-seconds", chunkSeconds);
-      if (qwenBatch) commandArgs.push("--batch-size", qwenBatch);
-      return {
-        label: "Qwen GPU",
-        executable: "uv",
-        args: [
-          "run",
-          "--python",
-          "3.12",
-          "--index-strategy",
-          "unsafe-best-match",
-          "--index-url",
-          "https://download.pytorch.org/whl/cu121",
-          "--extra-index-url",
-          "https://pypi.org/simple",
-          "--with",
-          "qwen-asr",
-          "--with",
-          "torch==2.5.1+cu121",
-          "--with",
-          "torchvision==0.20.1+cu121",
-          "python",
-          ...commandArgs
-        ]
-      };
-    }
+    case "qwen-gpu":
     case "qwen-cpu": {
       if (!audioPath) throw new Error("Choose an audio file first.");
-      const outputPath = transcriptOutputPath(audioPath, outputDir, "qwen_cpu_transcript");
+      const gpu = kind === "qwen-gpu";
+      const outputPath = transcriptOutputPath(audioPath, outputDir, gpu ? "qwen_gpu_transcript" : "qwen_cpu_transcript");
       return {
-        label: "Qwen CPU",
+        label: gpu ? "Qwen GPU" : "Qwen CPU",
         executable: "uv",
         args: [
-          "run",
-          "--python",
-          "3.12",
-          "--with",
-          "qwen-asr",
-          "--with",
-          "torch",
-          "--with",
-          "torchvision",
-          "python",
-          "python_backend/post_transcribe_qwen.py",
-          audioPath,
-          "-o",
-          outputPath,
-          "--device",
-          "cpu",
-          "--max-new-tokens",
-          qwenTokens ?? "4096",
-          "--chunk-seconds",
-          chunkSeconds ?? "60",
-          "--batch-size",
-          qwenBatch ?? "4"
+          "run", "--no-project", "--python", "3.11",
+          "--index-strategy", "unsafe-best-match",
+          "--index-url", "https://download.pytorch.org/whl/cu128",
+          "--extra-index-url", "https://pypi.org/simple",
+          "--with-requirements", path.join(repoRoot, "python_backend", "qwen-requirements.txt"),
+          "python", "-u", path.join(repoRoot, "python_backend", "post_transcribe_qwen.py"),
+          audioPath, "-o", outputPath, "--device", gpu ? "cuda:0" : "cpu",
+          "--model", path.join(dataRoot, "models", "Qwen3-ASR-0.6B"),
+          "--max-new-tokens", qwenTokens ?? "4096",
+          "--chunk-seconds", chunkSeconds ?? "60", "--batch-size", qwenBatch ?? "4"
         ]
       };
     }
@@ -519,11 +471,39 @@ function parseAssetProgress(assetId: string, text: string): AssetDownloadEvent[]
 }
 
 function terminateProcessTree(pid: number): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const killer = spawn("taskkill", ["/pid", String(pid), "/t", "/f"], { windowsHide: true });
-    killer.on("close", () => resolve());
-    killer.on("error", () => resolve());
+    killer.on("close", (code) => code === 0 ? resolve() : reject(new Error(`taskkill failed (${code})`)));
+    killer.on("error", reject);
   });
+}
+
+async function stopJob(processId: number): Promise<void> {
+  const pending = stoppingJobs.get(processId);
+  if (pending) return pending;
+  const child = running.get(processId);
+  if (!child?.pid) return;
+  const task = (async () => {
+    const stopFile = stopFiles.get(processId);
+    if (stopFile) {
+      writeFileSync(stopFile, "stop\n", "utf8");
+      sendProcessEvent({ type: "stdout", processId, text: "Stopping: closing recording and releasing model...\n" });
+      const deadline = Date.now() + 10000;
+      while (running.has(processId) && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
+    if (running.has(processId)) {
+      sendProcessEvent({ type: "stdout", processId, text: "Stopping process tree (forced); unfinished transcription may be lost.\n" });
+      try {
+        await terminateProcessTree(child.pid!);
+      } catch (error) {
+        if (running.has(processId)) throw error;
+      }
+    }
+  })();
+  stoppingJobs.set(processId, task);
+  try { await task; } finally { stoppingJobs.delete(processId); }
 }
 
 function rememberRecordingPath(processId: number, text: string): void {
@@ -635,6 +615,7 @@ function parseAudioDevices(output: string): AudioDeviceStatus {
 }
 
 ipcMain.handle("run-command", async (_, kind: string, rawArgs: CommandArgs = {}) => {
+  if (running.size > 0) throw new Error("已有工作執行中，請先停止目前工作。");
   const inputAudioPath = str(rawArgs.audioPath);
   if (inputAudioPath && shouldRepairInputAudio(kind)) {
     try {
@@ -645,10 +626,14 @@ ipcMain.handle("run-command", async (_, kind: string, rawArgs: CommandArgs = {})
   }
   const command = buildCommand(kind, rawArgs);
   const processId = nextProcessId++;
+  // Python capture backends finalize WAVs and stop their resident server first.
+  const cooperative = (kind.startsWith("live-") && !kind.startsWith("live-cpp-stream-loopback")) || kind.startsWith("record-");
+  const stopFile = path.join(runtimeDir, `stop-${process.pid}-${processId}.request`);
+  if (cooperative) stopFiles.set(processId, stopFile);
   const child = spawn(command.executable, command.args, {
     cwd: repoRoot,
     windowsHide: true,
-    env: processEnv()
+    env: { ...processEnv(), LOCAL_MEETING_STT_STOP_FILE: cooperative ? stopFile : undefined }
   });
 
   running.set(processId, child);
@@ -663,6 +648,8 @@ ipcMain.handle("run-command", async (_, kind: string, rawArgs: CommandArgs = {})
   child.on("close", (code, signal) => {
     repairRecordedWavs(processId);
     running.delete(processId);
+    stopFiles.delete(processId);
+    if (existsSync(stopFile)) unlinkSync(stopFile);
     sendProcessEvent({ type: "exit", processId, code, signal });
   });
   child.on("error", (error) => {
@@ -678,9 +665,8 @@ ipcMain.handle("run-command", async (_, kind: string, rawArgs: CommandArgs = {})
 ipcMain.handle("stop-command", async (_, processId: number) => {
   const child = running.get(processId);
   if (child?.pid) {
-    await terminateProcessTree(child.pid);
-    repairRecordedWavs(processId);
-    running.delete(processId);
+    await stopJob(processId);
+    // The child close handler repairs outputs, clears state and emits exit.
     return { stopped: true };
   }
   return { stopped: false };
@@ -731,17 +717,19 @@ ipcMain.handle("stop-asset-download", async (_, assetId: string) => {
 });
 
 ipcMain.handle("pick-audio-file", async () => {
+  const locale = readSettings().ui?.locale;
   const result = await dialog.showOpenDialog({
-    title: "Select audio file",
+    title: translate(isLocale(locale) ? locale : DEFAULT_LOCALE, "Select audio file"),
     properties: ["openFile"],
-    filters: [{ name: "Audio", extensions: ["wav", "mp3", "m4a", "flac", "ogg"] }]
+    filters: [{ name: translate(isLocale(locale) ? locale : DEFAULT_LOCALE, "Audio"), extensions: ["wav", "mp3", "m4a", "flac", "ogg"] }]
   });
   return result.canceled ? null : result.filePaths[0];
 });
 
 ipcMain.handle("pick-output-folder", async () => {
+  const locale = readSettings().ui?.locale;
   const result = await dialog.showOpenDialog({
-    title: "Select output folder",
+    title: translate(isLocale(locale) ? locale : DEFAULT_LOCALE, "Select output folder"),
     properties: ["openDirectory", "createDirectory"]
   });
   return result.canceled ? null : result.filePaths[0];
@@ -818,7 +806,9 @@ ipcMain.handle("check-assets", async () => {
   ];
   return assets.map((asset) => ({
     ...asset,
-    exists: existsSync(path.join(dataRoot, asset.relativePath))
+    exists: existsSync(path.join(dataRoot, asset.relativePath)) &&
+      (!(asset.id === "whisper-cpp-cpu" || asset.id === "whisper-cpp-cuda") ||
+        existsSync(path.join(dataRoot, asset.relativePath.replace("whisper-cli.exe", "whisper-server.exe"))))
   }));
 });
 
@@ -878,9 +868,18 @@ if (!hasSingleInstanceLock) {
   app.whenReady().then(createWindow);
 }
 
+let cleanupInProgress = false;
+let cleanupComplete = false;
+app.on("before-quit", (event) => {
+  if (cleanupComplete || (!cleanupInProgress && running.size === 0 && assetDownloads.size === 0)) return;
+  event.preventDefault();
+  if (cleanupInProgress) return;
+  cleanupInProgress = true;
+  void Promise.allSettled([
+    ...Array.from(running.keys(), (id) => stopJob(id)),
+    ...Array.from(assetDownloads.values(), (child) => child.pid ? terminateProcessTree(child.pid) : Promise.resolve())
+  ]).then(() => { cleanupComplete = true; app.quit(); });
+});
 app.on("window-all-closed", () => {
-  for (const child of running.values()) {
-    if (child.pid) void terminateProcessTree(child.pid);
-  }
   if (process.platform !== "darwin") app.quit();
 });

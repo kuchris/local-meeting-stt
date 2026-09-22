@@ -4,96 +4,115 @@
 
 # Local Meeting STT
 
-Local-first Windows meeting transcription for Teams, browser meetings, and other
-desktop audio.
+A Windows desktop app for local meeting captions, audio recording, and
+post-meeting transcription. Capture Teams, browser meetings, or other desktop
+audio through speaker/headset loopback, with optional microphone mixing.
+Recordings and recognition stay on your computer.
 
-The app captures Windows speaker/headset output through loopback, can optionally
-mix your microphone, and keeps recordings/transcripts on your machine. It is built
-as a practical control panel for local STT backends such as whisper.cpp,
-faster-whisper, OpenVINO, Vulkan, and Qwen3-ASR.
+**English is the default interface language.** Switch to Traditional Chinese or
+Japanese in the title bar. The app remembers your choice. Interface language is
+separate from recognition language: the supplied workflows recognize Japanese.
 
-![Local Meeting STT app preview](docs/preview.svg)
+![English meeting interface](docs/meeting-ui.png)
 
-## Why This Exists
+*Current interface with test caption text; this is not a real meeting recording.*
 
-Most speech-to-text demos capture only the microphone. Meeting audio is usually
-coming from the speaker output, so this app focuses on Windows loopback capture:
+## Get started
 
-```text
-Teams/browser audio -> Windows speaker loopback -> local transcript + saved WAV
+Requirements for running from source:
+
+- Windows, Node.js/npm, and [uv](https://docs.astral.sh/uv/).
+- Local model files and the runtime for your selected backend.
+- An NVIDIA GPU for CUDA; other backends have their own hardware requirements.
+
+```powershell
+cd electron_app
+npm ci
+npm run dev
 ```
 
-Use it if you want:
+1. Open **Settings & models** and check/download the files you need.
+2. In **Live meeting**, select a model and your system audio source.
+3. Optionally enable **Include microphone** and select the microphone.
+4. Open **Details** to choose a backend and audio chunk duration.
+5. Select **Start meeting**. **Stop current task** remains available on every page.
 
-- Local/offline meeting transcription without uploading audio to a cloud service.
-- Live captions from Windows speaker output, not only microphone input.
-- A saved `.wav` file as the source of truth for post-meeting transcription.
-- Hardware backend experiments on Windows: CPU, Vulkan, OpenVINO NPU/GPU, CUDA.
-- Japanese-focused local STT testing, while still usable for other Whisper languages.
+A fresh configuration uses Whisper small with faster-whisper on CPU. For a
+compatible NVIDIA system, select the whisper.cpp CUDA backend in Details.
+Whisper base is available through the existing Vulkan loopback backend.
 
-## Quick Start
+The first setup may download dependencies and model files. Once installed,
+recognition uses local models rather than a cloud ASR service. A running process
+is not proof that audio is arriving; check the transcript and process log.
 
-Download the latest portable zip from:
+[Portable releases](https://github.com/kuchris/local-meeting-stt/releases) are also
+available. Published packages may predate the current source interface. The root
+`open_electron_app.cmd` launcher opens an existing packaged app when present;
+use `npm run dev` above to try your current checkout.
 
-```text
-https://github.com/kuchris/local-meeting-stt/releases
-```
+## Pages
 
-Then:
+| Page | What it does |
+| --- | --- |
+| Live meeting | Large live transcript, model/audio controls, optional WAV recording, and collapsible diagnostics. |
+| Record audio | Save audio for later transcription, with optional duration limit. |
+| Recordings & transcripts | Choose a recording or drop an audio file, then select a model and backend. |
+| Settings & models | Inspect/download assets and set the output folder. |
 
-1. Extract the zip.
-2. Run `Local Meeting STT.exe`.
-3. Open `Setup`.
-4. Download or place the model files needed for your mode.
-5. Choose your Windows speaker loopback device.
-6. Start with `CPP Vulkan LB Base` in the `Live` tab.
+The live model choices are **Whisper small** and **Whisper base**. Post-meeting
+transcription offers **Whisper small** and **Qwen3-ASR 0.6B**. Qwen is currently a
+file-transcription option, not a live-caption backend.
 
-For repo/dev use, double-click from the repo root:
+The selected post-transcription backend is saved. Switching between Whisper and
+Qwen preserves CPU/CUDA preference. When no post preference exists, an existing
+CUDA live configuration initializes transcription to CUDA; other configurations
+start on CPU. An explicit saved CPU choice is preserved.
 
-```text
-open_electron_app.cmd
-```
+## Backends and local assets
 
-If a packaged app exists, the launcher opens it. Otherwise it starts Electron in
-development mode.
+| Backend | Local files | Notes |
+| --- | --- | --- |
+| faster-whisper | `models/faster-whisper-small/` | CPU by default; live captions with optional WAV. |
+| whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | Live server and file transcription. |
+| whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU; live server and file transcription. |
+| whisper.cpp Vulkan | `whisper_cpp/bin_vulkan/Release/` + `ggml-small.bin` | Resident live server and file transcription. |
+| OpenVINO NPU/GPU | `whisper_cpp/bin_openvino/Release/` + small model and encoder XML/BIN | Requires a compatible OpenVINO device and local build. |
+| Vulkan loopback | `whisper_cpp/bin_vulkan_loopback/Release/` + base or small model | System default loopback only; no custom device or microphone mixing. |
+| Qwen CPU/CUDA | `models/Qwen3-ASR-0.6B/` | File transcription; shared pinned Python runtime. |
 
-## Recommended Modes
+The `ggml-*.bin` files belong in `whisper_cpp/models/`. Live CPU/CUDA paths need
+`whisper-server.exe` as well as `whisper-cli.exe`. Asset checks verify paths, not
+hardware compatibility or the integrity of every downloaded file. Vulkan and
+OpenVINO runtimes are local/release artifacts rather than normal model downloads.
 
-Start simple:
+## Latency and stopping
 
-```text
-Live meeting:        CPP Vulkan LB Base
-Better live quality: CPP Vulkan LB Small
-Post transcription:  CPP NPU, CPP OV GPU, CPP Vulkan, or Qwen CPU/CUDA
-```
+Whisper CPU/CUDA live sessions keep one model server running for the meeting,
+so each audio chunk does not reload the model. Models are released at session end.
 
-Mode guide:
+The default audio chunk is 3 seconds. Recognition starts after a chunk has been
+collected; try 2 seconds in Details for quicker updates, with potentially less
+sentence context. The faster-whisper queue keeps one waiting chunk. If inference
+falls behind, old caption chunks are dropped while WAV recording continues.
 
-```text
-CPP Vulkan LB Base   -> recommended live mode, low delay, speaker loopback
-CPP Vulkan LB Small  -> live mode with better Whisper accuracy, more load
-CPP Vulkan           -> resident whisper.cpp server with Vulkan backend
-CPP OV NPU           -> resident whisper.cpp OpenVINO server on Intel NPU
-CPP OV GPU           -> resident whisper.cpp OpenVINO server on Intel GPU
-CPP CPU              -> whisper.cpp CPU mode
-CPP GPU              -> whisper.cpp CUDA mode for NVIDIA systems
-Live + WAV           -> faster-whisper live transcript plus saved WAV
-Live Text            -> faster-whisper live transcript only
-Qwen CPU/GPU         -> Qwen3-ASR post-transcription comparison path
-```
+Python live/record jobs get up to 10 seconds to stop capture, close their WAV,
+and release the model worker. If they do not exit, Electron terminates the process
+tree. File transcription and native loopback jobs use forced termination.
+Closing the app also waits for cleanup. Stopping may omit queued/partial captions
+or interrupt unfinished output; use the saved recording for final transcription.
 
-Note: `Qwen GPU` currently means CUDA-style GPU acceleration. It is mainly for
-NVIDIA systems, not Intel Vulkan.
+Qwen launchers share `python_backend/qwen-requirements.txt`, including
+PyTorch 2.11 / CUDA 12.8 for compatible NVIDIA GPUs such as the RTX 5070 Ti.
+The CPU option uses the same runtime with CPU inference. A GPU kernel check runs
+before loading weights, and missing local models produce an explicit error.
 
-## What Gets Saved
+See [backend diagnosis and measured checks](docs/backend-review.md). Public-file
+replays and native Electron checks have passed; they do not establish accuracy
+or capture reliability in a real meeting.
 
-The app writes recordings and transcripts to one output folder. Default:
+## Saved files and controls
 
-```text
-outputs/
-```
-
-Normal live output:
+Outputs default to `outputs/`. A live session typically contains:
 
 ```text
 outputs/
@@ -102,161 +121,50 @@ outputs/
     live_transcript.txt
 ```
 
-Vulkan loopback live output:
+Folder prefixes vary by backend. Post-transcription of a session's `audio.wav`
+writes the transcript into that session folder. Other imported audio writes its
+transcript to the configured output folder.
 
-```text
-outputs/
-  loopback_stream_base_YYYYMMDD_HHMMSS/
-    audio.wav
-    live_transcript.txt
-  loopback_stream_small_YYYYMMDD_HHMMSS/
-    audio.wav
-    live_transcript.txt
-```
+- **Ctrl+O**: choose audio for transcription.
+- **Ctrl+B**: collapse/expand the sidebar.
+- **View > Clear logs**: clear diagnostics while keeping captions.
+- **Details**: inspect backend output and change live backend/chunk settings.
 
-Post-transcription writes transcript files back into the selected session folder
-when the selected audio is a session `audio.wav`.
+`settings.json` stores the display language (`ui.locale`), post backend
+(`post.kind`), capture devices, live mode, and output preferences. Saved language
+choices are retained when upgrading; missing/invalid language settings use English.
+Raw backend logs, device names, filenames, and transcript text are not translated.
 
-## Portable Package
-
-Build a folder-style portable package from the repo root:
-
-```text
-build_portable_folder.cmd
-```
-
-It creates:
-
-```text
-electron_app/dist/Local Meeting STT portable/
-  Local Meeting STT.exe
-  settings.json
-  README.txt
-  python_backend/
-  whisper_cpp/
-  models/
-  outputs/
-  runtime/
-```
-
-The portable folder includes backend scripts and local runtimes when available,
-including:
-
-```text
-whisper_cpp/bin_vulkan/
-whisper_cpp/bin_vulkan_loopback/
-whisper_cpp/bin_openvino/
-```
-
-Model files are still local assets. Put or download them into:
-
-```text
-models/
-whisper_cpp/models/
-```
-
-## Assets
-
-You do not need every model or runtime for every mode.
-
-```text
-CPP Vulkan LB Base   -> bin_vulkan_loopback + ggml-base model
-CPP Vulkan LB Small  -> bin_vulkan_loopback + ggml-small model
-CPP Vulkan           -> bin_vulkan + ggml-base model
-CPP OV NPU/GPU       -> bin_openvino + ggml-small model + OpenVINO encoder
-CPP CPU              -> bin_cpu + ggml-small model
-CPP GPU              -> bin_cuda + ggml-small model
-Live Text / Live WAV -> faster-whisper small model
-Qwen CPU/GPU         -> Qwen3-ASR model
-```
-
-The `Setup` tab shows asset status and has per-row download buttons where
-downloading is supported. Vulkan and OpenVINO runtimes are local/release artifacts,
-not normal model downloads.
-
-## App Tabs
-
-### Live
-
-Use this during a meeting. The live panel shows a timestamped transcript and process
-log. For most users, `CPP Vulkan LB Base` is the first mode to try.
-
-### Record
-
-Use this when you only want a clean audio recording.
-
-- `Until Enter`: record until you stop it.
-- `Timed WAV`: record for the selected duration.
-
-### Transcribe
-
-Use this after a meeting.
-
-Drop or choose an audio file, then run one of:
-
-- `CPP CPU`
-- `CPP GPU`
-- `CPP Vulkan`
-- `CPP NPU`
-- `CPP OV GPU`
-- `Qwen CPU`
-- `Qwen GPU`
-
-The live transcript is for following the meeting. The saved WAV is the better input
-for final post-transcription.
-
-### Setup
-
-Use this to prepare the local machine.
-
-- Check whether models and local runtimes exist.
-- Download supported missing assets.
-- Choose and open the output folder.
-- Choose the Windows speaker loopback device.
-- Enable optional microphone mixing.
-
-Blank audio device selection means the script default device is used.
-
-## Developer Run
-
-Requirements:
-
-- Windows
-- Node.js and npm
-- `uv`
-
-Run:
-
-```powershell
-cd electron_app
-npm install
-npm run dev
-```
-
-Build check:
+## Build and verification
 
 ```powershell
 cd electron_app
 npm run build
 ```
 
-## Useful Controls
+See [Electron development and test instructions](electron_app/README.md) for
+renderer tests, three-language layout checks, native settings/IPC tests, and
+backend lifecycle/replay checks.
 
-- `Ctrl+B`: collapse or expand the sidebar.
-- `File > Open Audio...`: choose an audio file for post-transcription.
-- `View > Clear Logs`: clear the process log and live transcript panel.
-- `Help > GitHub Repository`: open the project repository.
+To build a folder-style portable app, run `build_portable_folder.cmd` from the
+repository root. It creates `electron_app/dist/Local Meeting STT portable/` with
+the executable, backend scripts, settings, and available local runtimes. Model
+folders remain local assets. This source update does not publish a new release.
 
-## Notes
-
-- Default language is Japanese.
-- Main capture source is Windows system audio.
-- Live transcript quality depends heavily on model size and hardware.
-- For cleaner final output, record first and run post-transcription after the meeting.
-- The custom Vulkan loopback build is documented under `whisper_cpp/`.
-
-For backend commands, folder layout, and technical details, see
+For command-line workflows and the backend directory layout, see
 [TECHNICAL.md](TECHNICAL.md).
+
+## ASR experiments
+
+The separate [benchmark tools](benchmarks/README.md) compare Japanese accuracy
+and latency without changing the app's model selection:
+
+- [Whisper/Qwen measured results](docs/asr-benchmark/2026-09-22/REPORT.zh-TW.md).
+- [Nemotron 3.5 streaming follow-up](docs/asr-benchmark/2026-09-22-nemotron/REPORT.zh-TW.md).
+
+These are small clean-speech experiments, not meeting-quality guarantees.
+Models, downloaded audio, private recordings, caches, and runtime environments
+are excluded from Git.
 
 ## License
 
@@ -264,7 +172,6 @@ Apache-2.0. See [LICENSE](LICENSE).
 
 ## Support
 
-If this project saves you time, please give it a GitHub star. Stars help other
-people find local-first Windows speech-to-text tools.
+If this project is useful, a GitHub star helps others find it.
 
 [![Star History Chart](https://api.star-history.com/svg?repos=kuchris/local-meeting-stt&type=Date)](https://www.star-history.com/#kuchris/local-meeting-stt&Date)

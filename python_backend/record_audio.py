@@ -10,6 +10,7 @@ import numpy as np
 import soundcard as sc
 import soundfile as sf
 import soxr
+from session_control import watch_stop_request
 
 
 def parse_args() -> Namespace:
@@ -134,6 +135,7 @@ def record_audio(args: Namespace) -> Path:
     print(f"Writing: {output_path}")
 
     stop_event = Event()
+    watch_stop_request(stop_event)
     if args.until_enter:
         print("Press Enter to stop recording.")
         Thread(target=wait_for_enter, args=(stop_event,), daemon=True).start()

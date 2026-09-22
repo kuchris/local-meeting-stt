@@ -20,7 +20,7 @@ echo Output:
 echo   %OUT%
 echo.
 
-uv run --with qwen-asr --with torch python python_backend\post_transcribe_qwen.py "%AUDIO%" -o "%OUT%"
+call python_backend\post_transcribe_qwen.cmd "%AUDIO%" -o "%OUT%"
 
 echo.
 if errorlevel 1 (

@@ -2,14 +2,24 @@ export type ProcessEvent =
   | { type: "start"; processId: number; label: string; command: string }
   | { type: "stdout"; processId: number; text: string }
   | { type: "stderr"; processId: number; text: string }
-  | { type: "exit"; processId: number; code: number | null; signal: string | null };
+  | {
+      type: "exit";
+      processId: number;
+      code: number | null;
+      signal: string | null;
+    };
 
 export type AssetDownloadEvent =
   | { type: "start"; assetId: string; label: string }
   | { type: "progress"; assetId: string; percent: number; text: string }
   | { type: "stdout"; assetId: string; text: string }
   | { type: "stderr"; assetId: string; text: string }
-  | { type: "exit"; assetId: string; code: number | null; signal: string | null };
+  | {
+      type: "exit";
+      assetId: string;
+      code: number | null;
+      signal: string | null;
+    };
 
 export type AssetStatus = {
   id: string;
@@ -54,13 +64,17 @@ export type OutputSession = {
 };
 
 export type AppSettings = {
+  post?: { kind?: string };
   outputDir?: string;
+  capture?: { systemDevice?: string; micDevice?: string; includeMic?: boolean };
+  live?: { mode?: string; saveWav?: boolean; chunkSeconds?: number };
   qwen?: {
     chunkSeconds?: number;
     tokens?: number;
     batch?: number;
   };
   ui?: {
+    locale?: "zh-TW" | "en" | "ja";
     sessionListWidth?: number;
     transcribeColumnWidth?: number;
   };
@@ -69,21 +83,33 @@ export type AppSettings = {
 declare global {
   interface Window {
     meetingApi: {
-      runCommand: (kind: string, args?: Record<string, unknown>) => Promise<{ processId: number; label: string }>;
+      runCommand: (
+        kind: string,
+        args?: Record<string, unknown>,
+      ) => Promise<{ processId: number; label: string }>;
       stopCommand: (processId: number) => Promise<{ stopped: boolean }>;
       pickAudioFile: () => Promise<string | null>;
+      getDroppedFilePath: (file: File) => string;
       pickOutputFolder: () => Promise<string | null>;
       loadSettings: () => Promise<AppSettings>;
-      saveSettings: (settings: AppSettings) => Promise<{ ok: boolean; path: string }>;
-      startAssetDownload: (assetId: string) => Promise<{ started: boolean; assetId: string }>;
+      saveSettings: (
+        settings: AppSettings,
+      ) => Promise<{ ok: boolean; path: string }>;
+      startAssetDownload: (
+        assetId: string,
+      ) => Promise<{ started: boolean; assetId: string }>;
       stopAssetDownload: (assetId: string) => Promise<{ stopped: boolean }>;
       listOutputSessions: (outputDir: string) => Promise<OutputSession[]>;
       openPath: (targetPath: string) => Promise<{ ok: boolean }>;
       checkAssets: () => Promise<AssetStatus[]>;
       listAudioDevices: () => Promise<AudioDeviceStatus>;
-      windowControl: (action: "minimize" | "maximize" | "close") => Promise<{ ok: boolean }>;
+      windowControl: (
+        action: "minimize" | "maximize" | "close",
+      ) => Promise<{ ok: boolean }>;
       onProcessEvent: (callback: (event: ProcessEvent) => void) => () => void;
-      onAssetDownloadEvent: (callback: (event: AssetDownloadEvent) => void) => () => void;
+      onAssetDownloadEvent: (
+        callback: (event: AssetDownloadEvent) => void,
+      ) => () => void;
     };
   }
 }

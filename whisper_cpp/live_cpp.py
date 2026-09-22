@@ -25,6 +25,7 @@ for import_path in (PYTHON_BACKEND, ROOT):
         sys.path.insert(0, str(import_path))
 
 from record_audio import mix_audio, resample_audio, select_microphone, select_system_loopback
+from session_control import capture_worker, next_chunk, watch_stop_request
 
 
 def parse_args() -> Namespace:
@@ -87,8 +88,10 @@ def enqueue_chunk(chunks: Queue[np.ndarray], audio: np.ndarray) -> None:
     print("Warning: transcription is behind; dropped one queued audio chunk.")
 
 
-def get_latest_chunk(chunks: Queue[np.ndarray]) -> np.ndarray:
-    audio = chunks.get()
+def get_latest_chunk(chunks: Queue[np.ndarray], stop_event: Event, errors: list[Exception]) -> np.ndarray | None:
+    audio = next_chunk(chunks, stop_event, errors)
+    if audio is None:
+        return None
     while True:
         try:
             audio = chunks.get_nowait()
@@ -302,7 +305,11 @@ def start_whisper_server(args: Namespace) -> tuple[Popen, str, Event, Thread]:
     stop_event = Event()
     output_thread = Thread(target=stream_process_output, args=(process, stop_event), daemon=True)
     output_thread.start()
-    wait_for_port(args.server_host, port, process)
+    try:
+        wait_for_port(args.server_host, port, process)
+    except BaseException:
+        stop_whisper_server(process, stop_event, output_thread)
+        raise
     return process, f"http://{args.server_host}:{port}/inference", stop_event, output_thread
 
 
@@ -313,6 +320,7 @@ def stop_whisper_server(process: Popen | None, stop_event: Event | None, output_
             process.wait(timeout=5.0)
         except TimeoutExpired:
             process.kill()
+            process.wait(timeout=5.0)
     if stop_event:
         stop_event.set()
     if output_thread:
@@ -344,7 +352,9 @@ def run_live(args: Namespace) -> None:
 
     chunks: Queue[np.ndarray] = Queue(maxsize=args.max_backlog)
     stop_event = Event()
-    capture_thread = Thread(target=capture_audio, args=(args, chunks, stop_event), daemon=True)
+    watch_stop_request(stop_event)
+    capture_errors: list[Exception] = []
+    capture_thread = Thread(target=capture_worker, args=(capture_audio, args, chunks, stop_event, capture_errors), daemon=True)
     server_process = None
     server_output_stop = None
     server_output_thread = None
@@ -356,24 +366,37 @@ def run_live(args: Namespace) -> None:
             server_process, server_url, server_output_stop, server_output_thread = start_whisper_server(args)
             print(f"Server: {server_url}")
             capture_thread.start()
-            session = requests.Session()
-            while True:
-                mono = get_latest_chunk(chunks)
-                chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
-                append_transcript(output_path, transcribe_with_server(args, session, server_url, chunk))
+            print("Ready: model loaded; audio capture started.")
+            with requests.Session() as session:
+                while True:
+                    mono = get_latest_chunk(chunks, stop_event, capture_errors)
+                    if mono is None:
+                        break
+                    chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
+                    started = time.perf_counter()
+                    append_transcript(output_path, transcribe_with_server(args, session, server_url, chunk))
+                    print(f"[timing] inference={time.perf_counter() - started:.3f}s audio={len(chunk) / args.sample_rate:.3f}s")
         else:
             capture_thread.start()
             with TemporaryDirectory() as temp_dir:
                 temp_audio = Path(temp_dir) / "chunk.wav"
                 while True:
-                    mono = chunks.get()
+                    mono = next_chunk(chunks, stop_event, capture_errors)
+                    if mono is None:
+                        break
                     chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
                     sf.write(temp_audio, chunk, args.sample_rate, subtype="PCM_16")
                     append_transcript(output_path, transcribe_with_cpp(args, temp_audio))
     finally:
         stop_event.set()
-        capture_thread.join(timeout=2.0)
+        if capture_thread.ident is not None:
+            capture_thread.join(timeout=5.0)
         stop_whisper_server(server_process, server_output_stop, server_output_thread)
+        if capture_thread.is_alive():
+            raise RuntimeError("Audio device did not stop; recording may be incomplete")
+        if capture_errors:
+            raise RuntimeError(f"Audio capture failed: {capture_errors[0]}") from capture_errors[0]
+    print("Stopped: recording closed; model worker released.")
 
 
 def main() -> None:

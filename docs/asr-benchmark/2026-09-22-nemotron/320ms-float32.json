@@ -1,0 +1,3501 @@
+{
+  "status": "complete",
+  "model": "nvidia/nemotron-3.5-asr-streaming-0.6b",
+  "revision": "ea30d66debe3740a08b573244286791d423d6b3e",
+  "utc": "2026-09-22T06:32:23.159890+00:00",
+  "gpu": "NVIDIA GeForce RTX 5070 Ti",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "packages": {
+    "torch": "2.11.0+cu128",
+    "transformers": "5.16.1",
+    "numpy": "2.4.3"
+  },
+  "manifest_sha256": "c6af0ab9fddffb105aa1838c538b9184cbf9d9668892b94a752323125cf4989a",
+  "lock_sha256": "d3942b1b79a9cf1b717f036865d00f7e18bf138d04602b9da6c622757cf2b2d5",
+  "protocol": {
+    "language": "ja-JP",
+    "dtype": "float32",
+    "chunk_ms": 320,
+    "batch_size": 1,
+    "decoding": "greedy RNNT; no compile; no external VAD",
+    "streaming": "native encoder/decoder cache; paced raw PCM; final zero-padded chunk",
+    "boundaries": "oracle file EOF, not production VAD",
+    "latency": "from WAV start including silence; chunk completion lag, not aligned word latency",
+    "limitations": "12 clean read-speech utterances; no meeting/microphone/WASAPI/Electron validation"
+  },
+  "utterances": [
+    {
+      "id": "1828",
+      "file": "10020345318418093976.wav",
+      "reference": "インターネットで「敵対的環境コース」について検索すると、おそらく現地企業の住所が出てくるでしょう。",
+      "normalized_source_reference": "インターネットで 敵対的環境コース について検索すると おそらく現地企業の住所が出てくるでしょう",
+      "gender": "MALE",
+      "source_num_samples": 167040,
+      "sha256": "bd1b9533cfa176b8c2a71ecb4821a02bc86fa368d096373efe8d8dceafb35634",
+      "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所が出てくるでしょう。",
+      "audio_seconds": 10.44,
+      "inference_seconds": 0.1503038000082597,
+      "errors": 1,
+      "reference_chars": 45,
+      "cer": 0.022222222222222223
+    },
+    {
+      "id": "1834",
+      "file": "10086073819084529371.wav",
+      "reference": "また、北側に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の聖域（神社）を訪れましょう。",
+      "normalized_source_reference": "また 北側に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の聖域神社を訪れましょう",
+      "gender": "MALE",
+      "source_num_samples": 227520,
+      "sha256": "fa4d3ce475c9b2fd127d3c9a6ea445792e21f04c5f8514452b0ad97b0ccbc2f8",
+      "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、神社を訪れましょう。",
+      "audio_seconds": 14.22,
+      "inference_seconds": 0.17918850004207343,
+      "errors": 2,
+      "reference_chars": 46,
+      "cer": 0.043478260869565216
+    },
+    {
+      "id": "1813",
+      "file": "10112379500600537933.wav",
+      "reference": "バルセロナの公用語はカタルーニャ語とスペイン語です。約半数がカタルーニャ語を好み、大多数がカタルーニャ語を理解し、ほぼ全員がスペイン語を知っています。",
+      "normalized_source_reference": "バルセロナの公用語はカタルーニャ語とスペイン語です 約半数がカタルーニャ語を好み 大多数がカタルーニャ語を理解し ほぼ全員がスペイン語を知っています",
+      "gender": "MALE",
+      "source_num_samples": 205440,
+      "sha256": "ade60c57813d704095310734906a9b6918b2dbbdcd0c9405c3f7d25580570d48",
+      "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペインを知っています。",
+      "audio_seconds": 12.84,
+      "inference_seconds": 0.1861395000014454,
+      "errors": 16,
+      "reference_chars": 71,
+      "cer": 0.22535211267605634
+    },
+    {
+      "id": "1869",
+      "file": "10174984673310355687.wav",
+      "reference": "その長い顎には70本以上の鋭い歯が並び、口蓋には別の歯列があり、つまりここを通ったら逃げ道はないということになります。",
+      "normalized_source_reference": "その長い顎には70本以上の鋭い歯が並び 口蓋には別の歯列があり つまりここを通ったら逃げ道はないということになります",
+      "gender": "MALE",
+      "source_num_samples": 200640,
+      "sha256": "7059c2e63434b2ffb6d33782ba99bf31b2c3f725feb988d50c514adda8efdb64",
+      "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないということになります。",
+      "audio_seconds": 12.54,
+      "inference_seconds": 0.17622359993401915,
+      "errors": 16,
+      "reference_chars": 56,
+      "cer": 0.2857142857142857
+    },
+    {
+      "id": "1744",
+      "file": "10193386983118883224.wav",
+      "reference": "ロスビー数が小さいほど磁気反転に関して星の活性が低下するわけです。",
+      "normalized_source_reference": "ロスビー数が小さいほど磁気反転に関して星の活性が低下するわけです",
+      "gender": "MALE",
+      "source_num_samples": 192960,
+      "sha256": "3a268d324535ea7360c2448837f8947e87440554f01cbfc54879052d48703110",
+      "text": "ロスビー数が小さいほど時期判定に関して星の活性が低下するわけです。",
+      "audio_seconds": 12.06,
+      "inference_seconds": 0.14959219994489104,
+      "errors": 4,
+      "reference_chars": 32,
+      "cer": 0.125
+    },
+    {
+      "id": "1731",
+      "file": "10203675650837159328.wav",
+      "reference": "群島や湖では、必ずしもヨットは必要ありません。",
+      "normalized_source_reference": "群島や湖では 必ずしもヨットは必要ありません",
+      "gender": "FEMALE",
+      "source_num_samples": 111360,
+      "sha256": "70d05f350c3fe4585fa6be747cd00de46b84a270517527df8b271e2f0f4cca8c",
+      "text": "軍とやみでは必ずしもよっとは必要ありません",
+      "audio_seconds": 6.96,
+      "inference_seconds": 0.0936140000121668,
+      "errors": 6,
+      "reference_chars": 21,
+      "cer": 0.2857142857142857
+    },
+    {
+      "id": "1910",
+      "file": "10214476888438240131.wav",
+      "reference": "パリジャンは、自己中心的で横柄で失礼な人が多いと言われています。",
+      "normalized_source_reference": "パリジャンは 自己中心的で横柄で失礼な人が多いと言われています",
+      "gender": "MALE",
+      "source_num_samples": 142080,
+      "sha256": "3cae5637b6406e6bdaaada5b7bbb75272b2e50f8f178dfdfc0c3760442e582a1",
+      "text": "パリジャンは事故中心的だ欧兵で失礼の人が多いと言われています",
+      "audio_seconds": 8.88,
+      "inference_seconds": 0.11559459997806698,
+      "errors": 6,
+      "reference_chars": 30,
+      "cer": 0.2
+    },
+    {
+      "id": "1771",
+      "file": "10228875750894489453.wav",
+      "reference": "メインステージの音楽が終わっても、フェスティバルには夜遅くまで演奏を流し続けるセクションがあるかもしれないことを覚えておいてください。",
+      "normalized_source_reference": "メインステージの音楽が終わっても フェスティバルには夜遅くまで演奏を流し続けるセクションがあるかもしれないことを覚えておいてください",
+      "gender": "MALE",
+      "source_num_samples": 207360,
+      "sha256": "f8ab164f389ee30d0c9694ce9b6fab387354503971262f5cc4a1b31c309e7b93",
+      "text": "メインステージの音楽が終わってもフェスティバルには喜くまで演奏を流し続けるセクションがあるかもしれないことを覚えておいてください。",
+      "audio_seconds": 12.96,
+      "inference_seconds": 0.18243020004592836,
+      "errors": 2,
+      "reference_chars": 65,
+      "cer": 0.03076923076923077
+    },
+    {
+      "id": "1764",
+      "file": "10256418415643044307.wav",
+      "reference": "参列者の数が多すぎて、全員がサンピエトロ広場での葬儀に参加することは不可能でした。",
+      "normalized_source_reference": "参列者の数が多すぎて 全員がサンピエトロ広場での葬儀に参加することは不可能でした",
+      "gender": "MALE",
+      "source_num_samples": 151680,
+      "sha256": "08a7f22e72fe84fea5e7f563ede5b8a06b453cd5b6974e4dcaaa1ecd7918248d",
+      "text": "山列車の数が多すぎて、全員がサンピエトル広場での葬儀に参加することは不可能でした。",
+      "audio_seconds": 9.48,
+      "inference_seconds": 0.12899019999895245,
+      "errors": 3,
+      "reference_chars": 39,
+      "cer": 0.07692307692307693
+    },
+    {
+      "id": "2003",
+      "file": "10281646305484957883.wav",
+      "reference": "香港の最高の景色を見るには、島から出て九龍のウォーターフロントに向かいましょう。",
+      "normalized_source_reference": "香港の最高の景色を見るには 島から出て九龍のウォーターフロントに向かいましょう",
+      "gender": "MALE",
+      "source_num_samples": 154560,
+      "sha256": "3562ad74d0632ff82c8ca4c57ff36afa0137a13486792783c9a5812add677b22",
+      "text": "香港の最高の景色を見るには島から出て空論のウォーターフロントに向かいましょう。",
+      "audio_seconds": 9.66,
+      "inference_seconds": 0.12857169995550066,
+      "errors": 2,
+      "reference_chars": 38,
+      "cer": 0.05263157894736842
+    },
+    {
+      "id": "1980",
+      "file": "10300959819649327821.wav",
+      "reference": "残念ながら、運転手の行動を100%の確率で予測することはできないので、交通の流れを研究することは困難です。",
+      "normalized_source_reference": "残念ながら 運転手の行動を100%の確率で予測することはできないので 交通の流れを研究することは困難です",
+      "gender": "MALE",
+      "source_num_samples": 191040,
+      "sha256": "a7297368ff66e4deaf5639aec5c4dbac2840f8ef233008b2709e1ba9a7f0fbd8",
+      "text": "残念ながら運転手の行動を百パーセントの確率で予測することはできないので、交通の流れを研究することは困難です。",
+      "audio_seconds": 11.94,
+      "inference_seconds": 0.1742330000270158,
+      "errors": 6,
+      "reference_chars": 49,
+      "cer": 0.12244897959183673
+    },
+    {
+      "id": "1822",
+      "file": "1030930262884292674.wav",
+      "reference": "都市はモロッコのスルタンによってダルル・バディアとして再建され、貿易拠点を設立したスペイン人貿易商によってカサブランカと名付けられました。",
+      "normalized_source_reference": "都市はモロッコのスルタンによってダルル バディアとして再建され 貿易拠点を設立したスペイン人貿易商によってカサブランカと名付けられました",
+      "gender": "MALE",
+      "source_num_samples": 224640,
+      "sha256": "99109b2c1be87e85ae9c5b683bf7dfdee569cf333bd5682f740a43e45bcd0c6d",
+      "text": "年はモロッコのスルタンによってダルルバリアとして再建され、貿易拠点を設立したスペイン人貿易賞によってカサブランカと名付けられました。",
+      "audio_seconds": 14.04,
+      "inference_seconds": 0.19192040001507849,
+      "errors": 5,
+      "reference_chars": 66,
+      "cer": 0.07575757575757576
+    }
+  ],
+  "replays": [
+    {
+      "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所が出てくるでしょう。",
+      "audio_seconds": 10.44,
+      "elapsed_seconds": 10.469625700032339,
+      "chunks": [
+        {
+          "frame": 0,
+          "frames": 25,
+          "start": 0,
+          "end": 4096,
+          "first": true,
+          "available_samples": 4096,
+          "audio_end": 0.256,
+          "queue_seconds": 6.639997567980949e-05,
+          "processing_seconds": 0.02498590003233403,
+          "finished_at": 0.2810526000102982,
+          "lag_seconds": 0.025052600010298187
+        },
+        {
+          "frame": 25,
+          "frames": 32,
+          "start": 3744,
+          "end": 9216,
+          "first": false,
+          "available_samples": 9216,
+          "audio_end": 0.576,
+          "queue_seconds": 7.539999298755706e-05,
+          "processing_seconds": 0.023923699976876378,
+          "finished_at": 0.5999992999713868,
+          "lag_seconds": 0.023999299971386834
+        },
+        {
+          "frame": 57,
+          "frames": 32,
+          "start": 8864,
+          "end": 14336,
+          "first": false,
+          "available_samples": 14336,
+          "audio_end": 0.896,
+          "queue_seconds": 0.00029190007690338415,
+          "processing_seconds": 0.025241299998015165,
+          "finished_at": 0.9215335000772029,
+          "lag_seconds": 0.025533500077202897
+        },
+        {
+          "frame": 89,
+          "frames": 32,
+          "start": 13984,
+          "end": 19456,
+          "first": false,
+          "available_samples": 19456,
+          "audio_end": 1.216,
+          "queue_seconds": 0.0007356000281870667,
+          "processing_seconds": 0.022699999972246587,
+          "finished_at": 1.2394358000019565,
+          "lag_seconds": 0.023435800001956553
+        },
+        {
+          "frame": 121,
+          "frames": 32,
+          "start": 19104,
+          "end": 24576,
+          "first": false,
+          "available_samples": 24576,
+          "audio_end": 1.536,
+          "queue_seconds": 6.0400074347821686e-05,
+          "processing_seconds": 0.024908899911679327,
+          "finished_at": 1.56096949998755,
+          "lag_seconds": 0.024969499987550048
+        },
+        {
+          "frame": 153,
+          "frames": 32,
+          "start": 24224,
+          "end": 29696,
+          "first": false,
+          "available_samples": 29696,
+          "audio_end": 1.856,
+          "queue_seconds": 6.480005662878874e-05,
+          "processing_seconds": 0.023888799943961203,
+          "finished_at": 1.879953800002113,
+          "lag_seconds": 0.02395380000211289
+        },
+        {
+          "frame": 185,
+          "frames": 32,
+          "start": 29344,
+          "end": 34816,
+          "first": false,
+          "available_samples": 34816,
+          "audio_end": 2.176,
+          "queue_seconds": 0.0001640000622717963,
+          "processing_seconds": 0.02539029996842146,
+          "finished_at": 2.2015545000322163,
+          "lag_seconds": 0.025554500032216154
+        },
+        {
+          "frame": 217,
+          "frames": 32,
+          "start": 34464,
+          "end": 39936,
+          "first": false,
+          "available_samples": 39936,
+          "audio_end": 2.496,
+          "queue_seconds": 0.00030130000878125784,
+          "processing_seconds": 0.025951600051485002,
+          "finished_at": 2.522253100061789,
+          "lag_seconds": 0.02625310006178916
+        },
+        {
+          "frame": 249,
+          "frames": 32,
+          "start": 39584,
+          "end": 45056,
+          "first": false,
+          "available_samples": 45056,
+          "audio_end": 2.816,
+          "queue_seconds": 0.0001000000545756663,
+          "processing_seconds": 0.026829799986444414,
+          "finished_at": 2.842930000042543,
+          "lag_seconds": 0.02693000004254298
+        },
+        {
+          "frame": 281,
+          "frames": 32,
+          "start": 44704,
+          "end": 50176,
+          "first": false,
+          "available_samples": 50176,
+          "audio_end": 3.136,
+          "queue_seconds": 7.350003439920982e-05,
+          "processing_seconds": 0.026419400004670024,
+          "finished_at": 3.1624931000405923,
+          "lag_seconds": 0.026493100040592132
+        },
+        {
+          "frame": 313,
+          "frames": 32,
+          "start": 49824,
+          "end": 55296,
+          "first": false,
+          "available_samples": 55296,
+          "audio_end": 3.456,
+          "queue_seconds": 0.00017270004004243944,
+          "processing_seconds": 0.024239699938334525,
+          "finished_at": 3.4804125999799,
+          "lag_seconds": 0.024412599979899863
+        },
+        {
+          "frame": 345,
+          "frames": 32,
+          "start": 54944,
+          "end": 60416,
+          "first": false,
+          "available_samples": 60416,
+          "audio_end": 3.776,
+          "queue_seconds": 0.00025750005245228635,
+          "processing_seconds": 0.02495729993097484,
+          "finished_at": 3.80121499998495,
+          "lag_seconds": 0.025214999984950026
+        },
+        {
+          "frame": 377,
+          "frames": 32,
+          "start": 60064,
+          "end": 65536,
+          "first": false,
+          "available_samples": 65536,
+          "audio_end": 4.096,
+          "queue_seconds": 0.00017010003421447095,
+          "processing_seconds": 0.02576690004207194,
+          "finished_at": 4.121937200077809,
+          "lag_seconds": 0.025937200077809308
+        },
+        {
+          "frame": 409,
+          "frames": 32,
+          "start": 65184,
+          "end": 70656,
+          "first": false,
+          "available_samples": 70656,
+          "audio_end": 4.416,
+          "queue_seconds": 0.0005822999784719229,
+          "processing_seconds": 0.02630170003976673,
+          "finished_at": 4.442884200019762,
+          "lag_seconds": 0.02688420001976155
+        },
+        {
+          "frame": 441,
+          "frames": 32,
+          "start": 70304,
+          "end": 75776,
+          "first": false,
+          "available_samples": 75776,
+          "audio_end": 4.736,
+          "queue_seconds": 7.700003776722752e-05,
+          "processing_seconds": 0.028568599955178797,
+          "finished_at": 4.764645799994469,
+          "lag_seconds": 0.028645799994468923
+        },
+        {
+          "frame": 473,
+          "frames": 32,
+          "start": 75424,
+          "end": 80896,
+          "first": false,
+          "available_samples": 80896,
+          "audio_end": 5.056,
+          "queue_seconds": 0.0004264999702572325,
+          "processing_seconds": 0.027476100018247962,
+          "finished_at": 5.083902799990028,
+          "lag_seconds": 0.027902799990028093
+        },
+        {
+          "frame": 505,
+          "frames": 32,
+          "start": 80544,
+          "end": 86016,
+          "first": false,
+          "available_samples": 86016,
+          "audio_end": 5.376,
+          "queue_seconds": 0.00018000002112206204,
+          "processing_seconds": 0.026091199950315058,
+          "finished_at": 5.40227139997296,
+          "lag_seconds": 0.02627139997296002
+        },
+        {
+          "frame": 537,
+          "frames": 32,
+          "start": 85664,
+          "end": 91136,
+          "first": false,
+          "available_samples": 91136,
+          "audio_end": 5.696,
+          "queue_seconds": 0.0005574000496419984,
+          "processing_seconds": 0.025556399952620268,
+          "finished_at": 5.722114000003785,
+          "lag_seconds": 0.026114000003785165
+        },
+        {
+          "frame": 569,
+          "frames": 32,
+          "start": 90784,
+          "end": 96256,
+          "first": false,
+          "available_samples": 96256,
+          "audio_end": 6.016,
+          "queue_seconds": 0.0005669000707566596,
+          "processing_seconds": 0.026665199897252023,
+          "finished_at": 6.043232299969532,
+          "lag_seconds": 0.02723229996953158
+        },
+        {
+          "frame": 601,
+          "frames": 32,
+          "start": 95904,
+          "end": 101376,
+          "first": false,
+          "available_samples": 101376,
+          "audio_end": 6.336,
+          "queue_seconds": 0.0004439000142735239,
+          "processing_seconds": 0.028247799957171082,
+          "finished_at": 6.364691899972968,
+          "lag_seconds": 0.028691899972967505
+        },
+        {
+          "frame": 633,
+          "frames": 32,
+          "start": 101024,
+          "end": 106496,
+          "first": false,
+          "available_samples": 106496,
+          "audio_end": 6.656,
+          "queue_seconds": 5.680004227937019e-05,
+          "processing_seconds": 0.02751169994007796,
+          "finished_at": 6.68356869998388,
+          "lag_seconds": 0.02756869998388023
+        },
+        {
+          "frame": 665,
+          "frames": 32,
+          "start": 106144,
+          "end": 111616,
+          "first": false,
+          "available_samples": 111616,
+          "audio_end": 6.976,
+          "queue_seconds": 0.0005571000752970789,
+          "processing_seconds": 0.02831369999330491,
+          "finished_at": 7.004871000070125,
+          "lag_seconds": 0.028871000070124886
+        },
+        {
+          "frame": 697,
+          "frames": 32,
+          "start": 111264,
+          "end": 116736,
+          "first": false,
+          "available_samples": 116736,
+          "audio_end": 7.296,
+          "queue_seconds": 7.659997418496545e-05,
+          "processing_seconds": 0.026134900050237775,
+          "finished_at": 7.322211700025946,
+          "lag_seconds": 0.02621170002594564
+        },
+        {
+          "frame": 729,
+          "frames": 32,
+          "start": 116384,
+          "end": 121856,
+          "first": false,
+          "available_samples": 121856,
+          "audio_end": 7.616,
+          "queue_seconds": 7.139999978278411e-05,
+          "processing_seconds": 0.025594000006094575,
+          "finished_at": 7.6416656000074,
+          "lag_seconds": 0.025665600007400258
+        },
+        {
+          "frame": 761,
+          "frames": 32,
+          "start": 121504,
+          "end": 126976,
+          "first": false,
+          "available_samples": 126976,
+          "audio_end": 7.936,
+          "queue_seconds": 0.0003523999927566024,
+          "processing_seconds": 0.02779319998808205,
+          "finished_at": 7.9641457999823615,
+          "lag_seconds": 0.028145799982361552
+        },
+        {
+          "frame": 793,
+          "frames": 32,
+          "start": 126624,
+          "end": 132096,
+          "first": false,
+          "available_samples": 132096,
+          "audio_end": 8.256,
+          "queue_seconds": 0.0005232000779358259,
+          "processing_seconds": 0.02953549998346716,
+          "finished_at": 8.286058900062926,
+          "lag_seconds": 0.030058900062925886
+        },
+        {
+          "frame": 825,
+          "frames": 32,
+          "start": 131744,
+          "end": 137216,
+          "first": false,
+          "available_samples": 137216,
+          "audio_end": 8.576,
+          "queue_seconds": 0.004341499997302378,
+          "processing_seconds": 0.06558000005315989,
+          "finished_at": 8.645921800052747,
+          "lag_seconds": 0.06992180005274662
+        },
+        {
+          "frame": 857,
+          "frames": 32,
+          "start": 136864,
+          "end": 142336,
+          "first": false,
+          "available_samples": 142336,
+          "audio_end": 8.896,
+          "queue_seconds": 0.0005636000502846628,
+          "processing_seconds": 0.02375139994546771,
+          "finished_at": 8.920315199997276,
+          "lag_seconds": 0.024315199997275272
+        },
+        {
+          "frame": 889,
+          "frames": 32,
+          "start": 141984,
+          "end": 147456,
+          "first": false,
+          "available_samples": 147456,
+          "audio_end": 9.216,
+          "queue_seconds": 0.00011480007413844362,
+          "processing_seconds": 0.024967500008642673,
+          "finished_at": 9.241082499967888,
+          "lag_seconds": 0.025082499967888694
+        },
+        {
+          "frame": 921,
+          "frames": 32,
+          "start": 147104,
+          "end": 152576,
+          "first": false,
+          "available_samples": 152576,
+          "audio_end": 9.536,
+          "queue_seconds": 0.0005749000338841626,
+          "processing_seconds": 0.025921699940226972,
+          "finished_at": 9.562496799975634,
+          "lag_seconds": 0.026496799975634033
+        },
+        {
+          "frame": 953,
+          "frames": 32,
+          "start": 152224,
+          "end": 157696,
+          "first": false,
+          "available_samples": 157696,
+          "audio_end": 9.856,
+          "queue_seconds": 0.00040300007071358834,
+          "processing_seconds": 0.022964100004173815,
+          "finished_at": 9.87936730007641,
+          "lag_seconds": 0.023367300076410302
+        },
+        {
+          "frame": 985,
+          "frames": 32,
+          "start": 157344,
+          "end": 162816,
+          "first": false,
+          "available_samples": 162816,
+          "audio_end": 10.176,
+          "queue_seconds": 0.00014080000203087195,
+          "processing_seconds": 0.024709100020118058,
+          "finished_at": 10.200850200024433,
+          "lag_seconds": 0.024850200024433278
+        },
+        {
+          "frame": 1017,
+          "frames": 32,
+          "start": 162464,
+          "end": 167936,
+          "first": false,
+          "available_samples": 167040,
+          "audio_end": 10.44,
+          "queue_seconds": 7.750006858309177e-05,
+          "processing_seconds": 0.02876079990528524,
+          "finished_at": 10.46883849997539,
+          "lag_seconds": 0.02883849997539123
+        }
+      ],
+      "updates": [
+        {
+          "text": "イ",
+          "emitted_at": 2.519587800023146,
+          "audio_available": 2.496
+        },
+        {
+          "text": "イン",
+          "emitted_at": 2.521362900035456,
+          "audio_available": 2.496
+        },
+        {
+          "text": "インタ",
+          "emitted_at": 2.838267400045879,
+          "audio_available": 2.816
+        },
+        {
+          "text": "インター",
+          "emitted_at": 2.8393870000727475,
+          "audio_available": 2.816
+        },
+        {
+          "text": "インターネ",
+          "emitted_at": 2.84204810007941,
+          "audio_available": 2.816
+        },
+        {
+          "text": "インターネッ",
+          "emitted_at": 3.156600399990566,
+          "audio_available": 3.136
+        },
+        {
+          "text": "インターネット",
+          "emitted_at": 3.157702700002119,
+          "audio_available": 3.136
+        },
+        {
+          "text": "インターネットで",
+          "emitted_at": 3.160044000018388,
+          "audio_available": 3.136
+        },
+        {
+          "text": "インターネットで敵",
+          "emitted_at": 3.477873199968599,
+          "audio_available": 3.456
+        },
+        {
+          "text": "インターネットで敵体",
+          "emitted_at": 3.7981417999835685,
+          "audio_available": 3.776
+        },
+        {
+          "text": "インターネットで敵体的",
+          "emitted_at": 4.117583499988541,
+          "audio_available": 4.096
+        },
+        {
+          "text": "インターネットで敵体的環",
+          "emitted_at": 4.120265300036408,
+          "audio_available": 4.096
+        },
+        {
+          "text": "インターネットで敵体的環境",
+          "emitted_at": 4.438739300007001,
+          "audio_available": 4.416
+        },
+        {
+          "text": "インターネットで敵体的環境コ",
+          "emitted_at": 4.759119400056079,
+          "audio_available": 4.736
+        },
+        {
+          "text": "インターネットで敵体的環境コー",
+          "emitted_at": 4.761128699989058,
+          "audio_available": 4.736
+        },
+        {
+          "text": "インターネットで敵体的環境コース",
+          "emitted_at": 4.763029900030233,
+          "audio_available": 4.736
+        },
+        {
+          "text": "インターネットで敵体的環境コースに",
+          "emitted_at": 5.076989100081846,
+          "audio_available": 5.056
+        },
+        {
+          "text": "インターネットで敵体的環境コースにつ",
+          "emitted_at": 5.078979899990372,
+          "audio_available": 5.056
+        },
+        {
+          "text": "インターネットで敵体的環境コースについ",
+          "emitted_at": 5.080817300011404,
+          "audio_available": 5.056
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて",
+          "emitted_at": 5.0826940999832,
+          "audio_available": 5.056
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検",
+          "emitted_at": 5.399391800048761,
+          "audio_available": 5.376
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索",
+          "emitted_at": 5.718486999976449,
+          "audio_available": 5.696
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索す",
+          "emitted_at": 5.721275100018829,
+          "audio_available": 5.696
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索する",
+          "emitted_at": 6.038075300049968,
+          "audio_available": 6.016
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると",
+          "emitted_at": 6.040041700005531,
+          "audio_available": 6.016
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、",
+          "emitted_at": 6.360974400071427,
+          "audio_available": 6.336
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、お",
+          "emitted_at": 6.363812200026587,
+          "audio_available": 6.336
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそ",
+          "emitted_at": 6.678495800006203,
+          "audio_available": 6.656
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそら",
+          "emitted_at": 6.680366100044921,
+          "audio_available": 6.656
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく",
+          "emitted_at": 6.6824137000367045,
+          "audio_available": 6.656
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現",
+          "emitted_at": 7.001553300069645,
+          "audio_available": 6.976
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地",
+          "emitted_at": 7.0036787000717595,
+          "audio_available": 6.976
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企",
+          "emitted_at": 7.318430799990892,
+          "audio_available": 7.296
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業",
+          "emitted_at": 7.32137420005165,
+          "audio_available": 7.296
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の",
+          "emitted_at": 7.63790810003411,
+          "audio_available": 7.616
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住",
+          "emitted_at": 7.640756000066176,
+          "audio_available": 7.616
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所",
+          "emitted_at": 7.959332900005393,
+          "audio_available": 7.936
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所が",
+          "emitted_at": 7.961347299977206,
+          "audio_available": 7.936
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所が出",
+          "emitted_at": 7.963306199992076,
+          "audio_available": 7.936
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所が出て",
+          "emitted_at": 8.278817699989304,
+          "audio_available": 8.256
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所が出てく",
+          "emitted_at": 8.280852800002322,
+          "audio_available": 8.256
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所が出てくる",
+          "emitted_at": 8.282764600007795,
+          "audio_available": 8.256
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所が出てくるで",
+          "emitted_at": 8.638263200060464,
+          "audio_available": 8.576
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所が出てくるでし",
+          "emitted_at": 8.640381400007755,
+          "audio_available": 8.576
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所が出てくるでしょ",
+          "emitted_at": 8.641514900024049,
+          "audio_available": 8.576
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所が出てくるでしょう",
+          "emitted_at": 8.643009199993685,
+          "audio_available": 8.576
+        },
+        {
+          "text": "インターネットで敵体的環境コースについて検索すると、おそらく現地企業の住所が出てくるでしょう。",
+          "emitted_at": 10.462623800034635,
+          "audio_available": 10.44
+        }
+      ],
+      "first_caption_seconds": 2.519587800023146,
+      "final_caption_lag_seconds": 0.029625700032338997,
+      "id": "1828",
+      "reference": "インターネットで「敵対的環境コース」について検索すると、おそらく現地企業の住所が出てくるでしょう。",
+      "errors": 1,
+      "reference_chars": 45,
+      "cer": 0.022222222222222223
+    },
+    {
+      "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、神社を訪れましょう。",
+      "audio_seconds": 14.22,
+      "elapsed_seconds": 14.244006299995817,
+      "chunks": [
+        {
+          "frame": 0,
+          "frames": 25,
+          "start": 0,
+          "end": 4096,
+          "first": true,
+          "available_samples": 4096,
+          "audio_end": 0.256,
+          "queue_seconds": 9.649997204541627e-05,
+          "processing_seconds": 0.027674400014802814,
+          "finished_at": 0.2837711999891326,
+          "lag_seconds": 0.027771199989132578
+        },
+        {
+          "frame": 25,
+          "frames": 32,
+          "start": 3744,
+          "end": 9216,
+          "first": false,
+          "available_samples": 9216,
+          "audio_end": 0.576,
+          "queue_seconds": 0.00019900000281636299,
+          "processing_seconds": 0.022909499937668443,
+          "finished_at": 0.5991086999420077,
+          "lag_seconds": 0.023108699942007704
+        },
+        {
+          "frame": 57,
+          "frames": 32,
+          "start": 8864,
+          "end": 14336,
+          "first": false,
+          "available_samples": 14336,
+          "audio_end": 0.896,
+          "queue_seconds": 0.0005332999359816126,
+          "processing_seconds": 0.024890500004403293,
+          "finished_at": 0.9214240999426693,
+          "lag_seconds": 0.025424099942669254
+        },
+        {
+          "frame": 89,
+          "frames": 32,
+          "start": 13984,
+          "end": 19456,
+          "first": false,
+          "available_samples": 19456,
+          "audio_end": 1.216,
+          "queue_seconds": 0.00023199991881850401,
+          "processing_seconds": 0.02360960002988577,
+          "finished_at": 1.2398418999509886,
+          "lag_seconds": 0.02384189995098862
+        },
+        {
+          "frame": 121,
+          "frames": 32,
+          "start": 19104,
+          "end": 24576,
+          "first": false,
+          "available_samples": 24576,
+          "audio_end": 1.536,
+          "queue_seconds": 0.0005951999556272902,
+          "processing_seconds": 0.0239084999775514,
+          "finished_at": 1.560503999935463,
+          "lag_seconds": 0.02450399993546304
+        },
+        {
+          "frame": 153,
+          "frames": 32,
+          "start": 24224,
+          "end": 29696,
+          "first": false,
+          "available_samples": 29696,
+          "audio_end": 1.856,
+          "queue_seconds": 0.00027809993457039717,
+          "processing_seconds": 0.02319920004811138,
+          "finished_at": 1.8794774999842048,
+          "lag_seconds": 0.023477499984204675
+        },
+        {
+          "frame": 185,
+          "frames": 32,
+          "start": 29344,
+          "end": 34816,
+          "first": false,
+          "available_samples": 34816,
+          "audio_end": 2.176,
+          "queue_seconds": 0.00017140000220372542,
+          "processing_seconds": 0.023875299957580864,
+          "finished_at": 2.2000468999613076,
+          "lag_seconds": 0.02404689996130749
+        },
+        {
+          "frame": 217,
+          "frames": 32,
+          "start": 34464,
+          "end": 39936,
+          "first": false,
+          "available_samples": 39936,
+          "audio_end": 2.496,
+          "queue_seconds": 0.00023499996960163472,
+          "processing_seconds": 0.02216019993647933,
+          "finished_at": 2.518395399907604,
+          "lag_seconds": 0.022395399907603863
+        },
+        {
+          "frame": 249,
+          "frames": 32,
+          "start": 39584,
+          "end": 45056,
+          "first": false,
+          "available_samples": 45056,
+          "audio_end": 2.816,
+          "queue_seconds": 0.00023539992142485033,
+          "processing_seconds": 0.02826300007291138,
+          "finished_at": 2.844498599995859,
+          "lag_seconds": 0.02849859999585913
+        },
+        {
+          "frame": 281,
+          "frames": 32,
+          "start": 44704,
+          "end": 50176,
+          "first": false,
+          "available_samples": 50176,
+          "audio_end": 3.136,
+          "queue_seconds": 0.0002749999389051183,
+          "processing_seconds": 0.02467760001309216,
+          "finished_at": 3.1609528999542817,
+          "lag_seconds": 0.024952899954281627
+        },
+        {
+          "frame": 313,
+          "frames": 32,
+          "start": 49824,
+          "end": 55296,
+          "first": false,
+          "available_samples": 55296,
+          "audio_end": 3.456,
+          "queue_seconds": 7.549999840561483e-05,
+          "processing_seconds": 0.02806459995917976,
+          "finished_at": 3.4841403999598697,
+          "lag_seconds": 0.028140399959869722
+        },
+        {
+          "frame": 345,
+          "frames": 32,
+          "start": 54944,
+          "end": 60416,
+          "first": false,
+          "available_samples": 60416,
+          "audio_end": 3.776,
+          "queue_seconds": 0.0001256999801846348,
+          "processing_seconds": 0.0256834999890998,
+          "finished_at": 3.801809399970807,
+          "lag_seconds": 0.025809399970807334
+        },
+        {
+          "frame": 377,
+          "frames": 32,
+          "start": 60064,
+          "end": 65536,
+          "first": false,
+          "available_samples": 65536,
+          "audio_end": 4.096,
+          "queue_seconds": 0.00039520000200710115,
+          "processing_seconds": 0.028074399917386472,
+          "finished_at": 4.124469799920917,
+          "lag_seconds": 0.028469799920916472
+        },
+        {
+          "frame": 409,
+          "frames": 32,
+          "start": 65184,
+          "end": 70656,
+          "first": false,
+          "available_samples": 70656,
+          "audio_end": 4.416,
+          "queue_seconds": 0.0010924999052654982,
+          "processing_seconds": 0.1231780000962317,
+          "finished_at": 4.540270900004543,
+          "lag_seconds": 0.124270900004543
+        },
+        {
+          "frame": 441,
+          "frames": 32,
+          "start": 70304,
+          "end": 75776,
+          "first": false,
+          "available_samples": 75776,
+          "audio_end": 4.736,
+          "queue_seconds": 0.00036689991690241897,
+          "processing_seconds": 0.050430300063453615,
+          "finished_at": 4.78679749998264,
+          "lag_seconds": 0.05079749998264038
+        },
+        {
+          "frame": 473,
+          "frames": 32,
+          "start": 75424,
+          "end": 80896,
+          "first": false,
+          "available_samples": 80896,
+          "audio_end": 5.056,
+          "queue_seconds": 8.079989906395468e-05,
+          "processing_seconds": 0.026991500053554773,
+          "finished_at": 5.083072499954142,
+          "lag_seconds": 0.027072499954141627
+        },
+        {
+          "frame": 505,
+          "frames": 32,
+          "start": 80544,
+          "end": 86016,
+          "first": false,
+          "available_samples": 86016,
+          "audio_end": 5.376,
+          "queue_seconds": 0.00010100000165369494,
+          "processing_seconds": 0.026859399979002774,
+          "finished_at": 5.40296059998218,
+          "lag_seconds": 0.026960599982179367
+        },
+        {
+          "frame": 537,
+          "frames": 32,
+          "start": 85664,
+          "end": 91136,
+          "first": false,
+          "available_samples": 91136,
+          "audio_end": 5.696,
+          "queue_seconds": 0.00048209994193193495,
+          "processing_seconds": 0.025180500000715256,
+          "finished_at": 5.72166279994417,
+          "lag_seconds": 0.02566279994417009
+        },
+        {
+          "frame": 569,
+          "frames": 32,
+          "start": 90784,
+          "end": 96256,
+          "first": false,
+          "available_samples": 96256,
+          "audio_end": 6.016,
+          "queue_seconds": 0.00032539997808633814,
+          "processing_seconds": 0.02649229997768998,
+          "finished_at": 6.042818099958822,
+          "lag_seconds": 0.026818099958822117
+        },
+        {
+          "frame": 601,
+          "frames": 32,
+          "start": 95904,
+          "end": 101376,
+          "first": false,
+          "available_samples": 101376,
+          "audio_end": 6.336,
+          "queue_seconds": 0.0002949999282133575,
+          "processing_seconds": 0.024504599976353347,
+          "finished_at": 6.36079979990609,
+          "lag_seconds": 0.024799799906089603
+        },
+        {
+          "frame": 633,
+          "frames": 32,
+          "start": 101024,
+          "end": 106496,
+          "first": false,
+          "available_samples": 106496,
+          "audio_end": 6.656,
+          "queue_seconds": 0.00026339998561919487,
+          "processing_seconds": 0.02780959999654442,
+          "finished_at": 6.684073199983686,
+          "lag_seconds": 0.028073199983686514
+        },
+        {
+          "frame": 665,
+          "frames": 32,
+          "start": 106144,
+          "end": 111616,
+          "first": false,
+          "available_samples": 111616,
+          "audio_end": 6.976,
+          "queue_seconds": 5.369996745141492e-05,
+          "processing_seconds": 0.02606860001105815,
+          "finished_at": 7.002122499980032,
+          "lag_seconds": 0.026122499980032465
+        },
+        {
+          "frame": 697,
+          "frames": 32,
+          "start": 111264,
+          "end": 116736,
+          "first": false,
+          "available_samples": 116736,
+          "audio_end": 7.296,
+          "queue_seconds": 0.0006472998959941023,
+          "processing_seconds": 0.02753570000641048,
+          "finished_at": 7.324183199903928,
+          "lag_seconds": 0.02818319990392748
+        },
+        {
+          "frame": 729,
+          "frames": 32,
+          "start": 116384,
+          "end": 121856,
+          "first": false,
+          "available_samples": 121856,
+          "audio_end": 7.616,
+          "queue_seconds": 0.00018269991595332158,
+          "processing_seconds": 0.026643400080502033,
+          "finished_at": 7.642826299997978,
+          "lag_seconds": 0.026826299997978253
+        },
+        {
+          "frame": 761,
+          "frames": 32,
+          "start": 121504,
+          "end": 126976,
+          "first": false,
+          "available_samples": 126976,
+          "audio_end": 7.936,
+          "queue_seconds": 0.00044249998033052407,
+          "processing_seconds": 0.029354500002227724,
+          "finished_at": 7.965797199984081,
+          "lag_seconds": 0.029797199984081146
+        },
+        {
+          "frame": 793,
+          "frames": 32,
+          "start": 126624,
+          "end": 132096,
+          "first": false,
+          "available_samples": 132096,
+          "audio_end": 8.256,
+          "queue_seconds": 0.0004896999392656198,
+          "processing_seconds": 0.026329000014811754,
+          "finished_at": 8.282818999956362,
+          "lag_seconds": 0.026818999956361722
+        },
+        {
+          "frame": 825,
+          "frames": 32,
+          "start": 131744,
+          "end": 137216,
+          "first": false,
+          "available_samples": 137216,
+          "audio_end": 8.576,
+          "queue_seconds": 5.989999137767654e-05,
+          "processing_seconds": 0.023484600009396672,
+          "finished_at": 8.599544700002298,
+          "lag_seconds": 0.023544700002297247
+        },
+        {
+          "frame": 857,
+          "frames": 32,
+          "start": 136864,
+          "end": 142336,
+          "first": false,
+          "available_samples": 142336,
+          "audio_end": 8.896,
+          "queue_seconds": 0.00011400000285277656,
+          "processing_seconds": 0.030035699950531125,
+          "finished_at": 8.926149899954908,
+          "lag_seconds": 0.0301498999549068
+        },
+        {
+          "frame": 889,
+          "frames": 32,
+          "start": 141984,
+          "end": 147456,
+          "first": false,
+          "available_samples": 147456,
+          "audio_end": 9.216,
+          "queue_seconds": 4.879992082784668e-05,
+          "processing_seconds": 0.024911100044846535,
+          "finished_at": 9.240960099967197,
+          "lag_seconds": 0.02496009996719728
+        },
+        {
+          "frame": 921,
+          "frames": 32,
+          "start": 147104,
+          "end": 152576,
+          "first": false,
+          "available_samples": 152576,
+          "audio_end": 9.536,
+          "queue_seconds": 0.0005625999402258941,
+          "processing_seconds": 0.0258079000050202,
+          "finished_at": 9.562370699946769,
+          "lag_seconds": 0.026370699946768994
+        },
+        {
+          "frame": 953,
+          "frames": 32,
+          "start": 152224,
+          "end": 157696,
+          "first": false,
+          "available_samples": 157696,
+          "audio_end": 9.856,
+          "queue_seconds": 0.0003024000031874863,
+          "processing_seconds": 0.026285599917173386,
+          "finished_at": 9.882588299922645,
+          "lag_seconds": 0.02658829992264522
+        },
+        {
+          "frame": 985,
+          "frames": 32,
+          "start": 157344,
+          "end": 162816,
+          "first": false,
+          "available_samples": 162816,
+          "audio_end": 10.176,
+          "queue_seconds": 0.0003062999816609846,
+          "processing_seconds": 0.025048099923878908,
+          "finished_at": 10.201354599907063,
+          "lag_seconds": 0.02535459990706279
+        },
+        {
+          "frame": 1017,
+          "frames": 32,
+          "start": 162464,
+          "end": 167936,
+          "first": false,
+          "available_samples": 167936,
+          "audio_end": 10.496,
+          "queue_seconds": 0.00030759994033680016,
+          "processing_seconds": 0.02608680003322661,
+          "finished_at": 10.522394599975087,
+          "lag_seconds": 0.026394599975086308
+        },
+        {
+          "frame": 1049,
+          "frames": 32,
+          "start": 167584,
+          "end": 173056,
+          "first": false,
+          "available_samples": 173056,
+          "audio_end": 10.816,
+          "queue_seconds": 7.589998748080973e-05,
+          "processing_seconds": 0.026243799948133528,
+          "finished_at": 10.842319899937138,
+          "lag_seconds": 0.026319899937137237
+        },
+        {
+          "frame": 1081,
+          "frames": 32,
+          "start": 172704,
+          "end": 178176,
+          "first": false,
+          "available_samples": 178176,
+          "audio_end": 11.136,
+          "queue_seconds": 0.000153899948113434,
+          "processing_seconds": 0.027644200017675757,
+          "finished_at": 11.163798299967311,
+          "lag_seconds": 0.02779829996731209
+        },
+        {
+          "frame": 1113,
+          "frames": 32,
+          "start": 177824,
+          "end": 183296,
+          "first": false,
+          "available_samples": 183296,
+          "audio_end": 11.456,
+          "queue_seconds": 0.00038269989285666384,
+          "processing_seconds": 0.031560600036755204,
+          "finished_at": 11.487943499931134,
+          "lag_seconds": 0.03194349993113477
+        },
+        {
+          "frame": 1145,
+          "frames": 32,
+          "start": 182944,
+          "end": 188416,
+          "first": false,
+          "available_samples": 188416,
+          "audio_end": 11.776,
+          "queue_seconds": 0.0002799999909477435,
+          "processing_seconds": 0.026674199965782464,
+          "finished_at": 11.802954399958253,
+          "lag_seconds": 0.026954399958253106
+        },
+        {
+          "frame": 1177,
+          "frames": 32,
+          "start": 188064,
+          "end": 193536,
+          "first": false,
+          "available_samples": 193536,
+          "audio_end": 12.096,
+          "queue_seconds": 0.0003236999232321125,
+          "processing_seconds": 0.02534300007391721,
+          "finished_at": 12.121666899998672,
+          "lag_seconds": 0.02566689999867222
+        },
+        {
+          "frame": 1209,
+          "frames": 32,
+          "start": 193184,
+          "end": 198656,
+          "first": false,
+          "available_samples": 198656,
+          "audio_end": 12.416,
+          "queue_seconds": 7.809998094998605e-05,
+          "processing_seconds": 0.024489099974744022,
+          "finished_at": 12.440567399957217,
+          "lag_seconds": 0.024567399957216907
+        },
+        {
+          "frame": 1241,
+          "frames": 32,
+          "start": 198304,
+          "end": 203776,
+          "first": false,
+          "available_samples": 203776,
+          "audio_end": 12.736,
+          "queue_seconds": 0.00029539995454186396,
+          "processing_seconds": 0.02510730002541095,
+          "finished_at": 12.761402899981476,
+          "lag_seconds": 0.025402899981475713
+        },
+        {
+          "frame": 1273,
+          "frames": 32,
+          "start": 203424,
+          "end": 208896,
+          "first": false,
+          "available_samples": 208896,
+          "audio_end": 13.056,
+          "queue_seconds": 7.389996294016044e-05,
+          "processing_seconds": 0.025235199951566756,
+          "finished_at": 13.081309299916029,
+          "lag_seconds": 0.025309299916029815
+        },
+        {
+          "frame": 1305,
+          "frames": 32,
+          "start": 208544,
+          "end": 214016,
+          "first": false,
+          "available_samples": 214016,
+          "audio_end": 13.376,
+          "queue_seconds": 0.0003349999208008825,
+          "processing_seconds": 0.024124199990183115,
+          "finished_at": 13.400459299911745,
+          "lag_seconds": 0.024459299911745447
+        },
+        {
+          "frame": 1337,
+          "frames": 32,
+          "start": 213664,
+          "end": 219136,
+          "first": false,
+          "available_samples": 219136,
+          "audio_end": 13.696,
+          "queue_seconds": 0.0005496999910103995,
+          "processing_seconds": 0.025020099943503737,
+          "finished_at": 13.721569999936037,
+          "lag_seconds": 0.025569999936037036
+        },
+        {
+          "frame": 1369,
+          "frames": 32,
+          "start": 218784,
+          "end": 224256,
+          "first": false,
+          "available_samples": 224256,
+          "audio_end": 14.016,
+          "queue_seconds": 0.0005108999935909964,
+          "processing_seconds": 0.024035400012508035,
+          "finished_at": 14.04054640000686,
+          "lag_seconds": 0.02454640000686048
+        },
+        {
+          "frame": 1401,
+          "frames": 32,
+          "start": 223904,
+          "end": 229376,
+          "first": false,
+          "available_samples": 227520,
+          "audio_end": 14.22,
+          "queue_seconds": 0.00030950000043894477,
+          "processing_seconds": 0.022898899973370135,
+          "finished_at": 14.243208599975333,
+          "lag_seconds": 0.02320859997533198
+        }
+      ],
+      "updates": [
+        {
+          "text": "ま",
+          "emitted_at": 3.8000814999686554,
+          "audio_available": 3.776
+        },
+        {
+          "text": "また",
+          "emitted_at": 4.120649199932814,
+          "audio_available": 4.096
+        },
+        {
+          "text": "また、",
+          "emitted_at": 4.122680399916135,
+          "audio_available": 4.096
+        },
+        {
+          "text": "また、北",
+          "emitted_at": 4.536166099947877,
+          "audio_available": 4.416
+        },
+        {
+          "text": "また、北代",
+          "emitted_at": 4.781406699912623,
+          "audio_available": 4.736
+        },
+        {
+          "text": "また、北代に",
+          "emitted_at": 5.077285000006668,
+          "audio_available": 5.056
+        },
+        {
+          "text": "また、北代に行",
+          "emitted_at": 5.0796556998975575,
+          "audio_available": 5.056
+        },
+        {
+          "text": "また、北代に行く",
+          "emitted_at": 5.082267099991441,
+          "audio_available": 5.056
+        },
+        {
+          "text": "また、北代に行くな",
+          "emitted_at": 5.397582699893974,
+          "audio_available": 5.376
+        },
+        {
+          "text": "また、北代に行くなら",
+          "emitted_at": 5.399502199958079,
+          "audio_available": 5.376
+        },
+        {
+          "text": "また、北代に行くなら世",
+          "emitted_at": 5.402045599999838,
+          "audio_available": 5.376
+        },
+        {
+          "text": "また、北代に行くなら世界",
+          "emitted_at": 5.719513799995184,
+          "audio_available": 5.696
+        },
+        {
+          "text": "また、北代に行くなら世界的",
+          "emitted_at": 6.038319999934174,
+          "audio_available": 6.016
+        },
+        {
+          "text": "また、北代に行くなら世界的に",
+          "emitted_at": 6.041933099972084,
+          "audio_available": 6.016
+        },
+        {
+          "text": "また、北代に行くなら世界的に有",
+          "emitted_at": 6.358239499968477,
+          "audio_available": 6.336
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名",
+          "emitted_at": 6.680412499932572,
+          "audio_available": 6.656
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名な",
+          "emitted_at": 6.683177099912427,
+          "audio_available": 6.656
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマ",
+          "emitted_at": 7.318082199897617,
+          "audio_available": 7.296
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリ",
+          "emitted_at": 7.320555299986154,
+          "audio_available": 7.296
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア",
+          "emitted_at": 7.322497199987993,
+          "audio_available": 7.296
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像",
+          "emitted_at": 7.638298299978487,
+          "audio_available": 7.616
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の",
+          "emitted_at": 7.641979299951345,
+          "audio_available": 7.616
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖",
+          "emitted_at": 7.960230499971658,
+          "audio_available": 7.936
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地",
+          "emitted_at": 7.964663099963218,
+          "audio_available": 7.936
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地で",
+          "emitted_at": 8.278058699914254,
+          "audio_available": 8.256
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であ",
+          "emitted_at": 8.280042099999264,
+          "audio_available": 8.256
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地である",
+          "emitted_at": 8.281979199964553,
+          "audio_available": 8.256
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるフ",
+          "emitted_at": 8.91759159998037,
+          "audio_available": 8.896
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファ",
+          "emitted_at": 8.91876529995352,
+          "audio_available": 8.896
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファテ",
+          "emitted_at": 8.921903899987228,
+          "audio_available": 8.896
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティ",
+          "emitted_at": 8.922969799954444,
+          "audio_available": 8.896
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマ",
+          "emitted_at": 8.925199599936604,
+          "audio_available": 8.896
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの",
+          "emitted_at": 9.23718860000372,
+          "audio_available": 9.216
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖",
+          "emitted_at": 9.24012639990542,
+          "audio_available": 9.216
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母",
+          "emitted_at": 9.558137299958616,
+          "audio_available": 9.536
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の",
+          "emitted_at": 9.561014899984002,
+          "audio_available": 9.536
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成",
+          "emitted_at": 9.87995879992377,
+          "audio_available": 9.856
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域",
+          "emitted_at": 10.19783869991079,
+          "audio_available": 10.176
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、",
+          "emitted_at": 10.517119799973443,
+          "audio_available": 10.496
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、神",
+          "emitted_at": 10.519315699930303,
+          "audio_available": 10.496
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、神社",
+          "emitted_at": 10.837643299950287,
+          "audio_available": 10.816
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、神社を",
+          "emitted_at": 10.840584899997339,
+          "audio_available": 10.816
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、神社を訪",
+          "emitted_at": 11.159498699940741,
+          "audio_available": 11.136
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、神社を訪れ",
+          "emitted_at": 11.479296099976636,
+          "audio_available": 11.456
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、神社を訪れま",
+          "emitted_at": 11.482303199940361,
+          "audio_available": 11.456
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、神社を訪れまし",
+          "emitted_at": 11.484404199989513,
+          "audio_available": 11.456
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、神社を訪れましょ",
+          "emitted_at": 11.485543499933556,
+          "audio_available": 11.456
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、神社を訪れましょう",
+          "emitted_at": 11.486975999898277,
+          "audio_available": 11.456
+        },
+        {
+          "text": "また、北代に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の成域、神社を訪れましょう。",
+          "emitted_at": 11.797817099955864,
+          "audio_available": 11.776
+        }
+      ],
+      "first_caption_seconds": 3.8000814999686554,
+      "final_caption_lag_seconds": 0.024006299995816605,
+      "id": "1834",
+      "reference": "また、北側に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の聖域（神社）を訪れましょう。",
+      "errors": 2,
+      "reference_chars": 46,
+      "cer": 0.043478260869565216
+    },
+    {
+      "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペインを知っています。",
+      "audio_seconds": 12.84,
+      "elapsed_seconds": 12.86355360003654,
+      "chunks": [
+        {
+          "frame": 0,
+          "frames": 25,
+          "start": 0,
+          "end": 4096,
+          "first": true,
+          "available_samples": 4096,
+          "audio_end": 0.256,
+          "queue_seconds": 0.00021580006554722253,
+          "processing_seconds": 0.026657599955797195,
+          "finished_at": 0.2828736000228673,
+          "lag_seconds": 0.026873600022867317
+        },
+        {
+          "frame": 25,
+          "frames": 32,
+          "start": 3744,
+          "end": 9216,
+          "first": false,
+          "available_samples": 9216,
+          "audio_end": 0.576,
+          "queue_seconds": 0.0003698000228032905,
+          "processing_seconds": 0.02416359994094819,
+          "finished_at": 0.6005335999652743,
+          "lag_seconds": 0.024533599965274377
+        },
+        {
+          "frame": 57,
+          "frames": 32,
+          "start": 8864,
+          "end": 14336,
+          "first": false,
+          "available_samples": 14336,
+          "audio_end": 0.896,
+          "queue_seconds": 0.010382299959659558,
+          "processing_seconds": 0.04325360001530498,
+          "finished_at": 0.9496361999772489,
+          "lag_seconds": 0.05363619997724889
+        },
+        {
+          "frame": 89,
+          "frames": 32,
+          "start": 13984,
+          "end": 19456,
+          "first": false,
+          "available_samples": 19456,
+          "audio_end": 1.216,
+          "queue_seconds": 8.150005340579192e-05,
+          "processing_seconds": 0.02405519993044436,
+          "finished_at": 1.240136899985373,
+          "lag_seconds": 0.02413689998537305
+        },
+        {
+          "frame": 121,
+          "frames": 32,
+          "start": 19104,
+          "end": 24576,
+          "first": false,
+          "available_samples": 24576,
+          "audio_end": 1.536,
+          "queue_seconds": 0.0004006999880075135,
+          "processing_seconds": 0.022810399997979403,
+          "finished_at": 1.5592112999875098,
+          "lag_seconds": 0.023211299987509815
+        },
+        {
+          "frame": 153,
+          "frames": 32,
+          "start": 24224,
+          "end": 29696,
+          "first": false,
+          "available_samples": 29696,
+          "audio_end": 1.856,
+          "queue_seconds": 0.0005402000676839602,
+          "processing_seconds": 0.02423449989873916,
+          "finished_at": 1.8807748999679461,
+          "lag_seconds": 0.024774899967946018
+        },
+        {
+          "frame": 185,
+          "frames": 32,
+          "start": 29344,
+          "end": 34816,
+          "first": false,
+          "available_samples": 34816,
+          "audio_end": 2.176,
+          "queue_seconds": 0.0005083000063894616,
+          "processing_seconds": 0.026086300029419363,
+          "finished_at": 2.2025949000380933,
+          "lag_seconds": 0.026594900038093172
+        },
+        {
+          "frame": 217,
+          "frames": 32,
+          "start": 34464,
+          "end": 39936,
+          "first": false,
+          "available_samples": 39936,
+          "audio_end": 2.496,
+          "queue_seconds": 4.959995485842583e-05,
+          "processing_seconds": 0.026296399999409914,
+          "finished_at": 2.5223461999557912,
+          "lag_seconds": 0.02634619995579124
+        },
+        {
+          "frame": 249,
+          "frames": 32,
+          "start": 39584,
+          "end": 45056,
+          "first": false,
+          "available_samples": 45056,
+          "audio_end": 2.816,
+          "queue_seconds": 0.00021990003623084675,
+          "processing_seconds": 0.026655799942091107,
+          "finished_at": 2.8428758999798447,
+          "lag_seconds": 0.026875899979844853
+        },
+        {
+          "frame": 281,
+          "frames": 32,
+          "start": 44704,
+          "end": 50176,
+          "first": false,
+          "available_samples": 50176,
+          "audio_end": 3.136,
+          "queue_seconds": 5.650002136814436e-05,
+          "processing_seconds": 0.02716990001499653,
+          "finished_at": 3.1632266000378877,
+          "lag_seconds": 0.02722660003788757
+        },
+        {
+          "frame": 313,
+          "frames": 32,
+          "start": 49824,
+          "end": 55296,
+          "first": false,
+          "available_samples": 55296,
+          "audio_end": 3.456,
+          "queue_seconds": 0.0003828000100329909,
+          "processing_seconds": 0.027109400019980967,
+          "finished_at": 3.483492400031537,
+          "lag_seconds": 0.027492400031536857
+        },
+        {
+          "frame": 345,
+          "frames": 32,
+          "start": 54944,
+          "end": 60416,
+          "first": false,
+          "available_samples": 60416,
+          "audio_end": 3.776,
+          "queue_seconds": 6.850001029690134e-05,
+          "processing_seconds": 0.02548339997883886,
+          "finished_at": 3.8015520999906585,
+          "lag_seconds": 0.02555209999065866
+        },
+        {
+          "frame": 377,
+          "frames": 32,
+          "start": 60064,
+          "end": 65536,
+          "first": false,
+          "available_samples": 65536,
+          "audio_end": 4.096,
+          "queue_seconds": 4.94000464676958e-05,
+          "processing_seconds": 0.02881429996341467,
+          "finished_at": 4.124864000012167,
+          "lag_seconds": 0.028864000012166713
+        },
+        {
+          "frame": 409,
+          "frames": 32,
+          "start": 65184,
+          "end": 70656,
+          "first": false,
+          "available_samples": 70656,
+          "audio_end": 4.416,
+          "queue_seconds": 0.0002299999734383107,
+          "processing_seconds": 0.027018100023269653,
+          "finished_at": 4.443248299998231,
+          "lag_seconds": 0.027248299998230863
+        },
+        {
+          "frame": 441,
+          "frames": 32,
+          "start": 70304,
+          "end": 75776,
+          "first": false,
+          "available_samples": 75776,
+          "audio_end": 4.736,
+          "queue_seconds": 0.0005686000557618698,
+          "processing_seconds": 0.026739699998870492,
+          "finished_at": 4.763308500056155,
+          "lag_seconds": 0.02730850005615526
+        },
+        {
+          "frame": 473,
+          "frames": 32,
+          "start": 75424,
+          "end": 80896,
+          "first": false,
+          "available_samples": 80896,
+          "audio_end": 5.056,
+          "queue_seconds": 8.380003832275662e-05,
+          "processing_seconds": 0.031281300005503,
+          "finished_at": 5.087365300045349,
+          "lag_seconds": 0.031365300045348654
+        },
+        {
+          "frame": 505,
+          "frames": 32,
+          "start": 80544,
+          "end": 86016,
+          "first": false,
+          "available_samples": 86016,
+          "audio_end": 5.376,
+          "queue_seconds": 0.00032419995497878773,
+          "processing_seconds": 0.027330900076776743,
+          "finished_at": 5.403655300033279,
+          "lag_seconds": 0.02765530003327843
+        },
+        {
+          "frame": 537,
+          "frames": 32,
+          "start": 85664,
+          "end": 91136,
+          "first": false,
+          "available_samples": 91136,
+          "audio_end": 5.696,
+          "queue_seconds": 0.0005182999847459513,
+          "processing_seconds": 0.02461249998304993,
+          "finished_at": 5.7211309999693185,
+          "lag_seconds": 0.02513099996931878
+        },
+        {
+          "frame": 569,
+          "frames": 32,
+          "start": 90784,
+          "end": 96256,
+          "first": false,
+          "available_samples": 96256,
+          "audio_end": 6.016,
+          "queue_seconds": 0.00011099997535346517,
+          "processing_seconds": 0.025897499988786876,
+          "finished_at": 6.042008699965663,
+          "lag_seconds": 0.02600869996566324
+        },
+        {
+          "frame": 601,
+          "frames": 32,
+          "start": 95904,
+          "end": 101376,
+          "first": false,
+          "available_samples": 101376,
+          "audio_end": 6.336,
+          "queue_seconds": 6.170001439720352e-05,
+          "processing_seconds": 0.02761740004643798,
+          "finished_at": 6.363679300062358,
+          "lag_seconds": 0.02767930006235808
+        },
+        {
+          "frame": 633,
+          "frames": 32,
+          "start": 101024,
+          "end": 106496,
+          "first": false,
+          "available_samples": 106496,
+          "audio_end": 6.656,
+          "queue_seconds": 0.00010590006690502918,
+          "processing_seconds": 0.027412899886257946,
+          "finished_at": 6.683518999954686,
+          "lag_seconds": 0.027518999954685874
+        },
+        {
+          "frame": 665,
+          "frames": 32,
+          "start": 106144,
+          "end": 111616,
+          "first": false,
+          "available_samples": 111616,
+          "audio_end": 6.976,
+          "queue_seconds": 0.0006008000588044737,
+          "processing_seconds": 0.028793799923732877,
+          "finished_at": 7.00539479998406,
+          "lag_seconds": 0.02939479998406025
+        },
+        {
+          "frame": 697,
+          "frames": 32,
+          "start": 111264,
+          "end": 116736,
+          "first": false,
+          "available_samples": 116736,
+          "audio_end": 7.296,
+          "queue_seconds": 5.12000136074775e-05,
+          "processing_seconds": 0.027457699994556606,
+          "finished_at": 7.323509200010449,
+          "lag_seconds": 0.02750920001044843
+        },
+        {
+          "frame": 729,
+          "frames": 32,
+          "start": 116384,
+          "end": 121856,
+          "first": false,
+          "available_samples": 121856,
+          "audio_end": 7.616,
+          "queue_seconds": 0.00019119998067651522,
+          "processing_seconds": 0.03143119998276234,
+          "finished_at": 7.647622599964961,
+          "lag_seconds": 0.03162259996496175
+        },
+        {
+          "frame": 761,
+          "frames": 32,
+          "start": 121504,
+          "end": 126976,
+          "first": false,
+          "available_samples": 126976,
+          "audio_end": 7.936,
+          "queue_seconds": 5.600006412720404e-05,
+          "processing_seconds": 0.027077099890448153,
+          "finished_at": 7.963133299956098,
+          "lag_seconds": 0.027133299956098256
+        },
+        {
+          "frame": 793,
+          "frames": 32,
+          "start": 126624,
+          "end": 132096,
+          "first": false,
+          "available_samples": 132096,
+          "audio_end": 8.256,
+          "queue_seconds": 0.0005475000301373711,
+          "processing_seconds": 0.028705599950626493,
+          "finished_at": 8.285253299982287,
+          "lag_seconds": 0.029253299982286762
+        },
+        {
+          "frame": 825,
+          "frames": 32,
+          "start": 131744,
+          "end": 137216,
+          "first": false,
+          "available_samples": 137216,
+          "audio_end": 8.576,
+          "queue_seconds": 0.0001081000091502915,
+          "processing_seconds": 0.027394299977459013,
+          "finished_at": 8.603502599988133,
+          "lag_seconds": 0.027502599988132204
+        },
+        {
+          "frame": 857,
+          "frames": 32,
+          "start": 136864,
+          "end": 142336,
+          "first": false,
+          "available_samples": 142336,
+          "audio_end": 8.896,
+          "queue_seconds": 7.020001858393243e-05,
+          "processing_seconds": 0.027485899976454675,
+          "finished_at": 8.923556399997324,
+          "lag_seconds": 0.027556399997322956
+        },
+        {
+          "frame": 889,
+          "frames": 32,
+          "start": 141984,
+          "end": 147456,
+          "first": false,
+          "available_samples": 147456,
+          "audio_end": 9.216,
+          "queue_seconds": 0.000309500043281119,
+          "processing_seconds": 0.02882909995969385,
+          "finished_at": 9.245138800004497,
+          "lag_seconds": 0.029138800004497867
+        },
+        {
+          "frame": 921,
+          "frames": 32,
+          "start": 147104,
+          "end": 152576,
+          "first": false,
+          "available_samples": 152576,
+          "audio_end": 9.536,
+          "queue_seconds": 0.0001786000430588075,
+          "processing_seconds": 0.02602849993854761,
+          "finished_at": 9.562207299983129,
+          "lag_seconds": 0.026207299983129317
+        },
+        {
+          "frame": 953,
+          "frames": 32,
+          "start": 152224,
+          "end": 157696,
+          "first": false,
+          "available_samples": 157696,
+          "audio_end": 9.856,
+          "queue_seconds": 0.00020539996307356034,
+          "processing_seconds": 0.02584060002118349,
+          "finished_at": 9.88204619998578,
+          "lag_seconds": 0.02604619998577995
+        },
+        {
+          "frame": 985,
+          "frames": 32,
+          "start": 157344,
+          "end": 162816,
+          "first": false,
+          "available_samples": 162816,
+          "audio_end": 10.176,
+          "queue_seconds": 7.809999026342496e-05,
+          "processing_seconds": 0.028106400044634938,
+          "finished_at": 10.204184700036421,
+          "lag_seconds": 0.028184700036421262
+        },
+        {
+          "frame": 1017,
+          "frames": 32,
+          "start": 162464,
+          "end": 167936,
+          "first": false,
+          "available_samples": 167936,
+          "audio_end": 10.496,
+          "queue_seconds": 5.369998607740456e-05,
+          "processing_seconds": 0.02620500000193715,
+          "finished_at": 10.522258899989538,
+          "lag_seconds": 0.026258899989537454
+        },
+        {
+          "frame": 1049,
+          "frames": 32,
+          "start": 167584,
+          "end": 173056,
+          "first": false,
+          "available_samples": 173056,
+          "audio_end": 10.816,
+          "queue_seconds": 0.0002256999639786983,
+          "processing_seconds": 0.03003810008522123,
+          "finished_at": 10.846264000050724,
+          "lag_seconds": 0.030264000050722828
+        },
+        {
+          "frame": 1081,
+          "frames": 32,
+          "start": 172704,
+          "end": 178176,
+          "first": false,
+          "available_samples": 178176,
+          "audio_end": 11.136,
+          "queue_seconds": 0.00014419999066817013,
+          "processing_seconds": 0.031453800038434565,
+          "finished_at": 11.167598200030625,
+          "lag_seconds": 0.031598200030625634
+        },
+        {
+          "frame": 1113,
+          "frames": 32,
+          "start": 177824,
+          "end": 183296,
+          "first": false,
+          "available_samples": 183296,
+          "audio_end": 11.456,
+          "queue_seconds": 0.0002286000000317756,
+          "processing_seconds": 0.024298900039866567,
+          "finished_at": 11.48052770004142,
+          "lag_seconds": 0.02452770004142124
+        },
+        {
+          "frame": 1145,
+          "frames": 32,
+          "start": 182944,
+          "end": 188416,
+          "first": false,
+          "available_samples": 188416,
+          "audio_end": 11.776,
+          "queue_seconds": 0.0005763000352310144,
+          "processing_seconds": 0.02602450002450496,
+          "finished_at": 11.802601000061259,
+          "lag_seconds": 0.026601000061258873
+        },
+        {
+          "frame": 1177,
+          "frames": 32,
+          "start": 188064,
+          "end": 193536,
+          "first": false,
+          "available_samples": 193536,
+          "audio_end": 12.096,
+          "queue_seconds": 8.040004968634662e-05,
+          "processing_seconds": 0.028721699956804514,
+          "finished_at": 12.124802300008014,
+          "lag_seconds": 0.02880230000801376
+        },
+        {
+          "frame": 1209,
+          "frames": 32,
+          "start": 193184,
+          "end": 198656,
+          "first": false,
+          "available_samples": 198656,
+          "audio_end": 12.416,
+          "queue_seconds": 0.000493600001558292,
+          "processing_seconds": 0.025094500044360757,
+          "finished_at": 12.441588300047442,
+          "lag_seconds": 0.025588300047441948
+        },
+        {
+          "frame": 1241,
+          "frames": 32,
+          "start": 198304,
+          "end": 203776,
+          "first": false,
+          "available_samples": 203776,
+          "audio_end": 12.736,
+          "queue_seconds": 0.00012340004183286624,
+          "processing_seconds": 0.023720899946056306,
+          "finished_at": 12.759844499989413,
+          "lag_seconds": 0.02384449998941207
+        },
+        {
+          "frame": 1273,
+          "frames": 32,
+          "start": 203424,
+          "end": 208896,
+          "first": false,
+          "available_samples": 205440,
+          "audio_end": 12.84,
+          "queue_seconds": 0.0004999000485987892,
+          "processing_seconds": 0.02221199998166412,
+          "finished_at": 12.862712200032547,
+          "lag_seconds": 0.02271220003254726
+        }
+      ],
+      "updates": [
+        {
+          "text": "バ",
+          "emitted_at": 2.837251999997534,
+          "audio_available": 2.816
+        },
+        {
+          "text": "バル",
+          "emitted_at": 2.839026900008321,
+          "audio_available": 2.816
+        },
+        {
+          "text": "バルセ",
+          "emitted_at": 2.841284899972379,
+          "audio_available": 2.816
+        },
+        {
+          "text": "バルセア",
+          "emitted_at": 3.15808730002027,
+          "audio_available": 3.136
+        },
+        {
+          "text": "バルセアナ",
+          "emitted_at": 3.16068880003877,
+          "audio_available": 3.136
+        },
+        {
+          "text": "バルセアナの",
+          "emitted_at": 3.162461300031282,
+          "audio_available": 3.136
+        },
+        {
+          "text": "バルセアナの公",
+          "emitted_at": 3.4787659000139683,
+          "audio_available": 3.456
+        },
+        {
+          "text": "バルセアナの公用",
+          "emitted_at": 3.4824976000236347,
+          "audio_available": 3.456
+        },
+        {
+          "text": "バルセアナの公用後",
+          "emitted_at": 3.79743260005489,
+          "audio_available": 3.776
+        },
+        {
+          "text": "バルセアナの公用後は",
+          "emitted_at": 3.7998234999831766,
+          "audio_available": 3.776
+        },
+        {
+          "text": "バルセアナの公用後はカ",
+          "emitted_at": 4.118109500035644,
+          "audio_available": 4.096
+        },
+        {
+          "text": "バルセアナの公用後はカタ",
+          "emitted_at": 4.119942900026217,
+          "audio_available": 4.096
+        },
+        {
+          "text": "バルセアナの公用後はカタル",
+          "emitted_at": 4.121711799991317,
+          "audio_available": 4.096
+        },
+        {
+          "text": "バルセアナの公用後はカタルー",
+          "emitted_at": 4.124030000064522,
+          "audio_available": 4.096
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニ",
+          "emitted_at": 4.437238999991678,
+          "audio_available": 4.416
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニご",
+          "emitted_at": 4.440512700006366,
+          "audio_available": 4.416
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごと",
+          "emitted_at": 4.442407900001854,
+          "audio_available": 4.416
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとス",
+          "emitted_at": 4.758620199980214,
+          "audio_available": 4.736
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペ",
+          "emitted_at": 4.760566900018603,
+          "audio_available": 4.736
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペイ",
+          "emitted_at": 4.7624348000390455,
+          "audio_available": 4.736
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペイン",
+          "emitted_at": 5.080271900049411,
+          "audio_available": 5.056
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴ",
+          "emitted_at": 5.083945299964398,
+          "audio_available": 5.056
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリ",
+          "emitted_at": 5.085818500025198,
+          "audio_available": 5.056
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス",
+          "emitted_at": 5.397608399973251,
+          "audio_available": 5.376
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、",
+          "emitted_at": 5.40007410000544,
+          "audio_available": 5.376
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約",
+          "emitted_at": 5.4019577000290155,
+          "audio_available": 5.376
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数",
+          "emitted_at": 6.037162099964917,
+          "audio_available": 6.016
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数が",
+          "emitted_at": 6.040362300002016,
+          "audio_available": 6.016
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカ",
+          "emitted_at": 6.358175500063226,
+          "audio_available": 6.336
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタ",
+          "emitted_at": 6.360965700005181,
+          "audio_available": 6.336
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタル",
+          "emitted_at": 6.3628064000513405,
+          "audio_available": 6.336
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルー",
+          "emitted_at": 6.677391999983229,
+          "audio_available": 6.656
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニ",
+          "emitted_at": 6.679456999991089,
+          "audio_available": 6.656
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニが",
+          "emitted_at": 6.682449999963865,
+          "audio_available": 6.656
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお",
+          "emitted_at": 7.001598000060767,
+          "audio_available": 6.976
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好",
+          "emitted_at": 7.003686400013976,
+          "audio_available": 6.976
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み",
+          "emitted_at": 7.319376999977976,
+          "audio_available": 7.296
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、",
+          "emitted_at": 7.3213974999962375,
+          "audio_available": 7.296
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大",
+          "emitted_at": 7.641752599971369,
+          "audio_available": 7.616
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多",
+          "emitted_at": 7.644656799966469,
+          "audio_available": 7.616
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数",
+          "emitted_at": 7.646607200033031,
+          "audio_available": 7.616
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数が",
+          "emitted_at": 7.959335000021383,
+          "audio_available": 7.936
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカ",
+          "emitted_at": 7.961389899952337,
+          "audio_available": 7.936
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタ",
+          "emitted_at": 8.277858900022693,
+          "audio_available": 8.256
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタル",
+          "emitted_at": 8.279898699955083,
+          "audio_available": 8.256
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルー",
+          "emitted_at": 8.28233519999776,
+          "audio_available": 8.256
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニ",
+          "emitted_at": 8.28433449997101,
+          "audio_available": 8.256
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア",
+          "emitted_at": 8.598397099995054,
+          "audio_available": 8.576
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合",
+          "emitted_at": 8.601767600048333,
+          "audio_available": 8.576
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理",
+          "emitted_at": 8.919372600037605,
+          "audio_available": 8.896
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会",
+          "emitted_at": 8.92225750000216,
+          "audio_available": 8.896
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し",
+          "emitted_at": 9.238716699997894,
+          "audio_available": 9.216
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、",
+          "emitted_at": 9.24147410003934,
+          "audio_available": 9.216
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほ",
+          "emitted_at": 9.244298700010404,
+          "audio_available": 9.216
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ",
+          "emitted_at": 9.558278599986807,
+          "audio_available": 9.536
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全",
+          "emitted_at": 9.560397000052035,
+          "audio_available": 9.536
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員",
+          "emitted_at": 9.87787790002767,
+          "audio_available": 9.856
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員が",
+          "emitted_at": 9.880863000056706,
+          "audio_available": 9.856
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がス",
+          "emitted_at": 10.196846900042146,
+          "audio_available": 10.176
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペ",
+          "emitted_at": 10.199281699955463,
+          "audio_available": 10.176
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペイ",
+          "emitted_at": 10.202237599994987,
+          "audio_available": 10.176
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペイン",
+          "emitted_at": 10.203358500031754,
+          "audio_available": 10.176
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペインを",
+          "emitted_at": 10.519381599966437,
+          "audio_available": 10.496
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペインを知",
+          "emitted_at": 10.52143059996888,
+          "audio_available": 10.496
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペインを知っ",
+          "emitted_at": 10.83857669995632,
+          "audio_available": 10.816
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペインを知って",
+          "emitted_at": 10.84010649996344,
+          "audio_available": 10.816
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペインを知ってい",
+          "emitted_at": 10.842119200038724,
+          "audio_available": 10.816
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペインを知っていま",
+          "emitted_at": 10.84429350006394,
+          "audio_available": 10.816
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペインを知っています",
+          "emitted_at": 10.84542979998514,
+          "audio_available": 10.816
+        },
+        {
+          "text": "バルセアナの公用後はカタルーニごとスペインゴリス、約数がカタルーニがお好み、大多数がカタルーニア合理会し、ほぼ全員がスペインを知っています。",
+          "emitted_at": 11.161455600056797,
+          "audio_available": 11.136
+        }
+      ],
+      "first_caption_seconds": 2.837251999997534,
+      "final_caption_lag_seconds": 0.02355360003653928,
+      "id": "1813",
+      "reference": "バルセロナの公用語はカタルーニャ語とスペイン語です。約半数がカタルーニャ語を好み、大多数がカタルーニャ語を理解し、ほぼ全員がスペイン語を知っています。",
+      "errors": 16,
+      "reference_chars": 71,
+      "cer": 0.22535211267605634
+    },
+    {
+      "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないということになります。",
+      "audio_seconds": 12.54,
+      "elapsed_seconds": 12.563232799991965,
+      "chunks": [
+        {
+          "frame": 0,
+          "frames": 25,
+          "start": 0,
+          "end": 4096,
+          "first": true,
+          "available_samples": 4096,
+          "audio_end": 0.256,
+          "queue_seconds": 7.310002669691507e-05,
+          "processing_seconds": 0.02963370003271848,
+          "finished_at": 0.2857070000609383,
+          "lag_seconds": 0.029707000060938293
+        },
+        {
+          "frame": 25,
+          "frames": 32,
+          "start": 3744,
+          "end": 9216,
+          "first": false,
+          "available_samples": 9216,
+          "audio_end": 0.576,
+          "queue_seconds": 6.270001269881309e-05,
+          "processing_seconds": 0.02787220000755042,
+          "finished_at": 0.6039351000217721,
+          "lag_seconds": 0.02793510002177213
+        },
+        {
+          "frame": 57,
+          "frames": 32,
+          "start": 8864,
+          "end": 14336,
+          "first": false,
+          "available_samples": 14336,
+          "audio_end": 0.896,
+          "queue_seconds": 0.00016520004346964878,
+          "processing_seconds": 0.024320099968463182,
+          "finished_at": 0.9204855000134557,
+          "lag_seconds": 0.02448550001345573
+        },
+        {
+          "frame": 89,
+          "frames": 32,
+          "start": 13984,
+          "end": 19456,
+          "first": false,
+          "available_samples": 19456,
+          "audio_end": 1.216,
+          "queue_seconds": 5.849999468776623e-05,
+          "processing_seconds": 0.023719800054095685,
+          "finished_at": 1.2397785000503063,
+          "lag_seconds": 0.02377850005030635
+        },
+        {
+          "frame": 121,
+          "frames": 32,
+          "start": 19104,
+          "end": 24576,
+          "first": false,
+          "available_samples": 24576,
+          "audio_end": 1.536,
+          "queue_seconds": 6.310009490695379e-05,
+          "processing_seconds": 0.023958300007507205,
+          "finished_at": 1.560021600103937,
+          "lag_seconds": 0.024021600103937057
+        },
+        {
+          "frame": 153,
+          "frames": 32,
+          "start": 24224,
+          "end": 29696,
+          "first": false,
+          "available_samples": 29696,
+          "audio_end": 1.856,
+          "queue_seconds": 0.0001375000281258476,
+          "processing_seconds": 0.02364350005518645,
+          "finished_at": 1.8797812000848353,
+          "lag_seconds": 0.023781200084835197
+        },
+        {
+          "frame": 185,
+          "frames": 32,
+          "start": 29344,
+          "end": 34816,
+          "first": false,
+          "available_samples": 34816,
+          "audio_end": 2.176,
+          "queue_seconds": 5.070001445695027e-05,
+          "processing_seconds": 0.029095300007611513,
+          "finished_at": 2.205146300024353,
+          "lag_seconds": 0.02914630002435281
+        },
+        {
+          "frame": 217,
+          "frames": 32,
+          "start": 34464,
+          "end": 39936,
+          "first": false,
+          "available_samples": 39936,
+          "audio_end": 2.496,
+          "queue_seconds": 0.00041100002918392775,
+          "processing_seconds": 0.024102000053972006,
+          "finished_at": 2.520513200084679,
+          "lag_seconds": 0.024513200084678832
+        },
+        {
+          "frame": 249,
+          "frames": 32,
+          "start": 39584,
+          "end": 45056,
+          "first": false,
+          "available_samples": 45056,
+          "audio_end": 2.816,
+          "queue_seconds": 0.00011050001811252486,
+          "processing_seconds": 0.024579100077971816,
+          "finished_at": 2.8406899000983685,
+          "lag_seconds": 0.02468990009836869
+        },
+        {
+          "frame": 281,
+          "frames": 32,
+          "start": 44704,
+          "end": 50176,
+          "first": false,
+          "available_samples": 50176,
+          "audio_end": 3.136,
+          "queue_seconds": 0.0005594000089912399,
+          "processing_seconds": 0.025247800047509372,
+          "finished_at": 3.1618074000580236,
+          "lag_seconds": 0.02580740005802351
+        },
+        {
+          "frame": 313,
+          "frames": 32,
+          "start": 49824,
+          "end": 55296,
+          "first": false,
+          "available_samples": 55296,
+          "audio_end": 3.456,
+          "queue_seconds": 9.120000153783892e-05,
+          "processing_seconds": 0.024721099995076656,
+          "finished_at": 3.4808124999981374,
+          "lag_seconds": 0.024812499998137394
+        },
+        {
+          "frame": 345,
+          "frames": 32,
+          "start": 54944,
+          "end": 60416,
+          "first": false,
+          "available_samples": 60416,
+          "audio_end": 3.776,
+          "queue_seconds": 0.00032840001024325716,
+          "processing_seconds": 0.02693580009508878,
+          "finished_at": 3.803264499991201,
+          "lag_seconds": 0.027264499991201063
+        },
+        {
+          "frame": 377,
+          "frames": 32,
+          "start": 60064,
+          "end": 65536,
+          "first": false,
+          "available_samples": 65536,
+          "audio_end": 4.096,
+          "queue_seconds": 7.63000184669238e-05,
+          "processing_seconds": 0.029130700044333935,
+          "finished_at": 4.125207200064324,
+          "lag_seconds": 0.029207200064323757
+        },
+        {
+          "frame": 409,
+          "frames": 32,
+          "start": 65184,
+          "end": 70656,
+          "first": false,
+          "available_samples": 70656,
+          "audio_end": 4.416,
+          "queue_seconds": 0.0003097999989982725,
+          "processing_seconds": 0.02644400007557124,
+          "finished_at": 4.442754000076093,
+          "lag_seconds": 0.02675400007609241
+        },
+        {
+          "frame": 441,
+          "frames": 32,
+          "start": 70304,
+          "end": 75776,
+          "first": false,
+          "available_samples": 75776,
+          "audio_end": 4.736,
+          "queue_seconds": 0.0002790000624957045,
+          "processing_seconds": 0.026685899938456714,
+          "finished_at": 4.762965800007805,
+          "lag_seconds": 0.026965800007805463
+        },
+        {
+          "frame": 473,
+          "frames": 32,
+          "start": 75424,
+          "end": 80896,
+          "first": false,
+          "available_samples": 80896,
+          "audio_end": 5.056,
+          "queue_seconds": 0.00033370007853950057,
+          "processing_seconds": 0.02572329994291067,
+          "finished_at": 5.082057200022973,
+          "lag_seconds": 0.02605720002297307
+        },
+        {
+          "frame": 505,
+          "frames": 32,
+          "start": 80544,
+          "end": 86016,
+          "first": false,
+          "available_samples": 86016,
+          "audio_end": 5.376,
+          "queue_seconds": 0.00029320006817545874,
+          "processing_seconds": 0.02489999996032566,
+          "finished_at": 5.401193400030024,
+          "lag_seconds": 0.025193400030024016
+        },
+        {
+          "frame": 537,
+          "frames": 32,
+          "start": 85664,
+          "end": 91136,
+          "first": false,
+          "available_samples": 91136,
+          "audio_end": 5.696,
+          "queue_seconds": 0.0004051000541078764,
+          "processing_seconds": 0.026732899947091937,
+          "finished_at": 5.723138200002722,
+          "lag_seconds": 0.027138200002722712
+        },
+        {
+          "frame": 569,
+          "frames": 32,
+          "start": 90784,
+          "end": 96256,
+          "first": false,
+          "available_samples": 96256,
+          "audio_end": 6.016,
+          "queue_seconds": 6.160006485878e-05,
+          "processing_seconds": 0.02989430003799498,
+          "finished_at": 6.045956100104377,
+          "lag_seconds": 0.02995610010437666
+        },
+        {
+          "frame": 601,
+          "frames": 32,
+          "start": 95904,
+          "end": 101376,
+          "first": false,
+          "available_samples": 101376,
+          "audio_end": 6.336,
+          "queue_seconds": 0.0003980000140142437,
+          "processing_seconds": 0.02585530001670122,
+          "finished_at": 6.362253500032239,
+          "lag_seconds": 0.026253500032238364
+        },
+        {
+          "frame": 633,
+          "frames": 32,
+          "start": 101024,
+          "end": 106496,
+          "first": false,
+          "available_samples": 106496,
+          "audio_end": 6.656,
+          "queue_seconds": 0.00010890008974850929,
+          "processing_seconds": 0.026186999981291592,
+          "finished_at": 6.682296100072563,
+          "lag_seconds": 0.026296100072563
+        },
+        {
+          "frame": 665,
+          "frames": 32,
+          "start": 106144,
+          "end": 111616,
+          "first": false,
+          "available_samples": 111616,
+          "audio_end": 6.976,
+          "queue_seconds": 0.00035400004219265924,
+          "processing_seconds": 0.0256639999570325,
+          "finished_at": 7.002018200000748,
+          "lag_seconds": 0.02601820000074806
+        },
+        {
+          "frame": 697,
+          "frames": 32,
+          "start": 111264,
+          "end": 116736,
+          "first": false,
+          "available_samples": 116736,
+          "audio_end": 7.296,
+          "queue_seconds": 0.00034670005179915364,
+          "processing_seconds": 0.027329999953508377,
+          "finished_at": 7.323676900006831,
+          "lag_seconds": 0.02767690000683043
+        },
+        {
+          "frame": 729,
+          "frames": 32,
+          "start": 116384,
+          "end": 121856,
+          "first": false,
+          "available_samples": 121856,
+          "audio_end": 7.616,
+          "queue_seconds": 0.00033840005379204285,
+          "processing_seconds": 0.0270066000521183,
+          "finished_at": 7.643345199991018,
+          "lag_seconds": 0.02734519999101792
+        },
+        {
+          "frame": 761,
+          "frames": 32,
+          "start": 121504,
+          "end": 126976,
+          "first": false,
+          "available_samples": 126976,
+          "audio_end": 7.936,
+          "queue_seconds": 6.970005203044138e-05,
+          "processing_seconds": 0.026060499949380755,
+          "finished_at": 7.962130400002934,
+          "lag_seconds": 0.026130400002934095
+        },
+        {
+          "frame": 793,
+          "frames": 32,
+          "start": 126624,
+          "end": 132096,
+          "first": false,
+          "available_samples": 132096,
+          "audio_end": 8.256,
+          "queue_seconds": 5.690001975722225e-05,
+          "processing_seconds": 0.03234050003811717,
+          "finished_at": 8.288397600059398,
+          "lag_seconds": 0.03239760005939729
+        },
+        {
+          "frame": 825,
+          "frames": 32,
+          "start": 131744,
+          "end": 137216,
+          "first": false,
+          "available_samples": 137216,
+          "audio_end": 8.576,
+          "queue_seconds": 0.000593900099396194,
+          "processing_seconds": 0.02837709989398718,
+          "finished_at": 8.604971199994907,
+          "lag_seconds": 0.02897119999490627
+        },
+        {
+          "frame": 857,
+          "frames": 32,
+          "start": 136864,
+          "end": 142336,
+          "first": false,
+          "available_samples": 142336,
+          "audio_end": 8.896,
+          "queue_seconds": 6.0000057331421885e-05,
+          "processing_seconds": 0.028226900030858815,
+          "finished_at": 8.924287200090475,
+          "lag_seconds": 0.028287200090474585
+        },
+        {
+          "frame": 889,
+          "frames": 32,
+          "start": 141984,
+          "end": 147456,
+          "first": false,
+          "available_samples": 147456,
+          "audio_end": 9.216,
+          "queue_seconds": 0.0002562001030899097,
+          "processing_seconds": 0.02754579996690154,
+          "finished_at": 9.243802200071514,
+          "lag_seconds": 0.02780220007151435
+        },
+        {
+          "frame": 921,
+          "frames": 32,
+          "start": 147104,
+          "end": 152576,
+          "first": false,
+          "available_samples": 152576,
+          "audio_end": 9.536,
+          "queue_seconds": 8.840005472343648e-05,
+          "processing_seconds": 0.03535889997147024,
+          "finished_at": 9.571447500027716,
+          "lag_seconds": 0.03544750002771657
+        },
+        {
+          "frame": 953,
+          "frames": 32,
+          "start": 152224,
+          "end": 157696,
+          "first": false,
+          "available_samples": 157696,
+          "audio_end": 9.856,
+          "queue_seconds": 0.0005802000230179516,
+          "processing_seconds": 0.028662299970164895,
+          "finished_at": 9.885242699994706,
+          "lag_seconds": 0.029242699994705745
+        },
+        {
+          "frame": 985,
+          "frames": 32,
+          "start": 157344,
+          "end": 162816,
+          "first": false,
+          "available_samples": 162816,
+          "audio_end": 10.176,
+          "queue_seconds": 0.00015270009264334305,
+          "processing_seconds": 0.02715779992286116,
+          "finished_at": 10.203310700017028,
+          "lag_seconds": 0.0273107000170274
+        },
+        {
+          "frame": 1017,
+          "frames": 32,
+          "start": 162464,
+          "end": 167936,
+          "first": false,
+          "available_samples": 167936,
+          "audio_end": 10.496,
+          "queue_seconds": 0.000397200040518797,
+          "processing_seconds": 0.027661100029945374,
+          "finished_at": 10.524058500071988,
+          "lag_seconds": 0.02805850007198707
+        },
+        {
+          "frame": 1049,
+          "frames": 32,
+          "start": 167584,
+          "end": 173056,
+          "first": false,
+          "available_samples": 173056,
+          "audio_end": 10.816,
+          "queue_seconds": 7.540010008888487e-05,
+          "processing_seconds": 0.02884669997729361,
+          "finished_at": 10.844922300078906,
+          "lag_seconds": 0.028922300078905394
+        },
+        {
+          "frame": 1081,
+          "frames": 32,
+          "start": 172704,
+          "end": 178176,
+          "first": false,
+          "available_samples": 178176,
+          "audio_end": 11.136,
+          "queue_seconds": 0.0003999000750489756,
+          "processing_seconds": 0.02711789996828884,
+          "finished_at": 11.16351800004486,
+          "lag_seconds": 0.027518000044860713
+        },
+        {
+          "frame": 1113,
+          "frames": 32,
+          "start": 177824,
+          "end": 183296,
+          "first": false,
+          "available_samples": 183296,
+          "audio_end": 11.456,
+          "queue_seconds": 0.0006156000364576641,
+          "processing_seconds": 0.023991000023670495,
+          "finished_at": 11.48060680006165,
+          "lag_seconds": 0.024606800061651057
+        },
+        {
+          "frame": 1145,
+          "frames": 32,
+          "start": 182944,
+          "end": 188416,
+          "first": false,
+          "available_samples": 188416,
+          "audio_end": 11.776,
+          "queue_seconds": 5.920005589743482e-05,
+          "processing_seconds": 0.025216200039722025,
+          "finished_at": 11.80127550009638,
+          "lag_seconds": 0.02527550009638091
+        },
+        {
+          "frame": 1177,
+          "frames": 32,
+          "start": 188064,
+          "end": 193536,
+          "first": false,
+          "available_samples": 193536,
+          "audio_end": 12.096,
+          "queue_seconds": 0.00040660008881232557,
+          "processing_seconds": 0.024211599957197905,
+          "finished_at": 12.120618400047533,
+          "lag_seconds": 0.02461840004753313
+        },
+        {
+          "frame": 1209,
+          "frames": 32,
+          "start": 193184,
+          "end": 198656,
+          "first": false,
+          "available_samples": 198656,
+          "audio_end": 12.416,
+          "queue_seconds": 6.700001284443147e-05,
+          "processing_seconds": 0.024592500063590705,
+          "finished_at": 12.440659700077958,
+          "lag_seconds": 0.024659700077958036
+        },
+        {
+          "frame": 1241,
+          "frames": 32,
+          "start": 198304,
+          "end": 203776,
+          "first": false,
+          "available_samples": 200640,
+          "audio_end": 12.54,
+          "queue_seconds": 0.00029890010133470923,
+          "processing_seconds": 0.022143599926494062,
+          "finished_at": 12.56244270002935,
+          "lag_seconds": 0.02244270002935167
+        }
+      ],
+      "updates": [
+        {
+          "text": "そ",
+          "emitted_at": 2.5187708000885323,
+          "audio_available": 2.496
+        },
+        {
+          "text": "その",
+          "emitted_at": 2.83783040009439,
+          "audio_available": 2.816
+        },
+        {
+          "text": "その長",
+          "emitted_at": 3.1575174001045525,
+          "audio_available": 3.136
+        },
+        {
+          "text": "その長い",
+          "emitted_at": 3.1601818000199273,
+          "audio_available": 3.136
+        },
+        {
+          "text": "その長いは",
+          "emitted_at": 3.47958170005586,
+          "audio_available": 3.456
+        },
+        {
+          "text": "その長いはナ",
+          "emitted_at": 3.799709100043401,
+          "audio_available": 3.776
+        },
+        {
+          "text": "その長いはナル",
+          "emitted_at": 3.8015362001024187,
+          "audio_available": 3.776
+        },
+        {
+          "text": "その長いはナルジ",
+          "emitted_at": 4.118423900101334,
+          "audio_available": 4.096
+        },
+        {
+          "text": "その長いはナルジェ",
+          "emitted_at": 4.119498600019142,
+          "audio_available": 4.096
+        },
+        {
+          "text": "その長いはナルジェポ",
+          "emitted_at": 4.122358900029212,
+          "audio_available": 4.096
+        },
+        {
+          "text": "その長いはナルジェポン",
+          "emitted_at": 4.1243756000185385,
+          "audio_available": 4.096
+        },
+        {
+          "text": "その長いはナルジェポン以",
+          "emitted_at": 4.436879800050519,
+          "audio_available": 4.416
+        },
+        {
+          "text": "その長いはナルジェポン以上",
+          "emitted_at": 4.43975500005763,
+          "audio_available": 4.416
+        },
+        {
+          "text": "その長いはナルジェポン以上の",
+          "emitted_at": 4.441942400066182,
+          "audio_available": 4.416
+        },
+        {
+          "text": "その長いはナルジェポン以上の数",
+          "emitted_at": 4.7611337000271305,
+          "audio_available": 4.736
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大",
+          "emitted_at": 5.077303200028837,
+          "audio_available": 5.056
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波",
+          "emitted_at": 5.081083700060844,
+          "audio_available": 5.056
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が",
+          "emitted_at": 5.396498800022528,
+          "audio_available": 5.376
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並",
+          "emitted_at": 5.398743900004774,
+          "audio_available": 5.376
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び",
+          "emitted_at": 5.718262500013225,
+          "audio_available": 5.696
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、",
+          "emitted_at": 5.720203100005165,
+          "audio_available": 5.696
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊",
+          "emitted_at": 6.037350400001742,
+          "audio_available": 6.016
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外",
+          "emitted_at": 6.039809500100091,
+          "audio_available": 6.016
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外に",
+          "emitted_at": 6.044491200009361,
+          "audio_available": 6.016
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には",
+          "emitted_at": 6.357749800081365,
+          "audio_available": 6.336
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別",
+          "emitted_at": 6.360597699997015,
+          "audio_available": 6.336
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の",
+          "emitted_at": 6.67802810005378,
+          "audio_available": 6.656
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私",
+          "emitted_at": 6.681416600011289,
+          "audio_available": 6.656
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立",
+          "emitted_at": 6.998227700009011,
+          "audio_available": 6.976
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立が",
+          "emitted_at": 7.001157100079581,
+          "audio_available": 6.976
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があ",
+          "emitted_at": 7.317722400068305,
+          "audio_available": 7.296
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり",
+          "emitted_at": 7.319740900071338,
+          "audio_available": 7.296
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、",
+          "emitted_at": 7.321675300016068,
+          "audio_available": 7.296
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つ",
+          "emitted_at": 7.6380743000190705,
+          "audio_available": 7.616
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つま",
+          "emitted_at": 7.640468700090423,
+          "audio_available": 7.616
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまり",
+          "emitted_at": 7.642489599995315,
+          "audio_available": 7.616
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりこ",
+          "emitted_at": 7.958447300014086,
+          "audio_available": 7.936
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここ",
+          "emitted_at": 7.96130369999446,
+          "audio_available": 7.936
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを",
+          "emitted_at": 8.283812700072303,
+          "audio_available": 8.256
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通",
+          "emitted_at": 8.285833700094372,
+          "audio_available": 8.256
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通っ",
+          "emitted_at": 8.599110200069845,
+          "audio_available": 8.576
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通った",
+          "emitted_at": 8.600275400094688,
+          "audio_available": 8.576
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったら",
+          "emitted_at": 8.602435100008734,
+          "audio_available": 8.576
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらね",
+          "emitted_at": 8.919032900012098,
+          "audio_available": 8.896
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ",
+          "emitted_at": 8.921085500041954,
+          "audio_available": 8.896
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道",
+          "emitted_at": 8.923440900049172,
+          "audio_available": 8.896
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道は",
+          "emitted_at": 9.239983100094832,
+          "audio_available": 9.216
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はな",
+          "emitted_at": 9.242919100099243,
+          "audio_available": 9.216
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はない",
+          "emitted_at": 9.561058200080879,
+          "audio_available": 9.536
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないと",
+          "emitted_at": 9.563109900103882,
+          "audio_available": 9.536
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないとい",
+          "emitted_at": 9.566385000012815,
+          "audio_available": 9.536
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないという",
+          "emitted_at": 9.567502000019886,
+          "audio_available": 9.536
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないというこ",
+          "emitted_at": 9.568599199992605,
+          "audio_available": 9.536
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないということ",
+          "emitted_at": 9.57059440005105,
+          "audio_available": 9.536
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないということに",
+          "emitted_at": 9.87877930002287,
+          "audio_available": 9.856
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないということにな",
+          "emitted_at": 9.882369800005108,
+          "audio_available": 9.856
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないということになり",
+          "emitted_at": 9.884416000102647,
+          "audio_available": 9.856
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないということになりま",
+          "emitted_at": 10.198642900097184,
+          "audio_available": 10.176
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないということになります",
+          "emitted_at": 10.199786400073208,
+          "audio_available": 10.176
+        },
+        {
+          "text": "その長いはナルジェポン以上の数大波が並び、郊外には別の私立があり、つまりここを通ったらねぎ道はないということになります。",
+          "emitted_at": 10.51777800009586,
+          "audio_available": 10.496
+        }
+      ],
+      "first_caption_seconds": 2.5187708000885323,
+      "final_caption_lag_seconds": 0.023232799991966147,
+      "id": "1869",
+      "reference": "その長い顎には70本以上の鋭い歯が並び、口蓋には別の歯列があり、つまりここを通ったら逃げ道はないということになります。",
+      "errors": 16,
+      "reference_chars": 56,
+      "cer": 0.2857142857142857
+    }
+  ],
+  "load_seconds": 3.58318950003013,
+  "supported_chunk_ms": {
+    "3": 320,
+    "0": 80,
+    "6": 560,
+    "13": 1120
+  },
+  "parameters": 637997088,
+  "cold_first_3s": {
+    "text": "インターネットで",
+    "inference_seconds": 0.33150500000920147
+  },
+  "stream_warmup_seconds": 0.24859030009247363,
+  "silence_3s": "",
+  "torch_peak_allocated_mib": 2587.64501953125,
+  "device_memory_mib": {
+    "first_sample": 1327,
+    "sampled_peak": 4586,
+    "scope": "whole GPU including other programs, sampled every 0.5s"
+  },
+  "summary": {
+    "utterance_cer": 0.12365591397849462,
+    "utterance_inference_seconds": 1.8568016999633983,
+    "utterance_rtf": 0.013650946184115557,
+    "streaming_cer": 0.16055045871559634,
+    "first_caption_p50_seconds": 2.67841990001034,
+    "chunk_lag_p95_seconds": 0.03160064002405925,
+    "chunk_processing_p95_seconds": 0.03143345998832956,
+    "max_queue_seconds": 0.010382299959659558
+  }
+}

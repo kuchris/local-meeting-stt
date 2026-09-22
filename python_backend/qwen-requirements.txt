@@ -1,0 +1,4 @@
+# Shared by Electron and the command-line wrappers. Blackwell needs CUDA 12.8+.
+qwen-asr==0.0.6
+torch==2.11.0+cu128
+torchvision==0.26.0+cu128

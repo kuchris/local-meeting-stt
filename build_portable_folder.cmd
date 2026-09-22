@@ -97,6 +97,7 @@ if exist "%CD%\whisper_cpp\bin_openvino" (
   echo     "batch": 4
   echo   },
   echo   "ui": {
+  echo     "locale": "en",
   echo     "sessionListWidth": 300,
   echo     "transcribeColumnWidth": 560
   echo   }

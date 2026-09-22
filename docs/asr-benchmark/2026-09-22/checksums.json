@@ -1,0 +1,15 @@
+{
+  "docs/asr-benchmark/2026-09-22/data-manifest.json": "c6af0ab9fddffb105aa1838c538b9184cbf9d9668892b94a752323125cf4989a",
+  "docs/asr-benchmark/2026-09-22/prefix-replay.json": "0e4c7b65ee09b6cab66667f36bac3f586f40fd2ea3173e863eaa75bb5563a21a",
+  "docs/asr-benchmark/2026-09-22/qwen-0.6b.json": "6f646d0bf191d3d66e0068389f82048aa92aaaed94e80a9a52531024cd6a7299",
+  "docs/asr-benchmark/2026-09-22/qwen-1.7b.json": "53e7292773105d07026121a2a4c2f1ac3918c34ec147df54d9cab642f5148994",
+  "docs/asr-benchmark/2026-09-22/whisper-small.json": "13d571fb1eeb13d4092a310a18f637597cb8609e5d79f782c41b973f683ec56f",
+  "docs/asr-benchmark/2026-09-22/whisper-turbo.json": "225adae8bf1855503fe77cf9a9859509fb69096dfbb11637fc62709b0c6ecc82",
+  "benchmarks/metrics.py": "504832bd377cb30fe785eccafaa9264f42090863cff3a8ae17ef31f8e8c488ad",
+  "benchmarks/prepare.py": "b0033a37f239a931ea351bbe8f6bbe318cbbb02913279f526450fb7591e0c7c1",
+  "benchmarks/replay_prefix.py": "f3733d62dd581d3c9a2b6a6d787101c540683f46f7d305eb53654b8768a04fd0",
+  "benchmarks/report.py": "972a2a3b7e3e796cfafb5a58a530f0af4953d4b81e56a6440182405843f2d486",
+  "benchmarks/run.py": "2d8abcfa5a828446e6d5a938b535d8c6fa3792f56e787eb40b286ac72d8267c2",
+  "benchmarks/test_metrics.py": "f536a7e156c7af239309411909b388bf0ad740bbbd2c039fff28e2ea9cfd7565",
+  "benchmarks/uv.lock": "d3942b1b79a9cf1b717f036865d00f7e18bf138d04602b9da6c622757cf2b2d5"
+}
