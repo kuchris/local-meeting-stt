@@ -44,12 +44,13 @@ npm run dev
 1. Open **Settings & models** and check/download the files you need.
 2. In **Live meeting**, select a model and your system audio source.
 3. Optionally enable **Include microphone** and select the microphone.
-4. Open **Details** to choose a backend and audio chunk duration.
+4. Open **Details** to choose a backend and caption preview interval.
 5. Select **Start meeting**. **Stop current task** remains available on every page.
 
 A fresh configuration uses Whisper small with faster-whisper on CPU. For a
 compatible NVIDIA system, select the whisper.cpp CUDA backend in Details.
-Whisper base is available through the existing Vulkan loopback backend.
+Whisper large-v3-turbo is an optional CUDA live model; download it in Settings &
+models first. Whisper base uses the existing Vulkan loopback backend.
 
 The first setup may download dependencies and model files. Once installed,
 recognition uses local models rather than a cloud ASR service. A running process
@@ -69,7 +70,8 @@ use `npm run dev` above to try your current checkout.
 | Recordings & transcripts | Choose a recording or drop an audio file, then select a model and backend. |
 | Settings & models | Inspect/download assets and set the output folder. |
 
-The live model choices are **Whisper small** and **Whisper base**. Post-meeting
+The live model choices are **Whisper small**, **Whisper large-v3-turbo** (CUDA),
+and **Whisper base**. Post-meeting
 transcription offers **Whisper small** and **Qwen3-ASR 0.6B**. Qwen is currently a
 file-transcription option, not a live-caption backend.
 
@@ -85,6 +87,7 @@ start on CPU. An explicit saved CPU choice is preserved.
 | faster-whisper | `models/faster-whisper-small/` | CPU by default; live captions with optional WAV. |
 | whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | Live server and file transcription. |
 | whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU; live server and file transcription. |
+| whisper.cpp CUDA Turbo | `whisper_cpp/bin_cuda/Release/` + `ggml-large-v3-turbo.bin` | Optional NVIDIA live captions; model download is pinned and SHA-256 checked. |
 | whisper.cpp Vulkan | `whisper_cpp/bin_vulkan/Release/` + `ggml-small.bin` | Resident live server and file transcription. |
 | OpenVINO NPU/GPU | `whisper_cpp/bin_openvino/Release/` + small model and encoder XML/BIN | Requires a compatible OpenVINO device and local build. |
 | Vulkan loopback | `whisper_cpp/bin_vulkan_loopback/Release/` + base or small model | System default loopback only; no custom device or microphone mixing. |
@@ -97,13 +100,13 @@ OpenVINO runtimes are local/release artifacts rather than normal model downloads
 
 ## Latency and stopping
 
-Whisper CPU/CUDA live sessions keep one model server running for the meeting,
-so each audio chunk does not reload the model. Models are released at session end.
-
-The default audio chunk is 3 seconds. Recognition starts after a chunk has been
-collected; try 2 seconds in Details for quicker updates, with potentially less
-sentence context. The faster-whisper queue keeps one waiting chunk. If inference
-falls behind, old caption chunks are dropped while WAV recording continues.
+Whisper CPU/CUDA live sessions keep one model server running for the meeting.
+Silero VAD finds utterance boundaries. An unfinished utterance is re-transcribed
+for revisable previews every second by default; a pause triggers a final pass
+over the utterance. Change the preview interval in Details. Capture keeps all
+arriving audio even when inference is busy; stale previews may be skipped while
+completed utterances and WAV recording continue. The model is released at session end.
+The standalone Vulkan loopback stream retains its own capture and VAD behavior.
 
 Python live/record jobs get up to 10 seconds to stop capture, close their WAV,
 and release the model worker. If they do not exit, Electron terminates the process
@@ -181,6 +184,7 @@ and latency without changing the app's model selection:
 
 - [Whisper/Qwen measured results](docs/asr-benchmark/2026-09-22/REPORT.zh-TW.md).
 - [Nemotron 3.5 streaming follow-up](docs/asr-benchmark/2026-09-22-nemotron/REPORT.zh-TW.md).
+- [Whisper live-caption replay](docs/asr-benchmark/2026-09-23-live-whisper/REPORT.zh-TW.md).
 
 These are small clean-speech experiments, not meeting-quality guarantees.
 Models, downloaded audio, private recordings, caches, and runtime environments

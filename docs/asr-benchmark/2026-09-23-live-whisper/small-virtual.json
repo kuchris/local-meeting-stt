@@ -1,0 +1,454 @@
+{
+  "model": "small",
+  "model_file": "ggml-small.bin",
+  "gain": 1.0,
+  "manifest_sha256": "c6af0ab9fddffb105aa1838c538b9184cbf9d9668892b94a752323125cf4989a",
+  "mode": "CUDA resident server, virtual 0.5-second audio arrivals",
+  "limitations": "Public read speech; no microphone, loopback device, or renderer timing",
+  "samples": [
+    {
+      "id": "1828",
+      "reference": "インターネットで「敵対的環境コース」について検索すると、おそらく現地企業の住所が出てくるでしょう。",
+      "fixed": {
+        "text": "インターネットで機体的環境コースについて検索すると恐らく現地企業の重所が出てくるでしょう「サイズ」",
+        "times": [
+          0.13757290004286915,
+          0.10564520000480115,
+          0.10268070001620799,
+          0.07944559992756695
+        ],
+        "errors": 8,
+        "reference_chars": 45,
+        "cer": 0.17777777777777778
+      },
+      "stream": {
+        "text": "インターネットで適対的環境コースについて検索すると、おそらく現地企業の重症が出てくるでしょう。",
+        "events": [
+          {
+            "kind": "partial",
+            "audio_end": 2.5,
+            "clip_seconds": 0.8,
+            "inference_seconds": 0.05871480004861951,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "インターネット"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 3.5,
+            "clip_seconds": 1.8,
+            "inference_seconds": 0.08070990000851452,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "インターネットで適対的な"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 4.5,
+            "clip_seconds": 2.8,
+            "inference_seconds": 0.1084015000378713,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "インターネットで適対的環境コースについて"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 5.5,
+            "clip_seconds": 3.8,
+            "inference_seconds": 0.1293787999311462,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "インターネットで適対的環境コースについて検索する"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 6.5,
+            "clip_seconds": 4.8,
+            "inference_seconds": 0.16161980002652854,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "インターネットで適対的環境コースについて検索すると、おそらく現実に"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 7.5,
+            "clip_seconds": 5.8,
+            "inference_seconds": 0.1820704999845475,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "インターネットで適対的環境コースについて検索するとおそらく現地企業の重所が"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 8.5,
+            "clip_seconds": 6.8,
+            "inference_seconds": 0.2093497000169009,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "インターネットで適対的環境コースについて検索すると、おそらく現地企業の重症が出てくるでしょう。"
+          },
+          {
+            "kind": "final",
+            "audio_end": 9.0,
+            "clip_seconds": 6.888,
+            "inference_seconds": 0.20761549996677786,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "インターネットで適対的環境コースについて検索すると、おそらく現地企業の重症が出てくるでしょう。"
+          }
+        ],
+        "first_caption_seconds": null,
+        "errors": 3,
+        "reference_chars": 45,
+        "cer": 0.06666666666666667
+      }
+    },
+    {
+      "id": "1834",
+      "reference": "また、北側に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の聖域（神社）を訪れましょう。",
+      "fixed": {
+        "text": "(お腹が空いた)また北側に行くなら世界的に言うと、「明ら」「マリアゾウの聖地」「ファティマの聖語」この聖域、神社を訪れましょう(音楽)",
+        "times": [
+          0.8754945000400767,
+          0.0929982999805361,
+          0.13493499998003244,
+          0.08163950010202825,
+          0.07472079992294312
+        ],
+        "errors": 20,
+        "reference_chars": 46,
+        "cer": 0.43478260869565216
+      },
+      "stream": {
+        "text": "また北側に行くなら世界的に有名なマリアゾーの聖地であるファティマの聖母の聖域神社を訪れましょう",
+        "events": [
+          {
+            "kind": "partial",
+            "audio_end": 4.0,
+            "clip_seconds": 0.68,
+            "inference_seconds": 0.041993899969384074,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "また"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 5.0,
+            "clip_seconds": 1.68,
+            "inference_seconds": 0.07043079996947199,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "また、北側に行くなら"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 6.0,
+            "clip_seconds": 2.68,
+            "inference_seconds": 0.08937189995776862,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "また北側に行くなら世界的に言う。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 7.0,
+            "clip_seconds": 3.68,
+            "inference_seconds": 0.11064500000793487,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "また北側に行くなら世界的に有名なマリアゾン"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 8.0,
+            "clip_seconds": 4.68,
+            "inference_seconds": 0.13949550001416355,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "また北側に行くなら世界的に有名なマリアゾーの聖地である"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 9.0,
+            "clip_seconds": 5.68,
+            "inference_seconds": 0.16394839994609356,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "また北側に行くなら世界的に有名なマリアゾーの聖地であるファティマの聖語"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 10.0,
+            "clip_seconds": 6.68,
+            "inference_seconds": 0.1862329998984933,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "また北側に行くなら世界的に有名なマリアゾーの聖地であるファティマの聖母の聖域"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 11.0,
+            "clip_seconds": 7.68,
+            "inference_seconds": 0.21052759990561754,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "また北側に行くなら世界的に有名なマリアゾーの聖地であるファティマの聖母の聖域神社を訪れました"
+          },
+          {
+            "kind": "final",
+            "audio_end": 12.0,
+            "clip_seconds": 8.208,
+            "inference_seconds": 0.21025520004332066,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "また北側に行くなら世界的に有名なマリアゾーの聖地であるファティマの聖母の聖域神社を訪れましょう"
+          }
+        ],
+        "first_caption_seconds": null,
+        "errors": 2,
+        "reference_chars": 46,
+        "cer": 0.043478260869565216
+      }
+    },
+    {
+      "id": "1813",
+      "reference": "バルセロナの公用語はカタルーニャ語とスペイン語です。約半数がカタルーニャ語を好み、大多数がカタルーニャ語を理解し、ほぼ全員がスペイン語を知っています。",
+      "fixed": {
+        "text": "バレセやなこういう両方はカタルネゴとスペインコです。ネガを好み大多数が語るネガを理解し全員がスピンゴを知っています。(音楽)",
+        "times": [
+          0.06390999990981072,
+          0.11033410008531064,
+          0.10630189999938011,
+          0.08307459997013211,
+          0.07628939999267459
+        ],
+        "errors": 39,
+        "reference_chars": 71,
+        "cer": 0.5492957746478874
+      },
+      "stream": {
+        "text": "バルセアの講義をごは、カタルネゴとスペイン語です。約半数がカタルネゴを好み、大多数がカタルネゴを理解し、ほぼ全員がスペイン語を知っています。",
+        "events": [
+          {
+            "kind": "partial",
+            "audio_end": 2.5,
+            "clip_seconds": 0.552,
+            "inference_seconds": 0.07450190000236034,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "バレセー"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 3.5,
+            "clip_seconds": 1.552,
+            "inference_seconds": 0.07912060001399368,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "バルセアのこういう場は勝ち"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 4.5,
+            "clip_seconds": 2.552,
+            "inference_seconds": 0.1268489999929443,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "バルセアの公用場はカタル・ウネゴとスペインコに"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 5.5,
+            "clip_seconds": 3.552,
+            "inference_seconds": 0.13291889999527484,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "バルセアの公用語はカタル・ウネゴとスペイン語です。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 6.5,
+            "clip_seconds": 4.552,
+            "inference_seconds": 0.12940350000280887,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "バルセアの公用場はカタルウネゴとスペインコです。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 7.5,
+            "clip_seconds": 5.552,
+            "inference_seconds": 0.13090590003412217,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "バルセアの公用場はカタルウネゴとスペインコです。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 8.5,
+            "clip_seconds": 6.552,
+            "inference_seconds": 0.2344424999319017,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "バルセアの講用場はカタルネゴとスペインコです。約半数がカタルネゴを好み、大多数がカタルネゴを理解しています。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 9.5,
+            "clip_seconds": 7.552,
+            "inference_seconds": 0.2930412000278011,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "バルセアの講義を語るはカタルネゴとスペイン語です。約半数がカタルネゴを好み、大多数がカタルネゴを理解し、ほぼ全員がスペイン語です。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 10.5,
+            "clip_seconds": 8.552,
+            "inference_seconds": 0.30637050000950694,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "バルセアの講義をごは、カタルネゴとスペイン語です。約半数がカタルネゴを好み、大多数がカタルネゴを理解し、ほぼ全員がスペイン語を知っています。"
+          },
+          {
+            "kind": "final",
+            "audio_end": 11.5,
+            "clip_seconds": 9.04,
+            "inference_seconds": 0.3084763999795541,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "バルセアの講義をごは、カタルネゴとスペイン語です。約半数がカタルネゴを好み、大多数がカタルネゴを理解し、ほぼ全員がスペイン語を知っています。"
+          }
+        ],
+        "first_caption_seconds": null,
+        "errors": 18,
+        "reference_chars": 71,
+        "cer": 0.2535211267605634
+      }
+    },
+    {
+      "id": "1869",
+      "reference": "その長い顎には70本以上の鋭い歯が並び、口蓋には別の歯列があり、つまりここを通ったら逃げ道はないということになります。",
+      "fixed": {
+        "text": "その長いアゴによって70本以上の数といはが並び、公害には別にあるつまりここを通ったらねひめちゃいないとということになります(音楽)",
+        "times": [
+          0.06667550001293421,
+          0.1037151999771595,
+          0.09228290000464767,
+          0.04822450003121048,
+          0.0700140999397263
+        ],
+        "errors": 24,
+        "reference_chars": 56,
+        "cer": 0.42857142857142855
+      },
+      "stream": {
+        "text": "その長い顎には70本以上の数という歯が並び、後外にはウェスの指列があり、つまりここを通ったら握りちゃわないということになります。",
+        "events": [
+          {
+            "kind": "partial",
+            "audio_end": 2.5,
+            "clip_seconds": 0.52,
+            "inference_seconds": 0.06534520001150668,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "その中で"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 3.5,
+            "clip_seconds": 1.52,
+            "inference_seconds": 0.07048799993935972,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "その長い箱には、70分"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 4.5,
+            "clip_seconds": 2.52,
+            "inference_seconds": 0.09725160000380129,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "その長い箱には70本以上の数と言われています。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 5.5,
+            "clip_seconds": 3.52,
+            "inference_seconds": 0.10442390001844615,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "その長い箱には70本以上の数といはが並び、"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 6.5,
+            "clip_seconds": 4.52,
+            "inference_seconds": 0.1508761999430135,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "その長い箱には70本以上の数といはが並び、 公外にはウェスの指列がある。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 7.5,
+            "clip_seconds": 5.52,
+            "inference_seconds": 0.16956399998161942,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "その長い箱には70本以上の数といえば並び、後外にはウェスの指列があり、つまりここにある。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 8.5,
+            "clip_seconds": 6.52,
+            "inference_seconds": 0.20341640000697225,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "その長い箱には70本以上の数といはが並び、後外にはウェスの指列があり、つまりここを通ったらねひめにしないと。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 9.5,
+            "clip_seconds": 7.52,
+            "inference_seconds": 0.21123219991568476,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "その長い顎には70本以上の数という歯が並び、後外にはウェスの指列があり、つまりここを通ったら握りちゃわないということになります。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 10.5,
+            "clip_seconds": 8.52,
+            "inference_seconds": 0.21099189994856715,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "その長い顎には70本以上の数という歯が並び、後外にはウェスの指列があり、つまりここを通ったら握りちゃわないということになります。"
+          },
+          {
+            "kind": "final",
+            "audio_end": 11.0,
+            "clip_seconds": 8.272,
+            "inference_seconds": 0.212004299974069,
+            "emitted_at": null,
+            "queue_seconds": null,
+            "text": "その長い顎には70本以上の数という歯が並び、後外にはウェスの指列があり、つまりここを通ったら握りちゃわないということになります。"
+          }
+        ],
+        "first_caption_seconds": null,
+        "errors": 14,
+        "reference_chars": 56,
+        "cer": 0.25
+      }
+    }
+  ],
+  "summary": {
+    "fixed_cer": 0.41743119266055045,
+    "stream_cer": 0.16972477064220184,
+    "fixed_inference_p95_seconds": 0.21136506004258832,
+    "stream_inference_p95_seconds": 0.2957070600241422,
+    "previews": 33,
+    "finals": 4
+  }
+}

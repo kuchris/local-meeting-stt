@@ -170,7 +170,7 @@ function App() {
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [activeProcessId, setActiveProcessId] = useState<number | null>(null);
   const [audioPath, setAudioPath] = useState("");
-  const [chunkSeconds, setChunkSeconds] = useState(3);
+  const [previewSeconds, setPreviewSeconds] = useState(1);
   const [durationSeconds, setDurationSeconds] = useState(3600);
   const [qwenChunkSeconds, setQwenChunkSeconds] = useState(60);
   const [qwenTokens, setQwenTokens] = useState(4096);
@@ -319,7 +319,7 @@ function App() {
       ...savedSettingsRef.current,
       outputDir,
       capture: { systemDevice, micDevice, includeMic },
-      live: { mode: liveModeId, saveWav, chunkSeconds },
+      live: { mode: liveModeId, saveWav, previewSeconds },
       post: { kind: postKind },
       qwen: {
         chunkSeconds: qwenChunkSeconds,
@@ -349,7 +349,7 @@ function App() {
     includeMic,
     liveModeId,
     saveWav,
-    chunkSeconds,
+    previewSeconds,
     postKind,
     locale,
   ]);
@@ -581,11 +581,11 @@ function App() {
     if (typeof settings.live?.saveWav === "boolean")
       setSaveWav(settings.live.saveWav);
     if (
-      typeof settings.live?.chunkSeconds === "number" &&
-      settings.live.chunkSeconds >= 1 &&
-      settings.live.chunkSeconds <= 30
+      typeof settings.live?.previewSeconds === "number" &&
+      settings.live.previewSeconds >= 0.5 &&
+      settings.live.previewSeconds <= 5
     )
-      setChunkSeconds(settings.live.chunkSeconds);
+      setPreviewSeconds(settings.live.previewSeconds);
     if (settings.outputDir) setOutputDir(settings.outputDir);
     if (typeof settings.qwen?.chunkSeconds === "number")
       setQwenChunkSeconds(settings.qwen.chunkSeconds);
@@ -907,6 +907,14 @@ function App() {
     setLiveTranscript((current) => appendOrMergeFinalLine(current, value));
   }
 
+  function commitUtteranceLine(line: string) {
+    const value = cleanTranscriptText(line);
+    if (!value || isHallucinationLine(value)) return;
+    const stamped = withLineTimestamp(value);
+    setLivePreviewHistory((history) => `${history}${stamped}\n`);
+    setLiveTranscript((current) => `${current}${stamped}\n`);
+  }
+
   // Consolidates the sliding-window hypotheses from the Vulkan loopback stream:
   // overlap-merges each window into a running text, commits completed sentences,
   // and surfaces only the trailing unstable sentence as the live partial.
@@ -971,8 +979,8 @@ function App() {
 
     const controlLines = text
       .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
+      .map((line) => line.trimStart())
+      .filter((line) => line.trim().length > 0);
 
     let handledControl = false;
     controlLines.forEach((line) => {
@@ -987,7 +995,8 @@ function App() {
       if (line.startsWith("@@FINAL\t")) {
         const finalText = cleanTranscriptText(line.slice("@@FINAL\t".length));
         setLivePartialTranscript("");
-        commitLbStreamLine(finalText);
+        if (processLabel.includes("Vulkan LB stream")) commitLbStreamLine(finalText);
+        else commitUtteranceLine(finalText);
         handledControl = true;
         return;
       }
@@ -1175,15 +1184,15 @@ function App() {
   function startLive() {
     if (
       liveUnavailable ||
-      !Number.isFinite(chunkSeconds) ||
-      chunkSeconds < 1 ||
-      chunkSeconds > 30
+      !Number.isFinite(previewSeconds) ||
+      previewSeconds < 0.5 ||
+      previewSeconds > 5
     )
       return;
     const kind =
       liveMode.optionalWav && !saveWav ? "live-whisper" : liveMode.id;
     return run(kind, {
-      chunkSeconds,
+      previewSeconds,
       ...(liveMode.capture
         ? captureSettings
         : { systemDevice: "", includeMic: false, micDevice: "" }),
@@ -1201,9 +1210,9 @@ function App() {
     !isRunning &&
     (tab === "live"
       ? !liveUnavailable &&
-        Number.isFinite(chunkSeconds) &&
-        chunkSeconds >= 1 &&
-        chunkSeconds <= 30
+        Number.isFinite(previewSeconds) &&
+        previewSeconds >= 0.5 &&
+        previewSeconds <= 5
       : tab === "transcribe"
         ? Boolean(selectedAudioPath)
         : tab === "record"
@@ -1510,6 +1519,7 @@ function App() {
                     }
                   >
                     <option value="small">Whisper small</option>
+                    <option value="turbo">Whisper large-v3-turbo</option>
                     <option value="base">Whisper base</option>
                   </select>
                 </label>
@@ -2121,16 +2131,17 @@ function App() {
                       </select>
                     </label>
                     <label className="field">
-                      <span>{t("音訊分段（秒）")}</span>
+                      <span>{t("字幕預覽間隔（秒）")}</span>
                       <input
-                        aria-label={t("音訊分段秒數")}
+                        aria-label={t("字幕預覽間隔秒數")}
                         type="number"
-                        min="1"
-                        max="30"
-                        value={chunkSeconds}
+                        min="0.5"
+                        max="5"
+                        step="0.5"
+                        value={previewSeconds}
                         disabled={isRunning || !liveMode.capture}
                         onChange={(event) =>
-                          setChunkSeconds(Number(event.target.value))
+                          setPreviewSeconds(Number(event.target.value))
                         }
                       />
                     </label>
@@ -2140,7 +2151,7 @@ function App() {
                     {liveMode.capture && (
                       <small>
                         {t(
-                          "每段收集完成後才辨識；想更快更新可試 2 秒，短分段可能影響句子完整度。停止會釋放模型。",
+                          "字幕可修訂；停頓後定稿。錄音持續完整保存，停止會釋放模型。",
                         )}
                       </small>
                     )}

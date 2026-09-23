@@ -13,4 +13,4 @@ if not exist models\ggml-small-encoder-openvino.xml (
   echo   models\ggml-small-encoder-openvino.bin
   exit /b 1
 )
-uv run --with soundcard --with soundfile --with numpy --with soxr --with requests python -u live_cpp.py --server --save-recording --session-prefix cpp_npu_live --whisper-server bin_openvino\Release\whisper-server.exe --model models\ggml-small.bin --threads 8 --openvino-device NPU --beam-size 1 --best-of 1 --no-fallback --chunk-seconds 3 --max-backlog 1 --gain 2.0 %*
+uv run --with soundcard --with soundfile --with numpy --with soxr --with requests --with faster-whisper python -u live_cpp.py --server --streaming --save-recording --session-prefix cpp_npu_live --whisper-server bin_openvino\Release\whisper-server.exe --model models\ggml-small.bin --threads 8 --openvino-device NPU --beam-size 1 --best-of 1 --no-fallback --chunk-seconds 3 --max-backlog 1 %*

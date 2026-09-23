@@ -17,6 +17,14 @@ export const liveModes = [
     assets: ["whisper-cpp-model", "whisper-cpp-cuda"],
   },
   {
+    id: "live-cpp-turbo-gpu",
+    model: "turbo",
+    label: "whisper.cpp · CUDA（會議期間常駐）",
+    capture: true,
+    optionalWav: false,
+    assets: ["whisper-cpp-turbo-model", "whisper-cpp-cuda"],
+  },
+  {
     id: "live-cpp-cpu",
     model: "small",
     label: "whisper.cpp · CPU（會議期間常駐）",

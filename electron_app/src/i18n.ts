@@ -281,6 +281,13 @@ export const messages: Record<string, readonly [string, string, string]> = {
     "音声分割長（秒）",
   ],
   音訊分段秒數: ["音訊分段秒數", "Audio chunk seconds", "音声分割の秒数"],
+  "字幕預覽間隔（秒）": ["字幕預覽間隔（秒）", "Caption preview interval (seconds)", "字幕プレビュー間隔（秒）"],
+  字幕預覽間隔秒數: ["字幕預覽間隔秒數", "Caption preview interval seconds", "字幕プレビュー間隔（秒）"],
+  "字幕可修訂；停頓後定稿。錄音持續完整保存，停止會釋放模型。": [
+    "字幕可修訂；停頓後定稿。錄音持續完整保存，停止會釋放模型。",
+    "Captions may revise, then finalize after a pause. The full recording is saved; stopping releases the model.",
+    "字幕は修正され、発話後の間で確定します。録音は完全に保存され、停止時にモデルを解放します。",
+  ],
   "Loopback 使用後端內建的 VAD 分段。": [
     "Loopback 使用後端內建的 VAD 分段。",
     "Loopback uses the backend's built-in VAD segmentation.",

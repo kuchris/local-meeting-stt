@@ -24,7 +24,8 @@ Ignored local folders include `models/`, `outputs/`, `recordings/`, `runtime/`, 
 
 ```text
 python_backend/record_audio.py          records Windows system loopback audio
-python_backend/live_transcribe.py       records chunks and writes a live faster-whisper transcript
+python_backend/live_transcribe.py       records audio and writes revisable faster-whisper captions
+python_backend/live_streaming.py        shared VAD utterance and preview/final caption flow
 python_backend/transcribe_audio.py      batch transcribes an existing audio file with faster-whisper
 python_backend/post_transcribe_qwen.py  post-processes a recording with Qwen3-ASR
 python_backend/download_assets.py       downloads ignored local models and whisper.cpp runtime files
@@ -50,10 +51,10 @@ Live meeting mode:
 python_backend\live_meeting.cmd
 ```
 
-Lower live delay:
+Set the live caption preview interval:
 
 ```powershell
-python_backend\live_meeting.cmd --chunk-seconds 3
+python_backend\live_meeting.cmd --preview-seconds 1
 ```
 
 Audio-only recording:
@@ -178,9 +179,11 @@ transcribe_cpp.cmd ..\test\demo.wav output\demo
 
 This folder is for comparing whisper.cpp latency and CPU/GPU behavior against the Python faster-whisper workflow.
 
-`live_cpp_cpu.cmd` uses the same SoundCard loopback capture as the Python live workflow, but it calls `whisper-cli.exe` once per chunk. The thread count is auto-selected from the local CPU unless `--threads` is passed.
+`live_cpp_cpu.cmd` uses the same SoundCard loopback capture as the Python live workflow, with one resident CPU `whisper-server.exe`. The thread count is auto-selected from the local CPU unless `--threads` is passed.
 
-`live_cpp_server_cpu.cmd` is the preferred whisper.cpp CPU live path. It uses the same SoundCard loopback capture, starts `whisper-server.exe` as a child process, posts each chunk to `/inference`, and appends the returned text to `live_transcript.txt`. This keeps the model resident without losing the app's Windows speaker loopback selection.
+`live_cpp_server_cpu.cmd` is the explicit whisper.cpp CPU server path. It uses the same SoundCard loopback capture, starts `whisper-server.exe` as a child process, and posts VAD utterance previews and final passes to `/inference`. Final captions are appended to `live_transcript.txt`; the full WAV is recorded separately.
+
+The CUDA launcher can select the pinned Turbo model with `--model models\ggml-large-v3-turbo.bin`. Download it from Settings & models or with `python_backend\download_assets.py --only whisper-cpp-turbo-model`. The downloader checks its SHA-256. Fixed chunks remain available when calling `live_cpp.py` directly without `--streaming`.
 
 `live_cpp_server_vulkan.cmd` uses the same resident-server path with the Vulkan build.
 `select_vulkan_device.cmd` checks available Vulkan devices and sets

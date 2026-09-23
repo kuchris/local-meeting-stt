@@ -14,6 +14,7 @@ import soundfile as sf
 from faster_whisper import WhisperModel
 
 from record_audio import mix_audio, resample_audio, select_microphone, select_system_loopback
+from live_streaming import run_streaming
 from whisper_models import resolve_whisper_model
 from session_control import capture_worker, next_chunk, watch_stop_request
 
@@ -29,6 +30,8 @@ def parse_args() -> Namespace:
     parser.add_argument("--device", default="cpu", help="Whisper inference device. Default: cpu")
     parser.add_argument("--compute-type", default="int8", help="Whisper compute type. Default: int8")
     parser.add_argument("--chunk-seconds", type=float, default=3.0, help="Chunk size in seconds. Default: 3")
+    parser.add_argument("--streaming", action="store_true", help="Use VAD utterances and revisable one-second captions")
+    parser.add_argument("--preview-seconds", type=float, default=1.0, help="Streaming preview interval. Default: 1")
     parser.add_argument("--capture-block-seconds", type=float, default=0.5, help="Continuous capture block size in seconds. Default: 0.5")
     parser.add_argument("--max-backlog", type=int, default=1, help="Maximum queued audio chunks before old chunks are dropped")
     parser.add_argument("--sample-rate", type=int, default=16000, help="ASR sample rate. Default: 16000")
@@ -86,7 +89,7 @@ def capture_audio(args: Namespace, chunks: Queue[np.ndarray], stop_event: Event)
     system_device = select_system_loopback(args.system_device)
     mic_device = select_microphone(args.mic_device) if args.include_mic else None
     block_frames = max(1, int(args.capture_rate * args.capture_block_seconds))
-    chunk_frames = max(1, int(args.capture_rate * args.chunk_seconds))
+    chunk_frames = block_frames if args.streaming else max(1, int(args.capture_rate * args.chunk_seconds))
     pending: list[np.ndarray] = []
     pending_frames = 0
     recording_context = (
@@ -152,7 +155,7 @@ def run_live(args: Namespace) -> None:
     print(f"Model: {model_name_or_path}")
 
     model = WhisperModel(model_name_or_path, device=args.device, compute_type=args.compute_type)
-    chunks: Queue[np.ndarray] = Queue(maxsize=args.max_backlog)
+    chunks: Queue[np.ndarray] = Queue(maxsize=0 if args.streaming else args.max_backlog)
     stop_event = Event()
     watch_stop_request(stop_event)
     capture_errors: list[Exception] = []
@@ -161,15 +164,28 @@ def run_live(args: Namespace) -> None:
     print("Ready: model loaded; audio capture started.")
 
     try:
-        with TemporaryDirectory() as temp_dir:
-            temp_audio = Path(temp_dir) / "chunk.wav"
-            while True:
-                mono = next_chunk(chunks, stop_event, capture_errors)
-                if mono is None:
-                    break
-                chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
-                sf.write(temp_audio, chunk, args.sample_rate, subtype="PCM_16")
-                append_transcript(output_path, transcribe_file(model, temp_audio, language))
+        if args.streaming:
+            def transcribe_stream(audio: np.ndarray) -> str:
+                segments, _ = model.transcribe(
+                    audio, language=language, beam_size=1, temperature=0,
+                    condition_on_previous_text=False, vad_filter=False,
+                )
+                return " ".join(segment.text.strip() for segment in segments if segment.text.strip()).strip()
+
+            run_streaming(
+                chunks, stop_event, capture_errors, args.capture_rate, args.sample_rate,
+                output_path, transcribe_stream, resample_audio, args.preview_seconds,
+            )
+        else:
+            with TemporaryDirectory() as temp_dir:
+                temp_audio = Path(temp_dir) / "chunk.wav"
+                while True:
+                    mono = next_chunk(chunks, stop_event, capture_errors)
+                    if mono is None:
+                        break
+                    chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
+                    sf.write(temp_audio, chunk, args.sample_rate, subtype="PCM_16")
+                    append_transcript(output_path, transcribe_file(model, temp_audio, language))
     finally:
         stop_event.set()
         capture_thread.join(timeout=5.0)

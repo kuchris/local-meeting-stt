@@ -237,7 +237,10 @@ function transcriptOutputPath(audioPath: string, outputDir: string, suffix: stri
 function captureArgs(args: CommandArgs): string[] {
   const systemDevice = str(args.systemDevice);
   const micDevice = str(args.micDevice);
+  const previewSeconds = num(args.previewSeconds);
   const extra: string[] = [];
+
+  if (previewSeconds) extra.push("--preview-seconds", previewSeconds);
 
   if (systemDevice) extra.push("--system-device", systemDevice);
   if (args.includeMic === true) {
@@ -271,6 +274,10 @@ function buildCommand(kind: string, args: CommandArgs): { label: string; executa
       const extra = ["--recording-dir", outputDir, ...captureArgs(args)];
       if (chunkSeconds) extra.push("--chunk-seconds", chunkSeconds);
       return { label: "Live whisper.cpp GPU", ...runCmd(path.join("whisper_cpp", "live_cpp.cmd"), extra) };
+    }
+    case "live-cpp-turbo-gpu": {
+      const extra = ["--recording-dir", outputDir, "--model", "models/ggml-large-v3-turbo.bin", "--session-prefix", "cpp_turbo_live", ...captureArgs(args)];
+      return { label: "Live whisper.cpp Turbo GPU", ...runCmd(path.join("whisper_cpp", "live_cpp.cmd"), extra) };
     }
     case "live-cpp-cpu": {
       const extra = ["--recording-dir", outputDir, "--threads", liveThreadCount(), ...captureArgs(args)];
@@ -443,7 +450,8 @@ function assetLabel(assetId: string): string {
     "whisper-cpp-cpu": "whisper.cpp CPU",
     "whisper-cpp-cuda": "whisper.cpp CUDA",
     "whisper-cpp-model": "whisper.cpp small model",
-    "whisper-cpp-base-model": "whisper.cpp base model"
+    "whisper-cpp-base-model": "whisper.cpp base model",
+    "whisper-cpp-turbo-model": "whisper.cpp large-v3-turbo model"
   };
   return labels[assetId] ?? assetId;
 }
@@ -803,6 +811,7 @@ ipcMain.handle("check-assets", async () => {
     { id: "whisper-cpp-openvino-model-bin", label: "whisper.cpp OpenVINO small encoder BIN", relativePath: "whisper_cpp/models/ggml-small-encoder-openvino.bin", downloadable: false, note: "Generated locally from the small model for OpenVINO." },
     { id: "whisper-cpp-vulkan-loopback", label: "whisper.cpp Vulkan loopback", relativePath: "whisper_cpp/bin_vulkan_loopback/Release/whisper-stream-loopback.exe", downloadable: false, note: "Custom local build; see whisper_cpp/vulkan-loopback-custom-build.md." },
     { id: "whisper-cpp-base-model", label: "whisper.cpp base model", relativePath: "whisper_cpp/models/ggml-base.bin", downloadable: true },
+    { id: "whisper-cpp-turbo-model", label: "whisper.cpp large-v3-turbo model", relativePath: "whisper_cpp/models/ggml-large-v3-turbo.bin", downloadable: true },
     { id: "whisper-cpp-model", label: "whisper.cpp small model", relativePath: "whisper_cpp/models/ggml-small.bin", downloadable: true }
   ];
   return assets.map((asset) => ({

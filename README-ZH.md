@@ -39,10 +39,10 @@ npm run dev
 1. 開啟 **Settings & models（設定與模型）**，檢查並下載所需檔案。
 2. 在 **Live meeting（即時會議）** 選擇模型及系統音訊來源。
 3. 如需收錄自己的聲音，啟用 **Include microphone** 並選擇麥克風。
-4. 展開 **Details**，選擇後端及音訊分段長度。
+4. 展開 **Details**，選擇後端及字幕預覽間隔。
 5. 按下 **Start meeting** 開始；所有頁面均可使用 **Stop current task** 停止工作。
 
-全新設定預設使用 faster-whisper，在 CPU 上執行 Whisper small。支援 NVIDIA CUDA 的電腦可在 Details 選擇 whisper.cpp CUDA 後端。Whisper base 透過現有的 Vulkan loopback 後端使用。
+全新設定預設使用 faster-whisper，在 CPU 上執行 Whisper small。支援 NVIDIA CUDA 的電腦可在 Details 選擇 whisper.cpp CUDA 後端；Whisper large-v3-turbo 是可另外下載的 CUDA 即時模型。Whisper base 透過現有的 Vulkan loopback 後端使用。
 
 首次設定可能需要下載相依套件及模型。安裝後，辨識使用本機模型，不會呼叫雲端 ASR 服務。程序正在執行不代表已收到音訊，請查看字幕及程序日誌確認。
 
@@ -57,7 +57,7 @@ npm run dev
 | Recordings & transcripts | 選擇錄音或拖入音訊檔案，再選擇模型與後端。 |
 | Settings & models | 檢查／下載所需檔案，並設定輸出資料夾。 |
 
-即時字幕可選 **Whisper small** 或 **Whisper base**。會後轉錄可選 **Whisper small** 或 **Qwen3-ASR 0.6B**。Qwen 目前用於檔案轉錄，不支援即時字幕。
+即時字幕可選 **Whisper small**、**Whisper large-v3-turbo**（CUDA）或 **Whisper base**。會後轉錄可選 **Whisper small** 或 **Qwen3-ASR 0.6B**。Qwen 目前用於檔案轉錄，不支援即時字幕。
 
 程式會儲存會後轉錄的後端選擇。在 Whisper 與 Qwen 之間切換時，會保留 CPU／CUDA 偏好。若未儲存轉錄偏好，而即時會議已使用 CUDA，轉錄亦會預選 CUDA；其他情況預選 CPU。明確儲存的 CPU 選擇不會被覆蓋。
 
@@ -68,6 +68,7 @@ npm run dev
 | faster-whisper | `models/faster-whisper-small/` | 預設使用 CPU，支援即時字幕及可選的 WAV 錄音。 |
 | whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | 即時伺服器及檔案轉錄。 |
 | whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU，即時伺服器及檔案轉錄。 |
+| whisper.cpp CUDA Turbo | `whisper_cpp/bin_cuda/Release/` + `ggml-large-v3-turbo.bin` | 可選的 NVIDIA 即時字幕；下載器會固定版本並核對 SHA-256。 |
 | whisper.cpp Vulkan | `whisper_cpp/bin_vulkan/Release/` + `ggml-small.bin` | 常駐即時伺服器及檔案轉錄。 |
 | OpenVINO NPU/GPU | `whisper_cpp/bin_openvino/Release/` + small 模型及 encoder XML/BIN | 需要相容的 OpenVINO 裝置及本機建置。 |
 | Vulkan loopback | `whisper_cpp/bin_vulkan_loopback/Release/` + base 或 small 模型 | 只使用系統預設音訊回送，不支援自訂裝置或麥克風混音。 |
@@ -77,15 +78,15 @@ npm run dev
 
 ## 延遲與停止行為
 
-Whisper CPU／CUDA 即時會議會維持一個已載入模型的伺服器，避免每段音訊重新載入模型；會議結束時會釋放模型。
-
-預設每段音訊為 3 秒，收集完整段落後才開始辨識。可在 Details 嘗試改為 2 秒，以加快更新，但句子上下文可能減少。faster-whisper 佇列只保留一段待處理音訊；辨識追不上時會略過舊的字幕片段，WAV 錄音則繼續。
+Whisper CPU／CUDA 即時會議會維持一個已載入模型的伺服器。Silero VAD 偵測句子邊界；未完句子預設每秒重新辨識一次，顯示可修訂預覽，偵測到停頓後再辨識整句並定稿。可在 Details 調整預覽間隔。推論忙碌時仍保留到達的音訊，可略過過期預覽，但會繼續處理已完成的句子及保存 WAV。會議結束時會釋放模型。獨立的 Vulkan loopback 串流仍使用其自身的收音與 VAD 行為。
 
 Python 即時辨識／錄音工作最多有 10 秒停止擷取、關閉 WAV 並釋放模型程序。若未能退出，Electron 會終止整個程序樹。檔案轉錄及原生 loopback 工作採用強制終止。關閉應用程式時亦會等待清理。停止可能捨棄排隊中或未完整的字幕，亦可能中斷尚未完成的輸出；最終逐字稿請使用已儲存的錄音重新轉錄。
 
 Qwen 啟動器共用 `python_backend/qwen-requirements.txt`，包含 PyTorch 2.11／CUDA 12.8，支援 RTX 5070 Ti 等相容的 NVIDIA GPU。CPU 選項使用相同執行環境，但在 CPU 上推論。載入模型權重前會測試 GPU 運算核心；缺少本機模型時會顯示明確錯誤。
 
 詳見[後端診斷與實測](docs/backend-review.md)。公開音訊重播及原生 Electron 檢查已通過，但不能據此保證真實會議的辨識準確度或音訊擷取可靠性。
+
+新版 Whisper 即時字幕的同模型比較及限制見[公開音訊重播報告](docs/asr-benchmark/2026-09-23-live-whisper/REPORT.zh-TW.md)。
 
 ## 儲存檔案與操作
 

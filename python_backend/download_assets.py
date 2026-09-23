@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
+import hashlib
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 from zipfile import ZipFile
@@ -20,6 +21,7 @@ ASSET_CHOICES = (
     "whisper-cpp-cuda",
     "whisper-cpp-model",
     "whisper-cpp-base-model",
+    "whisper-cpp-turbo-model",
 )
 
 
@@ -72,11 +74,22 @@ def download_hf_snapshot(asset_id: str, repo_id: str, destination: Path, force: 
     progress(asset_id, 100, "Done")
 
 
-def download_hf_file(asset_id: str, repo_id: str, filename: str, destination: Path, force: bool) -> None:
+def download_hf_file(
+    asset_id: str, repo_id: str, filename: str, destination: Path, force: bool,
+    revision: str = "main", expected_sha256: str | None = None,
+) -> None:
     repo_path = quote(repo_id, safe="/")
     file_path = quote(filename, safe="/")
-    url = f"https://huggingface.co/{repo_path}/resolve/main/{file_path}"
+    url = f"https://huggingface.co/{repo_path}/resolve/{revision}/{file_path}"
+    existed_before_download = destination.exists() and not force
     download_url(asset_id, url, destination, force, "file")
+    if expected_sha256:
+        with destination.open("rb") as handle:
+            actual_sha256 = hashlib.file_digest(handle, "sha256").hexdigest()
+        if actual_sha256 != expected_sha256:
+            if not existed_before_download:
+                destination.unlink(missing_ok=True)
+            raise ValueError(f"{asset_id} checksum mismatch; use --force to download it again")
     progress(asset_id, 100, "Done")
 
 
@@ -205,6 +218,17 @@ def download_assets(args: Namespace) -> None:
                 "ggml-base.bin",
                 whisper_cpp_root / "models" / "ggml-base.bin",
                 args.force,
+            )
+
+        if only == "whisper-cpp-turbo-model":
+            download_hf_file(
+                "whisper-cpp-turbo-model",
+                "ggerganov/whisper.cpp",
+                "ggml-large-v3-turbo.bin",
+                whisper_cpp_root / "models" / "ggml-large-v3-turbo.bin",
+                args.force,
+                revision="98aa99a0a9db05ae2342309f5096248665f7cba3",
+                expected_sha256="1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69",
             )
 
     print(f"Done. Asset root: {root}")

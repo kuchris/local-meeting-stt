@@ -25,6 +25,7 @@ for import_path in (PYTHON_BACKEND, ROOT):
         sys.path.insert(0, str(import_path))
 
 from record_audio import mix_audio, resample_audio, select_microphone, select_system_loopback
+from live_streaming import run_streaming
 from session_control import capture_worker, next_chunk, watch_stop_request
 
 
@@ -38,6 +39,8 @@ def parse_args() -> Namespace:
     parser.add_argument("--model", type=Path, default=Path("models") / "ggml-small.bin", help="whisper.cpp ggml model path")
     parser.add_argument("--language", default="ja", help="Language code. Default: ja")
     parser.add_argument("--chunk-seconds", type=float, default=3.0, help="Chunk size in seconds. Default: 3")
+    parser.add_argument("--streaming", action="store_true", help="Use VAD utterances and revisable one-second captions")
+    parser.add_argument("--preview-seconds", type=float, default=1.0, help="Streaming preview interval. Default: 1")
     parser.add_argument("--capture-block-seconds", type=float, default=0.5, help="Capture block size in seconds. Default: 0.5")
     parser.add_argument("--max-backlog", type=int, default=1, help="Maximum queued chunks before old chunks are dropped")
     parser.add_argument("--sample-rate", type=int, default=16000, help="ASR sample rate. Default: 16000")
@@ -107,7 +110,7 @@ def capture_audio(args: Namespace, chunks: Queue[np.ndarray], stop_event: Event)
     system_device = select_system_loopback(args.system_device)
     mic_device = select_microphone(args.mic_device) if args.include_mic else None
     block_frames = max(1, int(args.capture_rate * args.capture_block_seconds))
-    chunk_frames = max(1, int(args.capture_rate * args.chunk_seconds))
+    chunk_frames = block_frames if args.streaming else max(1, int(args.capture_rate * args.chunk_seconds))
     pending: list[np.ndarray] = []
     pending_frames = 0
 
@@ -329,6 +332,8 @@ def stop_whisper_server(process: Popen | None, stop_event: Event | None, output_
 
 def run_live(args: Namespace) -> None:
     args.threads = args.threads or default_live_threads()
+    if args.streaming and not args.server:
+        raise ValueError("Streaming captions require the resident whisper-server backend")
     if args.server:
         args.max_backlog = min(args.max_backlog, 1)
     if args.save_recording:
@@ -350,7 +355,7 @@ def run_live(args: Namespace) -> None:
         print("Mode: whisper-server")
     print("Press Ctrl+C to stop.")
 
-    chunks: Queue[np.ndarray] = Queue(maxsize=args.max_backlog)
+    chunks: Queue[np.ndarray] = Queue(maxsize=0 if args.streaming else args.max_backlog)
     stop_event = Event()
     watch_stop_request(stop_event)
     capture_errors: list[Exception] = []
@@ -368,14 +373,23 @@ def run_live(args: Namespace) -> None:
             capture_thread.start()
             print("Ready: model loaded; audio capture started.")
             with requests.Session() as session:
-                while True:
-                    mono = get_latest_chunk(chunks, stop_event, capture_errors)
-                    if mono is None:
-                        break
-                    chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
-                    started = time.perf_counter()
-                    append_transcript(output_path, transcribe_with_server(args, session, server_url, chunk))
-                    print(f"[timing] inference={time.perf_counter() - started:.3f}s audio={len(chunk) / args.sample_rate:.3f}s")
+                if args.streaming:
+                    run_streaming(
+                        chunks, stop_event, capture_errors, args.capture_rate, args.sample_rate,
+                        output_path,
+                        lambda audio: transcribe_with_server(args, session, server_url, audio),
+                        resample_audio,
+                        args.preview_seconds,
+                    )
+                else:
+                    while True:
+                        mono = get_latest_chunk(chunks, stop_event, capture_errors)
+                        if mono is None:
+                            break
+                        chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
+                        started = time.perf_counter()
+                        append_transcript(output_path, transcribe_with_server(args, session, server_url, chunk))
+                        print(f"[timing] inference={time.perf_counter() - started:.3f}s audio={len(chunk) / args.sample_rate:.3f}s")
         else:
             capture_thread.start()
             with TemporaryDirectory() as temp_dir:

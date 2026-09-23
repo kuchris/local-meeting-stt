@@ -67,7 +67,7 @@ export type AppSettings = {
   post?: { kind?: string };
   outputDir?: string;
   capture?: { systemDevice?: string; micDevice?: string; includeMic?: boolean };
-  live?: { mode?: string; saveWav?: boolean; chunkSeconds?: number };
+  live?: { mode?: string; saveWav?: boolean; chunkSeconds?: number; previewSeconds?: number };
   qwen?: {
     chunkSeconds?: number;
     tokens?: number;

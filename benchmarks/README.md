@@ -100,3 +100,21 @@ end-to-end caption latency. File boundaries are known and no capture/UI path is
 tested. Signal-boundary tests require the downloaded processor files, but run on CPU.
 
 Results: [Nemotron report](../docs/asr-benchmark/2026-09-22-nemotron/REPORT.zh-TW.md).
+
+## App Whisper live-caption replay
+
+The app's CUDA whisper.cpp server can replay the same four public Japanese files
+through both the former fixed 3-second chunks and the current VAD utterance flow.
+It does not open audio devices. Use `--realtime` to pace the VAD replay by audio
+arrival time and measure update lag; fixed chunks remain a virtual replay.
+
+```powershell
+uv run --with huggingface-hub python python_backend/download_assets.py --only whisper-cpp-turbo-model
+uv run --with soundcard --with soundfile --with numpy --with soxr --with requests --with faster-whisper python benchmarks/replay_live_cpp.py --model turbo --count 4 --gain 1 --realtime
+uv run --with soundcard --with soundfile --with numpy --with soxr --with requests --with psutil --with faster-whisper python test/backend_replay.py --turbo
+```
+
+The downloader pins and hash-checks the Turbo ggml model. The lifecycle replay
+uses a simulated capture device, verifies preview/final events and a valid WAV,
+then confirms that the CUDA server exits. Results and limits:
+[Whisper live replay report](../docs/asr-benchmark/2026-09-23-live-whisper/REPORT.zh-TW.md).

@@ -1,0 +1,375 @@
+{
+  "model": "turbo",
+  "model_file": "ggml-large-v3-turbo.bin",
+  "gain": 2.0,
+  "manifest_sha256": "c6af0ab9fddffb105aa1838c538b9184cbf9d9668892b94a752323125cf4989a",
+  "mode": "CUDA resident server, virtual 0.5-second audio arrivals; no capture/UI",
+  "samples": [
+    {
+      "id": "1828",
+      "reference": "インターネットで「敵対的環境コース」について検索すると、おそらく現地企業の住所が出てくるでしょう。",
+      "fixed": {
+        "text": "インターネットでテクノロ液体的環境コースについて検索するとおそらく現地企業の住所が出てくるでしょうはい",
+        "times": [
+          0.25700780004262924,
+          0.18412389990407974,
+          0.1828201999887824,
+          0.15780390007421374
+        ],
+        "errors": 8,
+        "reference_chars": 45,
+        "cer": 0.17777777777777778
+      },
+      "stream": {
+        "text": "インターネットで敵対的環境コースについて検索すると、おそらく現地企業の住所が出てくるでしょう。",
+        "events": [
+          {
+            "kind": "partial",
+            "audio_end": 2.5,
+            "clip_seconds": 0.8,
+            "inference_seconds": 0.15601529995910823,
+            "text": "インターネット"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 3.5,
+            "clip_seconds": 1.8,
+            "inference_seconds": 0.16827529994770885,
+            "text": "インターネットで敵対的な"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 4.5,
+            "clip_seconds": 2.8,
+            "inference_seconds": 0.18334680004045367,
+            "text": "インターネットで敵対的環境コースについて"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 5.5,
+            "clip_seconds": 3.8,
+            "inference_seconds": 0.1967638999922201,
+            "text": "インターネットで敵対的環境コースについて検索する"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 6.5,
+            "clip_seconds": 4.8,
+            "inference_seconds": 0.19790519995149225,
+            "text": "インターネットで敵対的環境コースについて検索すると"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 7.5,
+            "clip_seconds": 5.8,
+            "inference_seconds": 0.21799719997216016,
+            "text": "インターネットで敵対的環境コースについて検索するとおそらく現地企業の住所が"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 8.5,
+            "clip_seconds": 6.8,
+            "inference_seconds": 0.24040119990240782,
+            "text": "インターネットで敵対的環境コースについて検索するとおそらく現地企業の住所が出てくるでしょう"
+          },
+          {
+            "kind": "final",
+            "audio_end": 9.0,
+            "clip_seconds": 6.888,
+            "inference_seconds": 0.24128529999870807,
+            "text": "インターネットで敵対的環境コースについて検索すると、おそらく現地企業の住所が出てくるでしょう。"
+          }
+        ],
+        "errors": 0,
+        "reference_chars": 45,
+        "cer": 0.0
+      }
+    },
+    {
+      "id": "1834",
+      "reference": "また、北側に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の聖域（神社）を訪れましょう。",
+      "fixed": {
+        "text": "はいまた北側に行くなら世界的に優秀マリア像の聖地であるファティマの聖母この聖域神社を訪れましょうはい",
+        "times": [
+          0.15804559993557632,
+          0.17461510002613068,
+          0.1829942000331357,
+          0.1716979999328032,
+          0.16216609999537468
+        ],
+        "errors": 8,
+        "reference_chars": 46,
+        "cer": 0.17391304347826086
+      },
+      "stream": {
+        "text": "また北側に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の聖域神社を訪れましょう",
+        "events": [
+          {
+            "kind": "partial",
+            "audio_end": 4.0,
+            "clip_seconds": 0.68,
+            "inference_seconds": 0.1580006000585854,
+            "text": "また来て"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 5.0,
+            "clip_seconds": 1.68,
+            "inference_seconds": 0.17224460002034903,
+            "text": "また北側に行くなら"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 6.0,
+            "clip_seconds": 2.68,
+            "inference_seconds": 0.17566769989207387,
+            "text": "また北側に行くなら世界的に優秀"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 7.0,
+            "clip_seconds": 3.68,
+            "inference_seconds": 0.18084729998372495,
+            "text": "また北側に行くなら世界的に有名なマリアゾ"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 8.0,
+            "clip_seconds": 4.68,
+            "inference_seconds": 0.19637630006764084,
+            "text": "また北側に行くなら世界的に有名なマリア像の聖地である"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 9.0,
+            "clip_seconds": 5.68,
+            "inference_seconds": 0.20949350006412715,
+            "text": "また北側に行くなら世界的に有名なマリア像の聖地であるファティマの聖母"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 10.0,
+            "clip_seconds": 6.68,
+            "inference_seconds": 0.23303410003427416,
+            "text": "また北側に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の聖域、ジェルギア。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 11.0,
+            "clip_seconds": 7.68,
+            "inference_seconds": 0.23067429999355227,
+            "text": "また北側に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の聖域神社を訪れました"
+          },
+          {
+            "kind": "final",
+            "audio_end": 12.0,
+            "clip_seconds": 8.208,
+            "inference_seconds": 0.2284427999984473,
+            "text": "また北側に行くなら世界的に有名なマリア像の聖地であるファティマの聖母の聖域神社を訪れましょう"
+          }
+        ],
+        "errors": 0,
+        "reference_chars": 46,
+        "cer": 0.0
+      }
+    },
+    {
+      "id": "1813",
+      "reference": "バルセロナの公用語はカタルーニャ語とスペイン語です。約半数がカタルーニャ語を好み、大多数がカタルーニャ語を理解し、ほぼ全員がスペイン語を知っています。",
+      "fixed": {
+        "text": "バルセーナの行為渡辺語はカタルーネ語とスペイン 語です約半数がカタルーネカタルーギネガを好み大多数がカタルーギネガを理解し全員がスペイン語を知っていますありがとうございました",
+        "times": [
+          0.15964930003974587,
+          2.024626399972476,
+          0.20098710001911968,
+          0.17569419997744262,
+          0.14834710001014173
+        ],
+        "errors": 31,
+        "reference_chars": 71,
+        "cer": 0.43661971830985913
+      },
+      "stream": {
+        "text": "バルセーナの公用語はカタルーネ語とスペイン語です。約半数がカタルーネ語を好み、大多数がカタルーネ語を理解し、ほぼ全員がスペイン語を知っています。",
+        "events": [
+          {
+            "kind": "partial",
+            "audio_end": 2.5,
+            "clip_seconds": 0.552,
+            "inference_seconds": 0.1554500999627635,
+            "text": "バルセ"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 3.5,
+            "clip_seconds": 1.552,
+            "inference_seconds": 0.16707230010069907,
+            "text": "バルセーナの公用語は"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 4.5,
+            "clip_seconds": 2.552,
+            "inference_seconds": 0.19150259997695684,
+            "text": "バルセーナの公用語はカタルーニャ語とスペイン語に"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 5.5,
+            "clip_seconds": 3.552,
+            "inference_seconds": 0.19350469997152686,
+            "text": "バルセーナの公用語はカタルーニャ語とスペイン語です"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 6.5,
+            "clip_seconds": 4.552,
+            "inference_seconds": 0.21449959999881685,
+            "text": "バルセーナの公用語はカタルーネ語とスペイン語です。約半数がカタルーネ語を"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 7.5,
+            "clip_seconds": 5.552,
+            "inference_seconds": 0.26572690007742494,
+            "text": "バルセーナの公用語はカタルーネ語とスペイン語です。約半数がカタルーネ語を好み、大多数がカタルーネ語を好み、大多数がカタルーネ語を好み、"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 8.5,
+            "clip_seconds": 6.552,
+            "inference_seconds": 0.2467805000487715,
+            "text": "バルセーナの公用語はカタルーネ語とスペイン語です。約半数がカタルーネ語を好み、大多数がカタルーネ語を理解します。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 9.5,
+            "clip_seconds": 7.552,
+            "inference_seconds": 0.27196589997038245,
+            "text": "バルセーナの公用語はカタルーネ語とスペイン語です。約半数がカタルーネ語を好み、大多数がカタルーネ語を理解し、ほぼ全員がスペイン語です。"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 10.5,
+            "clip_seconds": 8.552,
+            "inference_seconds": 0.27687110006809235,
+            "text": "バルセーナの公用語はカタルーネ語とスペイン語です。約半数がカタルーネ語を好み、大多数がカタルーネ語を理解し、ほぼ全員がスペイン語を知っています。"
+          },
+          {
+            "kind": "final",
+            "audio_end": 11.5,
+            "clip_seconds": 9.04,
+            "inference_seconds": 0.27767529990524054,
+            "text": "バルセーナの公用語はカタルーネ語とスペイン語です。約半数がカタルーネ語を好み、大多数がカタルーネ語を理解し、ほぼ全員がスペイン語を知っています。"
+          }
+        ],
+        "errors": 7,
+        "reference_chars": 71,
+        "cer": 0.09859154929577464
+      }
+    },
+    {
+      "id": "1869",
+      "reference": "その長い顎には70本以上の鋭い歯が並び、口蓋には別の歯列があり、つまりここを通ったら逃げ道はないということになります。",
+      "fixed": {
+        "text": "その長い顎に70本以上の鋭い歯が並び郊外には別に次回予告ということになります。はい",
+        "times": [
+          0.16045930003747344,
+          0.18392330000642687,
+          0.1588132999604568,
+          0.15677880006842315,
+          0.14929680002387613
+        ],
+        "errors": 27,
+        "reference_chars": 56,
+        "cer": 0.48214285714285715
+      },
+      "stream": {
+        "text": "その長い顎には70本以上の鋭い歯が並び、口外には別の手術があり、つまりここを通ったらねぎ道はないということになります。",
+        "events": [
+          {
+            "kind": "partial",
+            "audio_end": 2.5,
+            "clip_seconds": 0.52,
+            "inference_seconds": 0.1593869999051094,
+            "text": "その名前に"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 3.5,
+            "clip_seconds": 1.52,
+            "inference_seconds": 0.16284600005019456,
+            "text": "その長い顎には70"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 4.5,
+            "clip_seconds": 2.52,
+            "inference_seconds": 0.17667770001571625,
+            "text": "その長い顎には70本以上の鋳取り"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 5.5,
+            "clip_seconds": 3.52,
+            "inference_seconds": 0.17806919990107417,
+            "text": "その長い顎には70本以上の鋭い歯が並び"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 6.5,
+            "clip_seconds": 4.52,
+            "inference_seconds": 0.2014568999875337,
+            "text": "その長い顎には70本以上の鋭い歯が並び 口外には別の手術が"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 7.5,
+            "clip_seconds": 5.52,
+            "inference_seconds": 0.20573020004667342,
+            "text": "その長い顎には70本以上の鋭い歯が並び 口外には別の死率があり"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 8.5,
+            "clip_seconds": 6.52,
+            "inference_seconds": 0.22359269997105002,
+            "text": "その長い顎には70本以上の鋭い歯が並び郊外には別の死率がありつまりここを通ったら"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 9.5,
+            "clip_seconds": 7.52,
+            "inference_seconds": 0.24090029997751117,
+            "text": "その長い顎には70本以上の鋭い歯が並び郊外には別の手術がありつまりここを通ったらねぎ道はないということになります"
+          },
+          {
+            "kind": "partial",
+            "audio_end": 10.5,
+            "clip_seconds": 8.52,
+            "inference_seconds": 0.2383423000574112,
+            "text": "その長い顎には70本以上の鋭い歯が並び、口外には別の手術があり、つまりここを通ったらねぎ道はないということになります。"
+          },
+          {
+            "kind": "final",
+            "audio_end": 11.0,
+            "clip_seconds": 8.272,
+            "inference_seconds": 0.2381351999938488,
+            "text": "その長い顎には70本以上の鋭い歯が並び、口外には別の手術があり、つまりここを通ったらねぎ道はないということになります。"
+          }
+        ],
+        "errors": 5,
+        "reference_chars": 56,
+        "cer": 0.08928571428571429
+      }
+    }
+  ],
+  "summary": {
+    "fixed_cer": 0.3394495412844037,
+    "stream_cer": 0.05504587155963303,
+    "fixed_inference_p95_seconds": 0.4337696600356101,
+    "stream_inference_p95_seconds": 0.2729469399899244,
+    "previews": 33,
+    "finals": 4
+  }
+}

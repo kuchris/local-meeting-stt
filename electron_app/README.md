@@ -57,12 +57,14 @@ Blank audio-device selection uses the script default. Supported commands receive
 
 ## Models and backends
 
-`src/liveModes.ts` maps the controls to the existing commands. Defaults remain
-Whisper small with the existing faster-whisper launch path. No Nemotron/Turbo
-migration or automatic model download is part of this change.
+`src/liveModes.ts` maps the controls to the backend commands. Defaults remain
+Whisper small with the faster-whisper CPU launch path. CUDA Turbo is an optional
+live model with a pinned, hash-checked download in Settings & models.
 
 - Small offers the existing faster-whisper, CPU, CUDA, Vulkan, OpenVINO and
   Vulkan loopback paths. Base uses the existing Vulkan loopback base command.
+- Turbo uses the resident whisper.cpp CUDA server and requires its separate ggml
+  model file.
 - Vulkan loopback uses the system default audio source and cannot mix the mic.
   The UI disables those unsupported controls instead of silently ignoring them.
 - Only faster-whisper has a live text-only option. Other existing live commands
@@ -79,12 +81,12 @@ loopback commands are terminated directly. Stopped does not promise a complete
 transcript: queued and partial captions may be omitted. Closing Electron also
 waits for backend cleanup.
 
-CUDA and CPU live Whisper commands now keep whisper-server resident for the
-meeting, rather than loading the small model for every audio chunk. Models are
-released at session end, not cached between meetings. The faster-whisper queue
-holds at most one waiting chunk; overload drops old caption chunks while the
-recording continues. Details lets users lower the 3-second chunk setting to 2
-seconds, with a possible loss of sentence context.
+CUDA and CPU live Whisper commands keep whisper-server resident for the meeting.
+Silero VAD groups speech into utterances. The UI replaces a revisable preview
+every second by default and commits text after an utterance ends. Details adjusts
+the preview interval. Capture keeps consecutive audio blocks and records the WAV;
+when inference falls behind, stale previews may be skipped without discarding
+completed utterances. Models are released at session end.
 
 Qwen CPU/GPU and the batch-file launchers share `python_backend/qwen-requirements.txt`
 (qwen-asr 0.0.6, PyTorch 2.11/CUDA 12.8). CPU uses the same installed runtime with

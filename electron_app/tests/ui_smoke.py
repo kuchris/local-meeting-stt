@@ -15,7 +15,7 @@ from playwright.sync_api import sync_playwright, expect
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "outputs" / "ui-review" / "implemented"
 OUT.mkdir(parents=True, exist_ok=True)
-ASSET_IDS = ["faster-whisper", "whisper-cpp-model", "whisper-cpp-base-model", "whisper-cpp-cuda",
+ASSET_IDS = ["faster-whisper", "whisper-cpp-model", "whisper-cpp-base-model", "whisper-cpp-turbo-model", "whisper-cpp-cuda",
              "whisper-cpp-cpu", "whisper-cpp-vulkan", "whisper-cpp-vulkan-loopback", "qwen",
              "whisper-cpp-openvino", "whisper-cpp-openvino-model-xml", "whisper-cpp-openvino-model-bin"]
 MOCK = "window.assetIds=" + json.dumps(ASSET_IDS) + r""";
@@ -194,6 +194,24 @@ try:
         page.evaluate("localStorage.setItem('testSettings',JSON.stringify({ui:{locale:'invalid'}}))")
         page.reload();page.wait_for_load_state('networkidle')
         expect(page.locator('html')).to_have_attribute('lang','en')
+        page.get_by_label('Recognition model',exact=True).select_option('turbo')
+        page.get_by_role('button',name='Details',exact=True).click()
+        page.get_by_label('Caption preview interval seconds').fill('1.5')
+        page.get_by_role('button',name='Start meeting',exact=True).click()
+        call=page.evaluate('window.calls.filter(c=>c.kind).at(-1)')
+        assert call['kind']=='live-cpp-turbo-gpu' and call['args']['previewSeconds']==1.5
+        pid=page.evaluate('window.pid')
+        page.evaluate("id=>window.emitProcess({type:'stdout',processId:id,text:'@@PARTIAL\\t前の候補\\n'})",pid)
+        expect(page.locator('.partial-caption')).to_contain_text('前の候補')
+        page.evaluate("id=>window.emitProcess({type:'stdout',processId:id,text:'@@PARTIAL\\t\\n'})",pid)
+        expect(page.locator('.partial-caption')).to_have_count(0)
+        page.evaluate("id=>window.emitProcess({type:'stdout',processId:id,text:'@@PARTIAL\\t新しい候補\\n@@FINAL\\t確定した字幕。\\n'})",pid)
+        expect(page.locator('.meeting-transcript')).to_contain_text('確定した字幕。')
+        expect(page.locator('.partial-caption')).to_have_count(0)
+        page.evaluate("id=>window.emitProcess({type:'stdout',processId:id,text:'@@FINAL\\t確定した字幕。\\n'})",pid)
+        assert page.locator('.meeting-transcript').inner_text().count('確定した字幕。')==2
+        page.get_by_role('button',name='Stop current task',exact=True).click()
+        page.evaluate("id=>window.emitProcess({type:'exit',processId:id,code:0,signal:null})",pid)
         assert not errors,errors
         print('PASS: existing UI regressions; three languages on every tab, minimum-size layout, live language switching preserves captions/job, localized errors, locale/backend persistence, CPU/CUDA model switching and settings migration')
         browser.close()
