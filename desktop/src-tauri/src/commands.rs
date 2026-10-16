@@ -49,8 +49,10 @@ pub fn resolve_output_dir(paths: &AppPaths, args: &Args) -> Result<PathBuf, Stri
 }
 
 /// `<prefix>_YYYYMMDD_HHMMSS` in UTC, as the Electron shell named them.
+/// `<prefix>_YYYYMMDD_HHMMSS` in local time, as the Python live scripts name
+/// their session folders (the Electron app used UTC, 8 hours off in Hong Kong).
 fn timestamped_dir(output_dir: &Path, prefix: &str) -> Result<PathBuf, String> {
-    let stamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
+    let stamp = chrono::Local::now().format("%Y%m%d_%H%M%S");
     let dir = output_dir.join(format!("{prefix}_{stamp}"));
     fs::create_dir_all(&dir).map_err(|error| format!("{}: {error}", dir.display()))?;
     Ok(dir)
@@ -613,6 +615,20 @@ mod tests {
         assert!(failed_offline(interpreter));
         assert!(!failed_offline(script));
         assert!(!failed_offline("Local model missing: models/Qwen3-ASR-0.6B. Download it from Setup first."));
+    }
+
+    #[test]
+    fn recording_folders_are_named_in_local_time() {
+        let root = std::env::temp_dir().join(format!("lms-stamp-{}", std::process::id()));
+        let before = chrono::Local::now().format("%Y%m%d_%H%M").to_string();
+        let dir = timestamped_dir(&root, "meeting").unwrap();
+        let after = chrono::Local::now().format("%Y%m%d_%H%M").to_string();
+        let name = dir.file_name().unwrap().to_string_lossy().into_owned();
+        assert!(
+            name.starts_with(&format!("meeting_{before}")) || name.starts_with(&format!("meeting_{after}")),
+            "{name}"
+        );
+        std::fs::remove_dir_all(&root).unwrap();
     }
 
     #[test]
