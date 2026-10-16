@@ -1,7 +1,7 @@
 # Local Meeting STT — Rust desktop app
 
-A Rust ([Tauri 2](https://tauri.app/)) shell for the same Python and whisper.cpp
-backends the Electron app drives. The window is the system's WebView2, not a
+A Rust ([Tauri 2](https://tauri.app/)) shell for the Python and whisper.cpp
+backends. It replaced the Electron app, which is kept on the `electron` branch. The window is the system's WebView2, not a
 bundled Chromium, and the interface is plain HTML, CSS and JavaScript with no
 framework or npm step.
 
@@ -10,12 +10,12 @@ desktop/
   src-tauri/             Rust: window, process control, captions, devices
     src/main.rs          commands the page calls, window and quit handling
     src/jobs.rs          starts, reads and stops backend processes
-    src/commands.rs      what each job runs (same table as electron/main.ts)
+    src/commands.rs      what each job runs (same table as the Electron main process)
     src/captions.rs      turns live stdout into caption lines
     src/devices.rs       audio endpoints straight from WASAPI
     src/assets.rs        local model and runtime checks
     src/sessions.rs      recording folders in the output folder
-    src/settings.rs      settings.json, shared with the Electron app
+    src/settings.rs      settings.json, also readable by the Electron app
     src/wav.rs           WAV header repair after an interrupted recording
     fixtures/            caption_parity.json, see Tests
   ui/                    the page: index.html, app.css, app.js, i18n.js
@@ -71,8 +71,9 @@ cargo clippy --all-targets
 `captions::tests::matches_the_electron_renderer` replays the steps in
 `fixtures/caption_parity.json` and compares the lines with the `expected`
 output, which was produced by running the Electron renderer's own caption
-functions (`electron_app/src/main.tsx`) on the same steps. Regenerate it the
-same way when the caption rules change on purpose.
+functions (`electron_app/src/main.tsx` on the `electron` branch) on the same
+steps. When the caption rules change on purpose, update the fixture from the
+Rust output and review the diff.
 
 `devices::machine::print_native_listing` is ignored by default; run it with
 `cargo test -- --ignored --nocapture` to compare this machine's endpoints with
@@ -81,7 +82,7 @@ same way when the caption rules change on purpose.
 ## Portable folder
 
 ```powershell
-build_portable_desktop.cmd
+build_portable_folder.cmd
 ```
 
 This builds the release executable and writes

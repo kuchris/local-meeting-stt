@@ -16,7 +16,7 @@
 
 会議のリアルタイム字幕、録音、会議後の文字起こしをローカルで行う Windows デスクトップアプリです。スピーカー／ヘッドセットのループバック音声から Teams、ブラウザー会議などのデスクトップ音声を取得し、必要に応じてマイク音声も混ぜられます。録音と音声認識は自分のパソコン上で処理します。
 
-**初期表示言語は英語です。** タイトルバーで繁体字中国語または日本語に切り替えられ、選択は保存されます。表示言語と認識言語は別です。現在提供している認識処理は日本語を対象としています。
+**初期表示言語は英語です。** Settings（設定）で繁体字中国語または日本語に切り替えられ、選択は保存されます。表示言語と認識言語は別です。現在提供している認識処理は日本語を対象としています。
 
 ![英語の会議画面](docs/meeting-ui.png)
 
@@ -24,49 +24,40 @@
 
 ## はじめに
 
-ソースコードから実行する場合の要件：
+アプリは Python と whisper.cpp のバックエンドを Rust（[Tauri 2](https://tauri.app/)）で包んだもので、ウィンドウはシステムの WebView2 を使い、ブラウザーエンジンを同梱しません。ソースコードから実行する場合の要件：
 
-- Windows、Node.js/npm、[uv](https://docs.astral.sh/uv/)。
+- Windows 10／11 と WebView2 ランタイム（Windows 11 には標準搭載）。
+- [Rust](https://rustup.rs/)（MSVC ツールチェーン）と [uv](https://docs.astral.sh/uv/)。
 - 選択したバックエンドに必要なローカルモデルと実行環境。
 - CUDA を使う場合は NVIDIA GPU。ほかのバックエンドにもそれぞれハードウェア要件があります。
-
-```powershell
-cd electron_app
-npm ci
-npm run dev
-```
-
-1. **Settings & models（設定とモデル）** で必要なファイルを確認・ダウンロードします。
-2. **Live meeting（ライブ会議）** でモデルとシステム音声の入力元を選びます。
-3. 自分の声も収録する場合は **Include microphone** を有効にし、マイクを選びます。
-4. **Details** を開き、バックエンドと字幕プレビューの間隔を選びます。
-5. **Start meeting** で開始します。**Stop current task** はどのページからでも操作できます。
-
-新規設定では、faster-whisper の Whisper small を CPU で実行します。対応する NVIDIA GPU がある場合は、Details で whisper.cpp CUDA を選べます。Whisper large-v3-turbo は追加ダウンロードできる CUDA ライブモデルです。Whisper base は既存の Vulkan loopback バックエンドで利用できます。
-
-初回設定時には依存パッケージやモデルをダウンロードする場合があります。導入後はクラウド ASR サービスではなくローカルモデルで認識します。プロセスが動いていても音声を取得できているとは限らないため、字幕とログを確認してください。
-
-[ポータブル版](https://github.com/kuchris/local-meeting-stt/releases)も利用できます。公開済みパッケージは最新ソースより古い場合があります。ルートの `open_electron_app.cmd` は既存のパッケージ版があればそちらを開きます。現在の checkout を試す場合は、上記の `npm run dev` を使用してください。
-
-### Rust デスクトップ版（プレビュー）
-
-`desktop/` は Rust（[Tauri 2](https://tauri.app/)）で作り直した版です。ウィンドウは Chromium を同梱せずシステムの WebView2 を使い、音声デバイスは Windows から直接読み取り、字幕の更新でページ全体を再描画しません。同じバックエンドと同じ `settings.json` を使い、Node.js の代わりに [Rust](https://rustup.rs/) が必要です：
 
 ```powershell
 cd desktop\src-tauri
 cargo run
 ```
 
-`open_desktop_app.cmd` からも起動できます。変更点、テスト、`build_portable_desktop.cmd` によるパッケージ作成は [desktop/README.md](desktop/README.md) を参照してください。
+1. **Settings（設定）** で必要なファイルを確認・ダウンロードします。
+2. **Live（ライブ）** でモデル、バックエンド、システム音声の入力元を選びます。
+3. 自分の声も収録する場合は **Include microphone** をオンにし、マイクを選びます。
+4. 必要に応じて同じパネルで字幕プレビューの間隔を調整します。
+5. **Start meeting** で開始し、同じボタンで停止します。タイトルバーにはどのページでも処理の状態と経過時間が表示されます。
+
+新規設定では、faster-whisper の Whisper small を CPU で実行します。対応する NVIDIA GPU がある場合は whisper.cpp CUDA を選べます。Whisper large-v3-turbo は追加ダウンロードできる CUDA ライブモデルです。Whisper base は既存の Vulkan loopback バックエンドで利用できます。
+
+初回設定時には依存パッケージやモデルをダウンロードする場合があります。導入後はクラウド ASR サービスではなくローカルモデルで認識します。プロセスが動いていても音声を取得できているとは限らないため、字幕とログを確認してください。
+
+[ポータブル版](https://github.com/kuchris/local-meeting-stt/releases)も利用できます。v0.3.0 までの公開パッケージは以前の Electron 版です。ルートの `open_desktop_app.cmd` はビルド済みのリリース版があればそちらを開き、なければ現在の checkout をビルドして起動します。
+
+以前の Electron + React 版は [`electron` ブランチ](https://github.com/kuchris/local-meeting-stt/tree/electron)に残しています。どちらも同じバックエンドと `settings.json` を使います。
 
 ## 画面構成
 
 | ページ | 機能 |
 | --- | --- |
-| Live meeting | 大きなリアルタイム字幕、モデルと音声の選択、任意の WAV 録音、折りたたみ可能な診断情報。 |
-| Record audio | 後で文字起こしする音声を録音。録音時間の上限も設定可能。 |
-| Recordings & transcripts | 録音を選択するか音声ファイルをドロップし、モデルとバックエンドを指定。 |
-| Settings & models | 必要なファイルの確認・ダウンロードと出力先の設定。 |
+| Live | 大きなリアルタイム字幕と、その横にモデル、バックエンド、音声、WAV の設定。 |
+| Record | 後で文字起こしする音声を録音。録音時間の上限も設定可能。 |
+| Recordings | 録音を選択するか、音声ファイルをウィンドウのどこにでもドロップして、モデルとバックエンドを指定。既存の文字起こしはワンクリックで開けます。 |
+| Settings | 外観、言語、出力先。モデルとランタイムの確認・ダウンロード。 |
 
 リアルタイム字幕では **Whisper small**、**Whisper large-v3-turbo**（CUDA）、**Whisper base**、会議後の文字起こしでは **Whisper small** と **Qwen3-ASR 0.6B** を選べます。Qwen は現在、ファイルの文字起こし専用で、リアルタイム字幕には使用しません。
 
@@ -89,13 +80,13 @@ cargo run
 
 ## 遅延と停止時の動作
 
-Whisper CPU／CUDA のライブ会議では、モデルを読み込んだサーバーを会議中維持します。Silero VAD が発話の区切りを検出します。発話中は初期値で毎秒、修正可能な字幕を更新し、短い無音の後に発話全体を再認識して確定します。Details でプレビュー間隔を変更できます。推論が遅い場合も到着した音声は保持し、古いプレビューだけを省略できます。完了した発話と WAV 録音は処理を続け、終了時にモデルを解放します。独立した Vulkan loopback ストリームは従来どおり固有の録音と VAD を使います。
+Whisper CPU／CUDA のライブ会議では、モデルを読み込んだサーバーを会議中維持します。Silero VAD が発話の区切りを検出します。発話中は初期値で毎秒、修正可能な字幕を更新し、短い無音の後に発話全体を再認識して確定します。Live ページでプレビュー間隔を変更できます。推論が遅い場合も到着した音声は保持し、古いプレビューだけを省略できます。完了した発話と WAV 録音は処理を続け、終了時にモデルを解放します。独立した Vulkan loopback ストリームは従来どおり固有の録音と VAD を使います。
 
-Python のライブ認識／録音ジョブには、音声取得の停止、WAV のクローズ、モデルプロセスの解放に最大 10 秒の猶予があります。終了しない場合、Electron がプロセスツリーを終了します。ファイルの文字起こしとネイティブの loopback ジョブは強制終了します。アプリを閉じる際も終了処理を待ちます。停止によって待機中・途中の字幕が欠けたり、未完了の出力が中断されたりする場合があります。最終的な文字起こしには保存した録音を使用してください。
+Python のライブ認識／録音ジョブには、音声取得の停止、WAV のクローズ、モデルプロセスの解放に最大 10 秒の猶予があります。終了しない場合、アプリがプロセスツリーを終了します。ファイルの文字起こしとネイティブの loopback ジョブは強制終了します。アプリを閉じる際も終了処理を待ちます。停止によって待機中・途中の字幕が欠けたり、未完了の出力が中断されたりする場合があります。最終的な文字起こしには保存した録音を使用してください。
 
 Qwen ランチャーは `python_backend/qwen-requirements.txt` を共用します。PyTorch 2.11／CUDA 12.8 を含み、RTX 5070 Ti などの対応 NVIDIA GPU をサポートします。CPU オプションも同じ実行環境を使い、CPU 上で推論します。重みの読み込み前に GPU カーネルを確認し、ローカルモデルがない場合は明確なエラーを表示します。
 
-詳細は[バックエンドの診断と実測](docs/backend-review.md)を参照してください。公開音声のリプレイとネイティブ Electron の確認は通過していますが、実際の会議での認識精度や録音の信頼性を保証するものではありません。
+詳細は[バックエンドの診断と実測](docs/backend-review.md)を参照してください。公開音声のリプレイ、以前の Electron 版のネイティブ確認、本版のファイル文字起こし・停止・実行中に閉じる確認は通過していますが、実際の会議での認識精度や録音の信頼性を保証するものではありません。
 
 新しい Whisper ライブ字幕の同一モデル比較と制限は[公開音声リプレイ報告](docs/asr-benchmark/2026-09-23-live-whisper/REPORT.zh-TW.md)を参照してください。
 
@@ -113,24 +104,25 @@ outputs/
 フォルダー名の接頭辞はバックエンドによって異なります。セッション内の `audio.wav` を文字起こしすると、同じフォルダーに結果を保存します。その他の読み込んだ音声は、設定された出力先に結果を保存します。
 
 - **Ctrl+O**：文字起こしする音声を選択。
-- **Ctrl+B**：サイドバーの折りたたみ／展開。
-- **View > Clear logs**：字幕を残して診断ログを消去。
-- **Details**：バックエンドの出力を確認し、ライブバックエンドとチャンク長を変更。
+- **Ctrl+1**〜**Ctrl+4**：ページを切り替え。
+- **Ctrl+L**：プロセスログの表示／非表示（タイトルバーのログボタンでも可）。
+- **Esc**：プロセスログを閉じる。
 
-`settings.json` に表示言語（`ui.locale`）、文字起こしバックエンド（`post.kind`）、音声デバイス、ライブモード、出力設定を保存します。設定ファイルを引き継いで更新すると言語選択も維持されます。言語設定がない場合や無効な場合は英語になります。バックエンドの生ログ、デバイス名、ファイル名、文字起こし本文は翻訳しません。
+`settings.json` に表示言語（`ui.locale`）、テーマ（`ui.theme`）、文字起こしバックエンド（`post.kind`）、音声デバイス、ライブモード、出力設定を保存します。設定ファイルを引き継いで更新すると言語選択も維持されます。言語設定がない場合や無効な場合は英語になります。バックエンドの生ログ、デバイス名、ファイル名、文字起こし本文は翻訳しません。
 
 ## ビルドと検証
 
 ```powershell
-cd electron_app
-npm run build
+cd desktop\src-tauri
+cargo test
+cargo clippy --all-targets
 ```
 
-レンダラーのテスト、3 言語のレイアウト確認、ネイティブ設定／IPC テスト、バックエンドのライフサイクルとリプレイ確認については、[Electron 開発・テスト手順](electron_app/README.md)を参照してください。
+字幕の一致テスト、音声デバイスの確認、ソース構成については [desktop 開発・テスト手順](desktop/README.md)を参照してください。
 
-リポジトリのルートで `build_portable_folder.cmd` を実行すると、フォルダー形式のポータブル版を作成します。毎回新しい `electron_app/dist/release-VERSION-ID/` に、ポータブルフォルダー、バージョン付き ZIP、`SHA256SUMS.txt` を出力します。実行ファイル、バックエンドスクリプト、英語の初期設定、ローカルにある Vulkan／OpenVINO ランタイムを含みます。モデル、Python 環境、キャッシュ、録音は含みません。CPU／CUDA ランタイムは Settings & models からダウンロードできます。
+リポジトリのルートで `build_portable_folder.cmd` を実行すると、フォルダー形式のポータブル版を作成します。毎回新しい `desktop/dist/release-VERSION-ID/` に、ポータブルフォルダー、バージョン付き ZIP、`SHA256SUMS.txt` を出力します。実行ファイル、バックエンドスクリプト、英語の初期設定、ローカルにある Vulkan／OpenVINO ランタイムを含みます。モデル、Python 環境、キャッシュ、録音は含みません。CPU／CUDA ランタイムは Settings からダウンロードできます。
 
-[Releases](https://github.com/kuchris/local-meeting-stt/releases/latest) からダウンロードし、ZIP 全体を書き込み可能なフォルダーに展開して `Local Meeting STT.exe` を実行してください。DLL とリソースフォルダーは一緒に置いてください。先に [uv](https://docs.astral.sh/uv/getting-started/installation/) をインストールし、PATH に追加する必要があります。パッケージ版の実行には Node.js/npm は不要です。初回は Python の依存パッケージとモデルのダウンロードにインターネット接続が必要です。更新時は別フォルダーに展開し、必要に応じてモデルや録音をコピーしてください。Windows 版はコード署名されていません。
+[Releases](https://github.com/kuchris/local-meeting-stt/releases/latest) からダウンロードし、ZIP 全体を書き込み可能なフォルダーに展開して `Local Meeting STT.exe` を実行してください。バックエンドのフォルダーは実行ファイルと一緒に置いてください。先に [uv](https://docs.astral.sh/uv/getting-started/installation/) をインストールし、PATH に追加する必要があります。ウィンドウには WebView2 ランタイムが必要で、Windows 11 には標準搭載されています。初回は Python の依存パッケージとモデルのダウンロードにインターネット接続が必要です。更新時は別フォルダーに展開し、必要に応じてモデルや録音をコピーしてください。Windows 版はコード署名されていません。
 
 コマンドラインの操作とバックエンドのディレクトリ構成は [TECHNICAL.md](TECHNICAL.md) を参照してください。
 

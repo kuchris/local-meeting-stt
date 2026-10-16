@@ -1,29 +1,28 @@
 param([switch]$SkipBuild)
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$electronRoot = Join-Path $repoRoot 'electron_app'
-$package = Get-Content -LiteralPath (Join-Path $electronRoot 'package.json') -Raw | ConvertFrom-Json
-$version = $package.version
+$appRoot = Join-Path $repoRoot 'desktop/src-tauri'
+$config = Get-Content -LiteralPath (Join-Path $appRoot 'tauri.conf.json') -Raw | ConvertFrom-Json
+$version = $config.version
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Expected a stable semantic version.' }
 if (-not $SkipBuild) {
-    Push-Location $electronRoot
+    Push-Location $appRoot
     try {
-        & npm.cmd run dist
-        if ($LASTEXITCODE -ne 0) { throw 'Electron build failed.' }
+        & cargo build --release
+        if ($LASTEXITCODE -ne 0) { throw 'Rust release build failed.' }
     } finally { Pop-Location }
 }
-$unpacked = Join-Path $electronRoot 'dist/win-unpacked'
-$executable = Join-Path $unpacked 'Local Meeting STT.exe'
-if (-not (Test-Path -LiteralPath $executable)) { throw 'Missing current unpacked application.' }
+$executable = Join-Path $appRoot 'target/release/local-meeting-stt.exe'
+if (-not (Test-Path -LiteralPath $executable)) { throw 'Missing release executable.' }
 $exeVersion = (Get-Item -LiteralPath $executable).VersionInfo.ProductVersion
 if ($exeVersion -notin @($version, "$version.0")) { throw "Executable version $exeVersion does not match $version." }
 
 # Unique staging preserves older portable folders and any recordings inside them.
-$stage = Join-Path $electronRoot ("dist/release-$version-" + [guid]::NewGuid().ToString('N').Substring(0,8))
+$stage = Join-Path $repoRoot ("desktop/dist/release-$version-" + [guid]::NewGuid().ToString('N').Substring(0,8))
 $folder = Join-Path $stage 'Local Meeting STT portable'
 New-Item -ItemType Directory -Path $folder | Out-Null
-Get-ChildItem -LiteralPath $unpacked | Copy-Item -Destination $folder -Recurse
-foreach ($relative in @('python_backend','whisper_cpp','models','whisper_cpp/models','outputs','runtime','licenses','electron_app/build')) {
+Copy-Item -LiteralPath $executable -Destination (Join-Path $folder 'Local Meeting STT.exe')
+foreach ($relative in @('python_backend','whisper_cpp','models','whisper_cpp/models','outputs','runtime','licenses')) {
     New-Item -ItemType Directory -Path (Join-Path $folder $relative) -Force | Out-Null
 }
 foreach ($backend in @('python_backend','whisper_cpp')) {
@@ -38,7 +37,6 @@ foreach ($runtime in @('bin_vulkan','bin_vulkan_loopback','bin_openvino')) {
     }
 }
 Copy-Item -LiteralPath (Join-Path $repoRoot 'LICENSE') -Destination (Join-Path $folder 'LICENSE.txt')
-Copy-Item -LiteralPath (Join-Path $repoRoot 'electron_app/build/icon.png') -Destination (Join-Path $folder 'electron_app/build/icon.png')
 $whisperLicense = Join-Path $repoRoot 'whisper_cpp/src_vulkan_loopback/LICENSE'
 if (Test-Path -LiteralPath $whisperLicense) {
     Copy-Item -LiteralPath $whisperLicense -Destination (Join-Path $folder 'licenses/whisper.cpp-LICENSE.txt')
@@ -46,25 +44,27 @@ if (Test-Path -LiteralPath $whisperLicense) {
 $settings = @{
     outputDir = 'outputs'
     qwen = @{ chunkSeconds = 60; tokens = 4096; batch = 4 }
-    ui = @{ locale = 'en'; sessionListWidth = 300; transcribeColumnWidth = 560 }
+    ui = @{ locale = 'en'; theme = 'system' }
 } | ConvertTo-Json -Depth 4
 [IO.File]::WriteAllText((Join-Path $folder 'settings.json'), $settings, (New-Object Text.UTF8Encoding($false)))
 @"
-Local Meeting STT v$version - Windows x64 portable folder
+Local Meeting STT v$version - Windows x64 portable folder (Rust desktop app)
 
 Extract the entire folder to a writable location and run Local Meeting STT.exe.
-Keep the DLLs, resources and backend folders beside the executable.
+Keep the backend folders beside the executable.
+The window uses the Microsoft Edge WebView2 runtime, built into Windows 11.
+On Windows 10 without it, install the Evergreen runtime:
+https://developer.microsoft.com/microsoft-edge/webview2/
 Install uv and make it available on PATH: https://docs.astral.sh/uv/getting-started/installation/
-No Node.js/npm installation is needed to run this packaged application.
 First use requires internet access to install Python dependencies and download models.
-Open Settings & models to download missing models and CPU/CUDA runtimes.
+Open Settings to download missing models and CPU/CUDA runtimes.
 Vulkan, Vulkan loopback and OpenVINO runtimes are included when available at build time.
 Models, Python environments, private recordings and caches are NOT included.
 OpenVINO encoder files must be prepared separately; supported devices/drivers are required.
 
-English is the default UI. Use the title-bar selector for Traditional Chinese or Japanese.
+English is the default UI. Choose Traditional Chinese or Japanese in Settings.
 The supplied recognition workflows remain Japanese regardless of UI language.
-Outputs are saved under outputs/ unless changed in Settings & models.
+Outputs are saved under outputs/ unless changed in Settings.
 Extract upgrades separately; copy models and recordings from your old folder if needed.
 
 This application is unsigned. Windows may show an unknown-publisher prompt.

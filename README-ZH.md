@@ -16,7 +16,7 @@
 
 在 Windows 上執行的本機會議字幕、錄音及會後轉錄工具。透過喇叭／耳機的系統音訊回送（loopback），擷取 Teams、瀏覽器會議或其他桌面音訊，亦可混入麥克風。錄音與語音辨識均在你的電腦上處理。
 
-**介面預設為英文。** 可在標題列切換繁體中文或日文，程式會記住你的選擇。介面語言與辨識語言互相獨立：目前提供的辨識流程使用日文。
+**介面預設為英文。** 可在 Settings（設定）切換繁體中文或日文，程式會記住你的選擇。介面語言與辨識語言互相獨立：目前提供的辨識流程使用日文。
 
 ![英文會議介面](docs/meeting-ui.png)
 
@@ -24,49 +24,40 @@
 
 ## 開始使用
 
-從原始碼執行需要：
+應用程式以 Rust（[Tauri 2](https://tauri.app/)）包裝 Python 及 whisper.cpp 後端，視窗使用系統內建的 WebView2，不另外打包瀏覽器引擎。從原始碼執行需要：
 
-- Windows、Node.js/npm 及 [uv](https://docs.astral.sh/uv/)。
+- Windows 10／11 及 WebView2 執行環境（Windows 11 已內建）。
+- [Rust](https://rustup.rs/)（MSVC 工具鏈）及 [uv](https://docs.astral.sh/uv/)。
 - 所選後端需要的本機模型與執行環境。
 - CUDA 需要 NVIDIA GPU；其他後端各有硬體要求。
-
-```powershell
-cd electron_app
-npm ci
-npm run dev
-```
-
-1. 開啟 **Settings & models（設定與模型）**，檢查並下載所需檔案。
-2. 在 **Live meeting（即時會議）** 選擇模型及系統音訊來源。
-3. 如需收錄自己的聲音，啟用 **Include microphone** 並選擇麥克風。
-4. 展開 **Details**，選擇後端及字幕預覽間隔。
-5. 按下 **Start meeting** 開始；所有頁面均可使用 **Stop current task** 停止工作。
-
-全新設定預設使用 faster-whisper，在 CPU 上執行 Whisper small。支援 NVIDIA CUDA 的電腦可在 Details 選擇 whisper.cpp CUDA 後端；Whisper large-v3-turbo 是可另外下載的 CUDA 即時模型。Whisper base 透過現有的 Vulkan loopback 後端使用。
-
-首次設定可能需要下載相依套件及模型。安裝後，辨識使用本機模型，不會呼叫雲端 ASR 服務。程序正在執行不代表已收到音訊，請查看字幕及程序日誌確認。
-
-亦可下載 [portable 版本](https://github.com/kuchris/local-meeting-stt/releases)。已發佈的安裝包可能比目前原始碼舊。根目錄的 `open_electron_app.cmd` 會優先開啟現有的打包版本；如需執行目前 checkout 的程式碼，請使用上面的 `npm run dev`。
-
-### Rust 桌面版（預覽）
-
-`desktop/` 是以 Rust（[Tauri 2](https://tauri.app/)）重做的版本。視窗使用系統內建的 WebView2，而不是另外打包 Chromium；音訊裝置直接向 Windows 讀取；字幕更新時不會重繪整個頁面。它使用相同的後端及相同的 `settings.json`，需要的是 [Rust](https://rustup.rs/) 而不是 Node.js：
 
 ```powershell
 cd desktop\src-tauri
 cargo run
 ```
 
-亦可執行 `open_desktop_app.cmd`。改動內容、測試方法及 `build_portable_desktop.cmd` 打包方式請參閱 [desktop/README.md](desktop/README.md)。
+1. 開啟 **Settings（設定）**，檢查並下載所需檔案。
+2. 在 **Live（即時會議）** 選擇模型、後端及系統音訊來源。
+3. 如需收錄自己的聲音，開啟 **Include microphone** 並選擇麥克風。
+4. 如有需要，在同一面板調整字幕預覽間隔。
+5. 按下 **Start meeting** 開始；同一個按鈕可停止工作。標題列會在所有頁面顯示工作狀態及經過時間。
+
+全新設定預設使用 faster-whisper，在 CPU 上執行 Whisper small。支援 NVIDIA CUDA 的電腦可選擇 whisper.cpp CUDA 後端；Whisper large-v3-turbo 是可另外下載的 CUDA 即時模型。Whisper base 透過現有的 Vulkan loopback 後端使用。
+
+首次設定可能需要下載相依套件及模型。安裝後，辨識使用本機模型，不會呼叫雲端 ASR 服務。程序正在執行不代表已收到音訊，請查看字幕及程序日誌確認。
+
+亦可下載 [portable 版本](https://github.com/kuchris/local-meeting-stt/releases)。v0.3.0 及之前發佈的安裝包是舊版 Electron 應用程式。根目錄的 `open_desktop_app.cmd` 會優先開啟已建置的 release 版本，否則會建置並執行目前 checkout 的程式碼。
+
+舊版 Electron + React 介面保留在 [`electron` 分支](https://github.com/kuchris/local-meeting-stt/tree/electron)，兩者使用相同的後端及 `settings.json`。
 
 ## 功能頁面
 
 | 頁面 | 功能 |
 | --- | --- |
-| Live meeting | 大型即時字幕、模型及音訊控制、可選的 WAV 錄音，以及可收合的診斷資訊。 |
-| Record audio | 錄音供稍後轉錄，可設定錄音時限。 |
-| Recordings & transcripts | 選擇錄音或拖入音訊檔案，再選擇模型與後端。 |
-| Settings & models | 檢查／下載所需檔案，並設定輸出資料夾。 |
+| Live | 大型即時字幕，旁邊是模型、後端、音訊及 WAV 設定。 |
+| Record | 錄音供稍後轉錄，可設定錄音時限。 |
+| Recordings | 選擇錄音，或把音訊檔案拖放到視窗任何位置，再選擇模型與後端；錄音已有的逐字稿可一鍵開啟。 |
+| Settings | 外觀、語言及輸出資料夾；檢查／下載模型及執行檔。 |
 
 即時字幕可選 **Whisper small**、**Whisper large-v3-turbo**（CUDA）或 **Whisper base**。會後轉錄可選 **Whisper small** 或 **Qwen3-ASR 0.6B**。Qwen 目前用於檔案轉錄，不支援即時字幕。
 
@@ -89,13 +80,13 @@ cargo run
 
 ## 延遲與停止行為
 
-Whisper CPU／CUDA 即時會議會維持一個已載入模型的伺服器。Silero VAD 偵測句子邊界；未完句子預設每秒重新辨識一次，顯示可修訂預覽，偵測到停頓後再辨識整句並定稿。可在 Details 調整預覽間隔。推論忙碌時仍保留到達的音訊，可略過過期預覽，但會繼續處理已完成的句子及保存 WAV。會議結束時會釋放模型。獨立的 Vulkan loopback 串流仍使用其自身的收音與 VAD 行為。
+Whisper CPU／CUDA 即時會議會維持一個已載入模型的伺服器。Silero VAD 偵測句子邊界；未完句子預設每秒重新辨識一次，顯示可修訂預覽，偵測到停頓後再辨識整句並定稿。可在 Live 頁面調整預覽間隔。推論忙碌時仍保留到達的音訊，可略過過期預覽，但會繼續處理已完成的句子及保存 WAV。會議結束時會釋放模型。獨立的 Vulkan loopback 串流仍使用其自身的收音與 VAD 行為。
 
-Python 即時辨識／錄音工作最多有 10 秒停止擷取、關閉 WAV 並釋放模型程序。若未能退出，Electron 會終止整個程序樹。檔案轉錄及原生 loopback 工作採用強制終止。關閉應用程式時亦會等待清理。停止可能捨棄排隊中或未完整的字幕，亦可能中斷尚未完成的輸出；最終逐字稿請使用已儲存的錄音重新轉錄。
+Python 即時辨識／錄音工作最多有 10 秒停止擷取、關閉 WAV 並釋放模型程序。若未能退出，應用程式會終止整個程序樹。檔案轉錄及原生 loopback 工作採用強制終止。關閉應用程式時亦會等待清理。停止可能捨棄排隊中或未完整的字幕，亦可能中斷尚未完成的輸出；最終逐字稿請使用已儲存的錄音重新轉錄。
 
 Qwen 啟動器共用 `python_backend/qwen-requirements.txt`，包含 PyTorch 2.11／CUDA 12.8，支援 RTX 5070 Ti 等相容的 NVIDIA GPU。CPU 選項使用相同執行環境，但在 CPU 上推論。載入模型權重前會測試 GPU 運算核心；缺少本機模型時會顯示明確錯誤。
 
-詳見[後端診斷與實測](docs/backend-review.md)。公開音訊重播及原生 Electron 檢查已通過，但不能據此保證真實會議的辨識準確度或音訊擷取可靠性。
+詳見[後端診斷與實測](docs/backend-review.md)。公開音訊重播、舊版 Electron 的原生檢查，以及本版的檔案轉錄、停止及執行中關閉視窗檢查均已通過，但不能據此保證真實會議的辨識準確度或音訊擷取可靠性。
 
 新版 Whisper 即時字幕的同模型比較及限制見[公開音訊重播報告](docs/asr-benchmark/2026-09-23-live-whisper/REPORT.zh-TW.md)。
 
@@ -113,24 +104,25 @@ outputs/
 資料夾前綴因後端而異。轉錄會議資料夾內的 `audio.wav` 時，逐字稿會寫回同一資料夾；其他匯入音訊的逐字稿則寫入設定的輸出資料夾。
 
 - **Ctrl+O**：選擇要轉錄的音訊。
-- **Ctrl+B**：收合／展開側邊欄。
-- **View > Clear logs**：清除診斷日誌，保留字幕。
-- **Details**：查看後端輸出，調整即時後端及音訊分段設定。
+- **Ctrl+1** 至 **Ctrl+4**：切換頁面。
+- **Ctrl+L**：顯示／隱藏程序日誌（亦可按標題列的日誌按鈕）。
+- **Esc**：關閉程序日誌。
 
-`settings.json` 儲存介面語言（`ui.locale`）、會後轉錄後端（`post.kind`）、擷取裝置、即時模式及輸出偏好。沿用設定檔升級時會保留語言選擇；語言設定缺失或無效時使用英文。原始後端日誌、裝置名稱、檔名及逐字稿內容不會翻譯。
+`settings.json` 儲存介面語言（`ui.locale`）、主題（`ui.theme`）、會後轉錄後端（`post.kind`）、擷取裝置、即時模式及輸出偏好。沿用設定檔升級時會保留語言選擇；語言設定缺失或無效時使用英文。原始後端日誌、裝置名稱、檔名及逐字稿內容不會翻譯。
 
 ## 建置與驗證
 
 ```powershell
-cd electron_app
-npm run build
+cd desktop\src-tauri
+cargo test
+cargo clippy --all-targets
 ```
 
-請參閱 [Electron 開發與測試說明](electron_app/README.md)，了解 renderer 測試、三語版面檢查、原生設定／IPC 測試，以及後端生命週期與重播檢查。
+字幕一致性測試、音訊裝置檢查及原始碼結構請參閱 [desktop 開發與測試說明](desktop/README.md)。
 
-在專案根目錄執行 `build_portable_folder.cmd` 可建立資料夾式 portable 版本。每次建置會建立新的 `electron_app/dist/release-VERSION-ID/`，包含 portable 資料夾、帶版本號的 ZIP 及 `SHA256SUMS.txt`。套件包含執行檔、後端腳本、全新英文設定，以及本機可用的 Vulkan／OpenVINO 執行檔；不包含模型、Python 環境、快取或錄音。CPU／CUDA 執行檔可在 Settings & models 下載。
+在專案根目錄執行 `build_portable_folder.cmd` 可建立資料夾式 portable 版本。每次建置會建立新的 `desktop/dist/release-VERSION-ID/`，包含 portable 資料夾、帶版本號的 ZIP 及 `SHA256SUMS.txt`。套件包含執行檔、後端腳本、全新英文設定，以及本機可用的 Vulkan／OpenVINO 執行檔；不包含模型、Python 環境、快取或錄音。CPU／CUDA 執行檔可在 Settings 下載。
 
-從 [Releases](https://github.com/kuchris/local-meeting-stt/releases/latest) 下載後，將完整 ZIP 解壓到可寫入的資料夾，再執行 `Local Meeting STT.exe`；DLL 及資源資料夾必須保留在一起。請先安裝 [uv](https://docs.astral.sh/uv/getting-started/installation/) 並加入 PATH。打包版本不需要 Node.js/npm。首次使用需要網路下載 Python 相依套件及模型。升級時請解壓到另一個資料夾，再按需要複製模型及錄音。Windows 版本未經程式碼簽署。
+從 [Releases](https://github.com/kuchris/local-meeting-stt/releases/latest) 下載後，將完整 ZIP 解壓到可寫入的資料夾，再執行 `Local Meeting STT.exe`；後端資料夾必須與執行檔放在一起。請先安裝 [uv](https://docs.astral.sh/uv/getting-started/installation/) 並加入 PATH。視窗需要 WebView2 執行環境，Windows 11 已內建。首次使用需要網路下載 Python 相依套件及模型。升級時請解壓到另一個資料夾，再按需要複製模型及錄音。Windows 版本未經程式碼簽署。
 
 命令列流程及後端目錄結構請參閱 [TECHNICAL.md](TECHNICAL.md)。
 

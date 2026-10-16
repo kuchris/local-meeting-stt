@@ -20,7 +20,7 @@ audio through speaker/headset loopback, with optional microphone mixing.
 Recordings and recognition stay on your computer.
 
 **English is the default interface language.** Switch to Traditional Chinese or
-Japanese in the title bar. The app remembers your choice. Interface language is
+Japanese in Settings. The app remembers your choice. Interface language is
 separate from recognition language: the supplied workflows recognize Japanese.
 
 ![English meeting interface](docs/meeting-ui.png)
@@ -29,26 +29,29 @@ separate from recognition language: the supplied workflows recognize Japanese.
 
 ## Get started
 
-Requirements for running from source:
+The app is a Rust ([Tauri 2](https://tauri.app/)) shell around Python and
+whisper.cpp backends. Its window uses the system WebView2, so no browser engine
+is bundled. Requirements for running from source:
 
-- Windows, Node.js/npm, and [uv](https://docs.astral.sh/uv/).
+- Windows 10/11 with the WebView2 runtime (built into Windows 11).
+- [Rust](https://rustup.rs/) with the MSVC toolchain, and [uv](https://docs.astral.sh/uv/).
 - Local model files and the runtime for your selected backend.
 - An NVIDIA GPU for CUDA; other backends have their own hardware requirements.
 
 ```powershell
-cd electron_app
-npm ci
-npm run dev
+cd desktop\src-tauri
+cargo run
 ```
 
-1. Open **Settings & models** and check/download the files you need.
-2. In **Live meeting**, select a model and your system audio source.
-3. Optionally enable **Include microphone** and select the microphone.
-4. Open **Details** to choose a backend and caption preview interval.
-5. Select **Start meeting**. **Stop current task** remains available on every page.
+1. Open **Settings** and check/download the files you need.
+2. On **Live**, select a model, a backend and your system audio source.
+3. Optionally turn on **Include microphone** and select the microphone.
+4. Adjust the caption preview interval in the same panel if needed.
+5. Select **Start meeting**; the same button stops the task. The title bar shows
+   the task's status and elapsed time on every page.
 
 A fresh configuration uses Whisper small with faster-whisper on CPU. For a
-compatible NVIDIA system, select the whisper.cpp CUDA backend in Details.
+compatible NVIDIA system, select the whisper.cpp CUDA backend.
 Whisper large-v3-turbo is an optional CUDA live model; download it in Settings &
 models first. Whisper base uses the existing Vulkan loopback backend.
 
@@ -57,18 +60,21 @@ recognition uses local models rather than a cloud ASR service. A running process
 is not proof that audio is arriving; check the transcript and process log.
 
 [Portable releases](https://github.com/kuchris/local-meeting-stt/releases) are also
-available. Published packages may predate the current source interface. The root
-`open_electron_app.cmd` launcher opens an existing packaged app when present;
-use `npm run dev` above to try your current checkout.
+available. Published packages up to v0.3.0 are the earlier Electron app. The root
+`open_desktop_app.cmd` launcher opens a release build when present and otherwise
+builds and runs your current checkout.
+
+The earlier Electron + React version is kept on the
+[`electron` branch](https://github.com/kuchris/local-meeting-stt/tree/electron). Both use the same backends and `settings.json`.
 
 ## Pages
 
 | Page | What it does |
 | --- | --- |
-| Live meeting | Large live transcript, model/audio controls, optional WAV recording, and collapsible diagnostics. |
-| Record audio | Save audio for later transcription, with optional duration limit. |
-| Recordings & transcripts | Choose a recording or drop an audio file, then select a model and backend. |
-| Settings & models | Inspect/download assets and set the output folder. |
+| Live | Large live transcript beside the model, backend, audio and WAV controls. |
+| Record | Save audio for later transcription, with an optional duration limit. |
+| Recordings | Choose a recording or drop an audio file anywhere in the window, then select a model and backend. A recording's existing transcripts open in one click. |
+| Settings | Appearance, language and output folder; inspect/download models and runtimes. |
 
 The live model choices are **Whisper small**, **Whisper large-v3-turbo** (CUDA),
 and **Whisper base**. Post-meeting
@@ -103,13 +109,13 @@ OpenVINO runtimes are local/release artifacts rather than normal model downloads
 Whisper CPU/CUDA live sessions keep one model server running for the meeting.
 Silero VAD finds utterance boundaries. An unfinished utterance is re-transcribed
 for revisable previews every second by default; a pause triggers a final pass
-over the utterance. Change the preview interval in Details. Capture keeps all
+over the utterance. Change the preview interval on the Live page. Capture keeps all
 arriving audio even when inference is busy; stale previews may be skipped while
 completed utterances and WAV recording continue. The model is released at session end.
 The standalone Vulkan loopback stream retains its own capture and VAD behavior.
 
 Python live/record jobs get up to 10 seconds to stop capture, close their WAV,
-and release the model worker. If they do not exit, Electron terminates the process
+and release the model worker. If they do not exit, the app terminates the process
 tree. File transcription and native loopback jobs use forced termination.
 Closing the app also waits for cleanup. Stopping may omit queued/partial captions
 or interrupt unfinished output; use the saved recording for final transcription.
@@ -120,8 +126,9 @@ The CPU option uses the same runtime with CPU inference. A GPU kernel check runs
 before loading weights, and missing local models produce an explicit error.
 
 See [backend diagnosis and measured checks](docs/backend-review.md). Public-file
-replays and native Electron checks have passed; they do not establish accuracy
-or capture reliability in a real meeting.
+replays and native checks of the earlier Electron app have passed, as have this
+app's file transcription, stop and close-while-running checks; they do not
+establish accuracy or capture reliability in a real meeting.
 
 ## Saved files and controls
 
@@ -139,11 +146,11 @@ writes the transcript into that session folder. Other imported audio writes its
 transcript to the configured output folder.
 
 - **Ctrl+O**: choose audio for transcription.
-- **Ctrl+B**: collapse/expand the sidebar.
-- **View > Clear logs**: clear diagnostics while keeping captions.
-- **Details**: inspect backend output and change live backend/chunk settings.
+- **Ctrl+1** to **Ctrl+4**: switch pages.
+- **Ctrl+L**: show or hide the process log (also the log button in the title bar).
+- **Esc**: close the process log.
 
-`settings.json` stores the display language (`ui.locale`), post backend
+`settings.json` stores the display language (`ui.locale`), theme (`ui.theme`), post backend
 (`post.kind`), capture devices, live mode, and output preferences. Saved language
 choices are retained when upgrading; missing/invalid language settings use English.
 Raw backend logs, device names, filenames, and transcript text are not translated.
@@ -151,26 +158,26 @@ Raw backend logs, device names, filenames, and transcript text are not translate
 ## Build and verification
 
 ```powershell
-cd electron_app
-npm run build
+cd desktop\src-tauri
+cargo test
+cargo clippy --all-targets
 ```
 
-See [Electron development and test instructions](electron_app/README.md) for
-renderer tests, three-language layout checks, native settings/IPC tests, and
-backend lifecycle/replay checks.
+See [desktop development and test instructions](desktop/README.md) for the
+caption parity fixture, the audio-device check and the source layout.
 
 To build a folder-style portable app, run `build_portable_folder.cmd` from the
-repository root. Each build creates a fresh `electron_app/dist/release-VERSION-ID/`
+repository root. Each build creates a fresh `desktop/dist/release-VERSION-ID/`
 directory with a portable folder, versioned ZIP, and `SHA256SUMS.txt`. The package
 contains the executable, backend scripts, clean English settings, and available
 Vulkan/OpenVINO runtimes. Models, Python environments, caches, and recordings are
-excluded. CPU/CUDA runtimes can be downloaded in Settings & models.
+excluded. CPU/CUDA runtimes can be downloaded in Settings.
 
 Download packaged builds from [Releases](https://github.com/kuchris/local-meeting-stt/releases/latest).
 Extract the whole ZIP into a writable folder and run `Local Meeting STT.exe`;
-keep its DLLs and resource folders together. Install
+keep the backend folders beside it. Install
 [uv](https://docs.astral.sh/uv/getting-started/installation/) on PATH first.
-Node.js/npm is not needed to run the package. First use requires internet to
+The window needs the WebView2 runtime, which Windows 11 includes. First use requires internet to
 install Python dependencies and download models. Extract upgrades into a separate
 folder, then copy your models and recordings as needed. Windows builds are unsigned.
 

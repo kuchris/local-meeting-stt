@@ -18,7 +18,7 @@ whisper_cpp/bin_vulkan_loopback/Release/whisper-stream-loopback.exe
 Primary use case:
 
 ```text
-Windows output-device audio -> WASAPI loopback -> whisper.cpp Vulkan -> Electron live transcript
+Windows output-device audio -> WASAPI loopback -> whisper.cpp Vulkan -> desktop app live transcript
 ```
 
 ## Component Contract
@@ -28,11 +28,11 @@ The loopback executable is responsible for:
 - Enumerating Windows render/output devices.
 - Capturing audio from the selected render device through WASAPI loopback.
 - Running `whisper.cpp` inference with Vulkan enabled.
-- Emitting transcript text to stdout for the Electron process log and live view.
+- Emitting transcript text to stdout for the app's process log and live view.
 - Writing final transcript lines to the `-f` output file.
 - Applying local suppression for common live hallucinations and degenerate repetition loops.
 
-The Electron app is responsible for:
+The desktop app is responsible for:
 
 - Launching the correct `.cmd` wrapper.
 - Passing the timestamped output file path through `-f`.
@@ -82,7 +82,7 @@ Git and rebuild or copy it locally when needed.
 
 ## Runtime Launchers
 
-The Electron UI exposes two Vulkan loopback launchers:
+The desktop app exposes two Vulkan loopback launchers:
 
 ```text
 whisper_cpp/stream_cpp_vulkan_loopback_base.cmd
@@ -147,7 +147,7 @@ The executable writes transcript lines to the `-f` file with wall-clock timestam
 [15:04:12] transcript text
 ```
 
-The Electron renderer also timestamps displayed Process log and Live transcript lines.
+The desktop app also timestamps displayed Process log and Live transcript lines.
 The GUI timestamp and file timestamp are generated independently, so a one-second
 difference is normal.
 
@@ -250,11 +250,11 @@ ggml_vulkan: 0 = Intel(R) RaptorLake-S Mobile Graphics Controller
 -m FNAME        [models\ggml-base.bin]
 ```
 
-### Step 6: Build The Electron App
+### Step 6: Build The Desktop App
 
 ```powershell
-cd electron_app
-npm run build
+cd desktop\src-tauri
+cargo build --release
 ```
 
 Or build the portable folder from the repo root:
@@ -309,16 +309,12 @@ Expected model:
 If both NVIDIA and Intel Vulkan devices appear, the wrapper is not constraining
 `GGML_VK_VISIBLE_DEVICES` as expected.
 
-## Electron Integration
+## Desktop App Integration
 
-Renderer buttons:
+On the Live page, choose **Whisper base** or **Whisper small** with the
+**Vulkan loopback** backend.
 
-```text
-CPP Vulkan LB Base
-CPP Vulkan LB Small
-```
-
-Electron command kinds:
+Command kinds:
 
 ```text
 live-cpp-stream-loopback-base

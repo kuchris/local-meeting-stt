@@ -1,6 +1,6 @@
 //! Turns a live backend's stdout into caption lines.
 //!
-//! Ported from the Electron renderer so the UI only applies small updates: each
+//! Ported from the Electron renderer (`electron` branch) so the UI only applies small updates: each
 //! update says from which line the transcript changed, and what the unfinished
 //! (partial) caption now reads.
 //!
@@ -530,7 +530,7 @@ mod tests {
     }
 
     /// The fixture's `expected` was produced by running the Electron renderer's
-    /// own caption functions (electron_app/src/main.tsx) on the same steps.
+    /// own caption functions (electron_app/src/main.tsx on the `electron` branch) on the same steps.
     #[test]
     fn matches_the_electron_renderer() {
         let cases: Vec<ParityCase> = serde_json::from_str(include_str!("../fixtures/caption_parity.json")).unwrap();

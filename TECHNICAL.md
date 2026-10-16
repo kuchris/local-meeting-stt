@@ -1,23 +1,23 @@
 # Technical Notes
 
-This file documents the backend scripts and local asset layout behind the Electron app.
+This file documents the backend scripts and local asset layout behind the desktop app.
+The earlier Electron app lives on the `electron` branch.
 
 ## Folder Layout
 
 ```text
-electron_app/       Electron + React + Vite desktop app
-desktop/           Rust (Tauri 2) desktop app with the same backends; see desktop/README.md
+desktop/           Rust (Tauri 2) desktop app; see desktop/README.md
 python_backend/    Python scripts and Windows .cmd wrappers
 whisper_cpp/       whisper.cpp runtimes, models, wrappers, and output
 test/              demo audio, demo transcripts, and drag/drop test .bat files
 recordings/        generated meeting recordings
-outputs/           Electron app output folder for recordings and transcripts
+outputs/           app output folder for recordings and transcripts
 models/            faster-whisper and Qwen model folders
-runtime/           portable/local runtime data, uv cache, venv, and Electron user data
+runtime/           portable/local runtime data, uv cache, venv, and WebView2 data
 settings.json      portable/local UI and output settings
 ```
 
-Ignored local folders include `models/`, `outputs/`, `recordings/`, `runtime/`, `whisper_cpp/bin_cpu/`, `whisper_cpp/bin_cuda/`, `whisper_cpp/bin_vulkan/`, `whisper_cpp/models/`, `whisper_cpp/output/`, `electron_app/node_modules/`, `electron_app/out/`, and Electron build output folders.
+Ignored local folders include `models/`, `outputs/`, `recordings/`, `runtime/`, `whisper_cpp/bin_cpu/`, `whisper_cpp/bin_cuda/`, `whisper_cpp/bin_vulkan/`, `whisper_cpp/models/`, `whisper_cpp/output/`, and the Rust build output under `desktop/src-tauri/target/` and `desktop/dist/`.
 
 `whisper_cpp/bin_openvino/` is intentionally not ignored in this repo so the OpenVINO NPU/GPU runtime can be shipped with the app. `whisper_cpp/build_openvino/` is a local CMake build tree and should not be needed for normal users.
 
@@ -38,12 +38,11 @@ The `.cmd` wrappers run these scripts through `uv` with temporary dependencies.
 
 ## Main Commands
 
-Start the Electron app:
+Start the desktop app:
 
 ```powershell
-cd electron_app
-npm install
-npm run dev
+cd desktop\src-tauri
+cargo run
 ```
 
 Live meeting mode:
@@ -141,7 +140,7 @@ whisper_cpp/
 Do not commit model files to normal Git history. Use releases, external storage, or Git LFS if distribution is needed later.
 
 `bin_cpu/`, `bin_cuda/`, and the ggml models can be downloaded by the asset downloader.
-`bin_vulkan/` and `bin_vulkan_loopback/` are local build artifacts. The Setup tab
+`bin_vulkan/` and `bin_vulkan_loopback/` are local build artifacts. The Settings page
 checks whether they exist, but it does not download them. Build or copy them locally
 before using `CPP Vulkan`, `CPP Vulkan LB Base`, or `CPP Vulkan LB Small`.
 
@@ -154,7 +153,7 @@ whisper_cpp/models/ggml-small-encoder-openvino.xml
 whisper_cpp/models/ggml-small-encoder-openvino.bin
 ```
 
-The Electron Setup tab uses the same downloader. Per-asset downloads are launched independently and report `ASSET_PROGRESS` lines for row progress. whisper.cpp zip/model downloads use resumable `.part` files where possible. Hugging Face snapshot model folders may still report stage-style progress.
+The Settings page uses the same downloader. Per-asset downloads are launched independently and report `ASSET_PROGRESS` lines for row progress. whisper.cpp zip/model downloads use resumable `.part` files where possible. Hugging Face snapshot model folders may still report stage-style progress.
 
 ## whisper.cpp
 
@@ -203,7 +202,7 @@ It captures the Windows output device through WASAPI loopback and supports:
 --save-wav path\to\audio.wav
 ```
 
-The Electron loopback live buttons pass both `-f live_transcript.txt` and
+The app's loopback live modes pass both `-f live_transcript.txt` and
 `--save-wav audio.wav`, so loopback live sessions can be post-transcribed later.
 
 No-sound whisper.cpp CPU file test:
@@ -225,7 +224,7 @@ OpenVINO post-transcription uses small model settings optimized for this repo:
 -oved NPU/GPU -t 8 -bs 1 -bo 1 -nf -nt -np
 ```
 
-The Electron app repairs WAV headers before post-transcription for whisper.cpp and
+The app repairs WAV headers before post-transcription for whisper.cpp and
 Qwen jobs. This helps with live recordings whose RIFF/data sizes were not finalized
 before the post command starts:
 
@@ -233,11 +232,13 @@ before the post command starts:
 repair_wav_header.cmd outputs\some_session\audio.wav
 ```
 
-## Electron Build Check
+## Desktop Build Check
 
 ```powershell
-cd electron_app
-npm run build
+cd desktop\src-tauri
+cargo test
+cargo clippy --all-targets
+cargo build --release
 ```
 
 ## Portable Folder Build
@@ -251,7 +252,7 @@ build_portable_folder.cmd
 This writes:
 
 ```text
-electron_app/dist/Local Meeting STT portable/
+desktop/dist/release-VERSION-ID/Local Meeting STT portable/
   Local Meeting STT.exe
   settings.json
   README.txt
@@ -262,7 +263,7 @@ electron_app/dist/Local Meeting STT portable/
   runtime/
 ```
 
-The portable folder copies backend scripts but does not bundle model files or Python packages. Models can be downloaded from the Setup tab into the portable folder. `runtime/uv-cache`, `runtime/venv`, and `runtime/electron-user-data` are local machine state.
+The portable folder copies backend scripts but does not bundle model files or Python packages. Models can be downloaded from the Settings page into the portable folder. `runtime/uv-cache`, `runtime/venv`, and `runtime/webview-data` are local machine state.
 
 When present, the portable folder also copies:
 
@@ -275,7 +276,7 @@ whisper_cpp/bin_openvino/
 The release zip is built from the folder-style portable package and uploaded to the
 GitHub Release page for the matching tag.
 
-The Electron main process uses two roots:
+The app (`desktop/src-tauri/src/paths.rs`) uses two roots:
 
 - code root: folder containing `python_backend/record_audio.py`
 - data root: folder beside the portable exe when it contains `settings.json`; otherwise the repo root
