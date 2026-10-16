@@ -1,0 +1,179 @@
+[
+  {
+    "name": "utterances with revisable previews",
+    "loopback": false,
+    "steps": [
+      "@@PARTIAL\t本日は",
+      "@@PARTIAL\t本日は お忙しい中",
+      "@@FINAL\t本日はお忙しい中お集まりいただきありがとうございます。",
+      "@@PARTIAL\tまず",
+      "@@FINAL\tまず 予算 について 説明します 。",
+      "@@PARTIAL\t",
+      "@@FINAL\tご視聴ありがとうございました",
+      "@@FINAL\t。",
+      "@@FINAL\tはいはいはいはいはい、そうです",
+      "@@PARTIAL\t次に スケジュール"
+    ],
+    "expected": {
+      "lines": [
+        "[10:00:02] 本日はお忙しい中お集まりいただきありがとうございます。",
+        "[10:00:04] まず予算について説明します。",
+        "[10:00:08] はい、そうです"
+      ],
+      "partial": "[10:00:09] 次にスケジュール"
+    }
+  },
+  {
+    "name": "hallucinated and degenerate finals",
+    "loopback": false,
+    "steps": [
+      "@@FINAL\t（拍手）",
+      "@@FINAL\t[音楽]",
+      "@@FINAL\tチャンネル登録お願いします",
+      "@@FINAL\t   ",
+      "@@FINAL\tありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとうありがとう",
+      "@@FINAL\t以上です。"
+    ],
+    "expected": {
+      "lines": [
+        "[10:00:05] 以上です。"
+      ],
+      "partial": ""
+    }
+  },
+  {
+    "name": "stamped lines from older scripts",
+    "loopback": false,
+    "steps": [
+      "[09:59:58] こんにちは",
+      "[09:59:58] こんにちは",
+      "[09:59:59] 今日は 良い 天気 です",
+      "Loading model ggml-small.bin",
+      "[10:00:01] （拍手）",
+      "  [10:00:02]   では   始めます  "
+    ],
+    "expected": {
+      "lines": [
+        "[09:59:58] こんにちは",
+        "[09:59:59] 今日は良い天気です",
+        "[10:00:01] （拍手）",
+        "[10:00:02] では始めます"
+      ],
+      "partial": ""
+    }
+  },
+  {
+    "name": "transcript and recording paths",
+    "loopback": false,
+    "steps": [
+      "Transcript: outputs\\cpp_live_1\\live_transcript.txt",
+      "Recording: outputs\\cpp_live_1\\audio.wav",
+      "@@FINAL\tテストです。"
+    ],
+    "expected": {
+      "lines": [
+        "[10:00:02] テストです。"
+      ],
+      "partial": ""
+    }
+  },
+  {
+    "name": "loopback sliding hypotheses",
+    "loopback": true,
+    "steps": [
+      "今日の会議を",
+      "今日の会議を始めます",
+      "会議を始めます",
+      "始めます。まず予算について",
+      "まず予算について話します。",
+      "[音楽]",
+      "えーと",
+      "えーとえーとえーとえーとえーと",
+      "次の議題はスケジュールです",
+      "スケジュールです。以上です。"
+    ],
+    "expected": {
+      "lines": [
+        "[10:00:09] スケジュールです。以上です。"
+      ],
+      "partial": ""
+    }
+  },
+  {
+    "name": "loopback control lines",
+    "loopback": true,
+    "steps": [
+      "@@PARTIAL\tはい",
+      "@@FINAL\tはい、わかりました。",
+      "@@FINAL\tわかりました。では始めましょう。",
+      "@@PARTIAL\tでは"
+    ],
+    "expected": {
+      "lines": [
+        "[10:00:02] わかりました。では始めましょう。"
+      ],
+      "partial": "[10:00:03] では"
+    }
+  },
+  {
+    "name": "loopback short tokens",
+    "loopback": true,
+    "steps": [
+      "あ",
+      "あい",
+      "う",
+      "えお",
+      "かきくけこ",
+      "こさしすせ"
+    ],
+    "expected": {
+      "lines": [
+        "[10:00:04] かきくけこ",
+        "[10:00:05] こさしすせ"
+      ],
+      "partial": ""
+    }
+  },
+  {
+    "name": "loopback lookback of four lines",
+    "loopback": true,
+    "steps": [
+      "一つ目の文です",
+      "二つ目の話題に移ります",
+      "三つ目は予算",
+      "四つ目はスケジュール",
+      "五つ目は人事について",
+      "三つ目は予算四つ目はスケジュール五つ目は人事について六つ目",
+      "まったく別の話をします",
+      "全然 関係 ない 内容 です"
+    ],
+    "expected": {
+      "lines": [
+        "[10:00:00] 一つ目の文です",
+        "[10:00:05] 三つ目は予算四つ目はスケジュール五つ目は人事について六つ目",
+        "[10:00:06] まったく別の話をします",
+        "[10:00:07] 全然関係ない内容です"
+      ],
+      "partial": ""
+    }
+  },
+  {
+    "name": "loopback english and punctuation",
+    "loopback": true,
+    "steps": [
+      "OK, let's start.",
+      "OK, let's start the meeting.",
+      "Thanks!",
+      "?!",
+      "The budget is ten million yen."
+    ],
+    "expected": {
+      "lines": [
+        "[10:00:01] OK, let's start the meeting.",
+        "[10:00:02] Thanks!",
+        "[10:00:04] The budget is ten million yen."
+      ],
+      "partial": ""
+    }
+  }
+]

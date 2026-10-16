@@ -48,6 +48,17 @@ npm run dev
 
 亦可下載 [portable 版本](https://github.com/kuchris/local-meeting-stt/releases)。已發佈的安裝包可能比目前原始碼舊。根目錄的 `open_electron_app.cmd` 會優先開啟現有的打包版本；如需執行目前 checkout 的程式碼，請使用上面的 `npm run dev`。
 
+### Rust 桌面版（預覽）
+
+`desktop/` 是以 Rust（[Tauri 2](https://tauri.app/)）重做的版本。視窗使用系統內建的 WebView2，而不是另外打包 Chromium；音訊裝置直接向 Windows 讀取；字幕更新時不會重繪整個頁面。它使用相同的後端及相同的 `settings.json`，需要的是 [Rust](https://rustup.rs/) 而不是 Node.js：
+
+```powershell
+cd desktop\src-tauri
+cargo run
+```
+
+亦可執行 `open_desktop_app.cmd`。改動內容、測試方法及 `build_portable_desktop.cmd` 打包方式請參閱 [desktop/README.md](desktop/README.md)。
+
 ## 功能頁面
 
 | 頁面 | 功能 |

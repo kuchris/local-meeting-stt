@@ -48,6 +48,17 @@ npm run dev
 
 [ポータブル版](https://github.com/kuchris/local-meeting-stt/releases)も利用できます。公開済みパッケージは最新ソースより古い場合があります。ルートの `open_electron_app.cmd` は既存のパッケージ版があればそちらを開きます。現在の checkout を試す場合は、上記の `npm run dev` を使用してください。
 
+### Rust デスクトップ版（プレビュー）
+
+`desktop/` は Rust（[Tauri 2](https://tauri.app/)）で作り直した版です。ウィンドウは Chromium を同梱せずシステムの WebView2 を使い、音声デバイスは Windows から直接読み取り、字幕の更新でページ全体を再描画しません。同じバックエンドと同じ `settings.json` を使い、Node.js の代わりに [Rust](https://rustup.rs/) が必要です：
+
+```powershell
+cd desktop\src-tauri
+cargo run
+```
+
+`open_desktop_app.cmd` からも起動できます。変更点、テスト、`build_portable_desktop.cmd` によるパッケージ作成は [desktop/README.md](desktop/README.md) を参照してください。
+
 ## 画面構成
 
 | ページ | 機能 |

@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local Meeting STT</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css">
+  <script src="boot.js"></script>
+</head>
+<body>
+  <header class="titlebar" data-tauri-drag-region>
+    <div class="brand" data-tauri-drag-region>
+      <img src="icon.svg" alt="">
+      <span data-tauri-drag-region>Local Meeting STT</span>
+    </div>
+    <nav class="seg tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="live" data-i18n="tab.live"></button>
+      <button role="tab" data-tab="record" data-i18n="tab.record"></button>
+      <button role="tab" data-tab="recordings" data-i18n="tab.recordings"></button>
+      <button role="tab" data-tab="settings" data-i18n="tab.settings"></button>
+    </nav>
+    <div class="title-actions" data-tauri-drag-region>
+      <span class="status-chip" id="status-chip" role="status"><i class="dot"></i><span id="status-text"></span><time id="status-clock" hidden></time></span>
+      <button class="icon-btn" id="log-toggle" data-i18n-title="Process log" aria-pressed="false">
+        <svg class="icon" viewBox="0 0 16 16"><path d="M3 3.5h10M3 6.5h10M3 9.5h7M3 12.5h5"/></svg>
+      </button>
+      <div class="win-controls">
+        <button id="win-min" data-i18n-title="Minimize"><svg viewBox="0 0 10 10"><path d="M0 5h10"/></svg></button>
+        <button id="win-max" data-i18n-title="Maximize"><svg viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9"/></svg></button>
+        <button id="win-close" class="close" data-i18n-title="Close"><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10"/></svg></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" role="alert" hidden>
+    <span id="banner-text"></span>
+    <button id="banner-log" data-i18n="View log"></button>
+    <button id="banner-close" data-i18n-title="關閉錯誤提示">×</button>
+  </div>
+
+  <main>
+    <!-- Live meeting -->
+    <section class="page fill" id="page-live" data-page="live">
+      <p class="intro" data-i18n="live.intro"></p>
+      <div class="live-grid">
+        <article class="card transcript-card">
+          <header class="card-head">
+            <div class="title"><strong data-i18n="即時字幕"></strong><small data-i18n="／ 日本語"></small></div>
+            <label class="inline-switch"><input type="checkbox" class="switch" id="follow" checked><span data-i18n="跟隨最新字幕"></span></label>
+          </header>
+          <div class="transcript" id="transcript" lang="ja">
+            <p class="empty" id="transcript-empty" data-i18n="確認音源後開始會議，字幕會顯示在這裡。"></p>
+            <div id="caption-lines"></div>
+            <div class="cap partial" id="caption-partial" hidden><time></time><p></p><small data-i18n="辨識中 · 文字仍可能修訂"></small></div>
+          </div>
+          <footer class="card-foot">
+            <span class="path" id="transcript-path"></span>
+            <button class="link" id="open-transcript" data-i18n="開啟逐字稿" hidden></button>
+          </footer>
+        </article>
+
+        <aside class="live-side">
+          <div>
+            <button class="btn primary big" id="live-start"></button>
+            <p class="job-hint" hidden></p>
+          </div>
+          <div class="card list">
+            <div class="row">
+              <div class="row-main"><strong data-i18n="辨識模型"></strong></div>
+              <select class="pill" id="live-model">
+                <option value="small">Whisper small</option>
+                <option value="turbo">Whisper large-v3-turbo</option>
+                <option value="base">Whisper base</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="row-main"><strong data-i18n="執行後端"></strong></div>
+              <select class="pill" id="live-backend"></select>
+            </div>
+            <div class="row" data-capture="system">
+              <div class="row-main"><strong data-i18n="系統音源"></strong><small data-capture-note></small></div>
+              <div class="row-ctl">
+                <select class="pill" data-capture-select="system"></select>
+                <button class="icon-btn" data-refresh-devices data-i18n-title="重新整理音訊裝置"><svg class="icon" viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.6-3.7M13 2.8v2.6h-2.6"/></svg></button>
+              </div>
+            </div>
+            <div class="row" data-capture="include-mic">
+              <div class="row-main"><strong data-i18n="包含麥克風"></strong><small data-i18n="Mix your microphone into the capture"></small></div>
+              <input type="checkbox" class="switch" data-capture-mic-toggle>
+            </div>
+            <div class="row" data-capture="mic">
+              <div class="row-main"><strong data-i18n="麥克風"></strong></div>
+              <select class="pill" data-capture-select="mic"></select>
+            </div>
+            <div class="row" id="live-wav-row">
+              <div class="row-main"><strong data-i18n="儲存 WAV"></strong><small id="live-wav-note"></small></div>
+              <input type="checkbox" class="switch" id="live-save-wav">
+            </div>
+            <div class="row" id="live-preview-row">
+              <div class="row-main"><strong data-i18n="字幕預覽間隔（秒）"></strong><small id="live-preview-note"></small></div>
+              <input class="pill number" id="live-preview" type="number" min="0.5" max="5" step="0.5" data-i18n-title="字幕預覽間隔秒數">
+            </div>
+          </div>
+          <p class="notice" data-capture-error hidden></p>
+          <div class="notice" id="live-assets-notice" hidden>
+            <span id="live-assets-text"></span>
+            <button class="link" id="live-manage-assets" data-i18n="管理模型與後端"></button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Record only -->
+    <section class="page narrow" id="page-record" data-page="record" hidden>
+      <div class="card record-hero">
+        <div class="rec-indicator" id="rec-indicator"><span class="rec-dot"></span><time id="rec-clock">00:00</time></div>
+        <h2 id="record-title"></h2>
+        <p data-i18n="record.intro"></p>
+        <button class="btn primary big" id="record-start"></button>
+        <p class="job-hint" hidden></p>
+      </div>
+      <div class="card list">
+        <div class="row" data-capture="system">
+          <div class="row-main"><strong data-i18n="系統音源"></strong><small data-capture-note></small></div>
+          <div class="row-ctl">
+            <select class="pill" data-capture-select="system"></select>
+            <button class="icon-btn" data-refresh-devices data-i18n-title="重新整理音訊裝置"><svg class="icon" viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.6-3.7M13 2.8v2.6h-2.6"/></svg></button>
+          </div>
+        </div>
+        <div class="row" data-capture="include-mic">
+          <div class="row-main"><strong data-i18n="包含麥克風"></strong><small data-i18n="Mix your microphone into the capture"></small></div>
+          <input type="checkbox" class="switch" data-capture-mic-toggle>
+        </div>
+        <div class="row" data-capture="mic">
+          <div class="row-main"><strong data-i18n="麥克風"></strong></div>
+          <select class="pill" data-capture-select="mic"></select>
+        </div>
+        <div class="row">
+          <div class="row-main"><strong data-i18n="設定錄音時限"></strong><small data-i18n="Stop after a set number of seconds"></small></div>
+          <div class="row-ctl">
+            <input class="pill number" id="record-seconds" type="number" min="1" data-i18n-title="錄音秒數">
+            <input type="checkbox" class="switch" id="record-timed">
+          </div>
+        </div>
+        <div class="row">
+          <div class="row-main"><strong data-i18n="輸出資料夾"></strong><small class="mono selectable" id="record-output"></small></div>
+          <button class="btn text" data-open-output data-i18n="Open"></button>
+        </div>
+      </div>
+      <p class="notice" data-capture-error hidden style="margin-top: 12px"></p>
+    </section>
+
+    <!-- Recordings & transcripts -->
+    <section class="page fill" id="page-recordings" data-page="recordings" hidden>
+      <p class="intro" data-i18n="recordings.intro"></p>
+      <div class="rec-grid">
+        <article class="card session-card">
+          <header class="card-head">
+            <div class="title"><strong data-i18n="錄音列表"></strong><small id="session-count"></small></div>
+            <button class="icon-btn" id="refresh-sessions" data-i18n-title="Refresh sessions"><svg class="icon" viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.6-3.7M13 2.8v2.6h-2.6"/></svg></button>
+          </header>
+          <div class="session-list" id="session-list" role="listbox"></div>
+          <div class="dropzone" id="dropzone">
+            <span id="dropzone-text" data-i18n="Drop an audio file anywhere"></span> ·
+            <button class="link" id="pick-audio" data-i18n="Choose a file…"></button>
+          </div>
+        </article>
+
+        <article class="card detail-card">
+          <div class="detail-head">
+            <div class="row-main"><strong id="selected-name"></strong><small id="selected-path"></small></div>
+            <button class="icon-btn" id="open-session-folder" data-i18n-title="Open session folder"><svg class="icon" viewBox="0 0 16 16"><path d="M2 4.5h4l1.5 1.5H14v6.5a1 1 0 0 1-1 1H2z"/><path d="M8.5 10.5l3-3M9 7.5h2.5V10"/></svg></button>
+          </div>
+          <div class="detail-body list">
+            <div class="row" id="transcripts-row" hidden>
+              <div class="row-main"><strong data-i18n="Transcripts"></strong></div>
+              <div class="transcript-files" id="transcript-files"></div>
+            </div>
+            <div class="row">
+              <div class="row-main"><strong data-i18n="辨識模型"></strong></div>
+              <select class="pill" id="post-model">
+                <option value="small">Whisper small</option>
+                <option value="qwen">Qwen3-ASR 0.6B</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="row-main"><strong data-i18n="執行後端"></strong></div>
+              <select class="pill" id="post-backend"></select>
+            </div>
+            <div class="row" data-qwen>
+              <div class="row-main"><strong data-i18n="Qwen chunk seconds"></strong></div>
+              <input class="pill number" id="qwen-chunk" type="number" min="10">
+            </div>
+            <div class="row" data-qwen>
+              <div class="row-main"><strong data-i18n="Qwen max new tokens"></strong></div>
+              <input class="pill number" id="qwen-tokens" type="number" min="256">
+            </div>
+            <div class="row" data-qwen>
+              <div class="row-main"><strong data-i18n="Qwen batch size"></strong></div>
+              <input class="pill number" id="qwen-batch" type="number" min="1">
+            </div>
+          </div>
+          <div class="detail-foot">
+            <button class="btn primary big" id="transcribe-start"></button>
+            <p class="job-hint" hidden></p>
+            <button class="link output-link" id="open-output-file" hidden></button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Settings & models -->
+    <section class="page narrow" id="page-settings" data-page="settings" hidden>
+      <div class="card list" style="margin-top: 4px">
+        <div class="row">
+          <div class="row-main"><strong data-i18n="Appearance"></strong><small data-i18n="Light, dark, or follow the system"></small></div>
+          <div class="seg" id="theme-seg" role="radiogroup">
+            <button data-theme-value="system" data-i18n="System"></button>
+            <button data-theme-value="light" data-i18n="Light"></button>
+            <button data-theme-value="dark" data-i18n="Dark"></button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="row-main"><strong data-i18n="介面語言"></strong><small data-i18n="Recognition stays Japanese"></small></div>
+          <div class="seg" id="locale-seg" role="radiogroup"></div>
+        </div>
+        <div class="row">
+          <div class="row-main"><strong data-i18n="輸出資料夾"></strong><small data-i18n="Recordings and transcripts are saved here"></small></div>
+          <div class="row-ctl">
+            <input class="pill path" id="output-dir" placeholder="outputs" spellcheck="false" data-i18n-title="Output folder">
+            <button class="btn" id="choose-output" data-i18n="Choose…"></button>
+            <button class="btn text" data-open-output data-i18n="Open"></button>
+            <button class="btn text" id="reset-output" data-i18n="Reset"></button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="row-main"><strong data-i18n="About"></strong><small id="about-version"></small></div>
+          <button class="btn text" id="open-github" data-i18n="GitHub Repository"></button>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h3 data-i18n="模型與後端檔案"></h3>
+        <div class="actions">
+          <button class="btn text" id="refresh-assets" data-i18n="Refresh"></button>
+          <button class="btn" id="download-missing" data-i18n="Download missing"></button>
+        </div>
+      </div>
+      <div class="card list" id="asset-list"></div>
+    </section>
+  </main>
+
+  <aside class="drawer" id="log-drawer" hidden>
+    <header class="card-head">
+      <div class="title"><strong data-i18n="Process log"></strong></div>
+      <div class="row-ctl">
+        <button class="btn text" id="clear-log" data-i18n="清除 log"></button>
+        <button class="icon-btn" id="close-log" data-i18n-title="Close"><svg class="icon" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+      </div>
+    </header>
+    <pre id="log"><span class="muted" id="log-empty" data-i18n="尚無程序訊息。"></span></pre>
+  </aside>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

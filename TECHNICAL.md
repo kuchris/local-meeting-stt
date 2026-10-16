@@ -6,6 +6,7 @@ This file documents the backend scripts and local asset layout behind the Electr
 
 ```text
 electron_app/       Electron + React + Vite desktop app
+desktop/           Rust (Tauri 2) desktop app with the same backends; see desktop/README.md
 python_backend/    Python scripts and Windows .cmd wrappers
 whisper_cpp/       whisper.cpp runtimes, models, wrappers, and output
 test/              demo audio, demo transcripts, and drag/drop test .bat files

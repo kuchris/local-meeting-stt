@@ -61,6 +61,22 @@ available. Published packages may predate the current source interface. The root
 `open_electron_app.cmd` launcher opens an existing packaged app when present;
 use `npm run dev` above to try your current checkout.
 
+### Rust desktop app (preview)
+
+`desktop/` holds a Rust ([Tauri 2](https://tauri.app/)) version of the app. Its
+window uses the system WebView2 instead of a bundled Chromium, it reads audio
+devices directly from Windows, and captions update without redrawing the page.
+It runs the same backends with the same `settings.json`, and needs
+[Rust](https://rustup.rs/) instead of Node.js:
+
+```powershell
+cd desktop\src-tauri
+cargo run
+```
+
+Or run `open_desktop_app.cmd`. See [desktop/README.md](desktop/README.md) for
+what changed, tests, and the `build_portable_desktop.cmd` package.
+
 ## Pages
 
 | Page | What it does |

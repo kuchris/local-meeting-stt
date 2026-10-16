@@ -1,0 +1,439 @@
+//! What each job runs. Mirrors the Electron shell's launch table: the scripts,
+//! executables and arguments are unchanged, so the backends need no changes.
+
+use crate::paths::AppPaths;
+use serde_json::{Map, Value};
+use std::fs;
+use std::path::{Path, PathBuf};
+
+pub type Args = Map<String, Value>;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CommandSpec {
+    pub label: String,
+    pub executable: String,
+    pub args: Vec<String>,
+}
+
+fn text(args: &Args, key: &str) -> Option<String> {
+    args.get(key).and_then(Value::as_str).filter(|value| !value.is_empty()).map(str::to_string)
+}
+
+fn number(args: &Args, key: &str) -> Option<String> {
+    let value = args.get(key)?.as_f64().filter(|value| value.is_finite())?;
+    Some(if value.fract() == 0.0 { format!("{}", value as i64) } else { value.to_string() })
+}
+
+fn logical_threads() -> usize {
+    std::thread::available_parallelism().map(usize::from).unwrap_or(1).max(1)
+}
+
+fn live_threads() -> String {
+    let threads = logical_threads();
+    if threads <= 4 {
+        threads.to_string()
+    } else {
+        "8".into()
+    }
+}
+
+fn post_threads() -> String {
+    match logical_threads() {
+        threads if threads <= 4 => threads.to_string(),
+        threads if threads <= 8 => "6".into(),
+        threads if threads <= 16 => "10".into(),
+        _ => "16".into(),
+    }
+}
+
+fn path_text(path: &Path) -> String {
+    path.to_string_lossy().into_owned()
+}
+
+pub fn resolve_output_dir(paths: &AppPaths, args: &Args) -> Result<PathBuf, String> {
+    let configured = text(args, "outputDir").unwrap_or_else(|| "outputs".into());
+    let dir = paths.in_data_root(configured.trim());
+    fs::create_dir_all(&dir).map_err(|error| format!("{}: {error}", dir.display()))?;
+    Ok(dir)
+}
+
+/// `<prefix>_YYYYMMDD_HHMMSS` in UTC, as the Electron shell named them.
+fn timestamped_dir(output_dir: &Path, prefix: &str) -> Result<PathBuf, String> {
+    let stamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
+    let dir = output_dir.join(format!("{prefix}_{stamp}"));
+    fs::create_dir_all(&dir).map_err(|error| format!("{}: {error}", dir.display()))?;
+    Ok(dir)
+}
+
+/// A session's `audio.wav` gets its transcript beside it; any other file gets
+/// `<name>_<suffix>.txt` in the output folder.
+pub fn transcript_output_path(audio_path: &Path, output_dir: &Path, suffix: &str) -> PathBuf {
+    let name = audio_path.file_name().map(|name| name.to_string_lossy().to_lowercase()).unwrap_or_default();
+    if name == "audio.wav" {
+        return audio_path.with_file_name(format!("{suffix}.txt"));
+    }
+    let stem = audio_path.file_stem().map(|stem| stem.to_string_lossy().into_owned()).unwrap_or_else(|| "audio".into());
+    output_dir.join(format!("{stem}_{suffix}.txt"))
+}
+
+fn without_txt(path: PathBuf) -> String {
+    let text = path_text(&path);
+    text.strip_suffix(".txt").map(str::to_string).unwrap_or(text)
+}
+
+fn capture_args(args: &Args) -> Vec<String> {
+    let mut extra = Vec::new();
+    if let Some(seconds) = number(args, "previewSeconds") {
+        extra.extend(["--preview-seconds".into(), seconds]);
+    }
+    if let Some(device) = text(args, "systemDevice") {
+        extra.extend(["--system-device".into(), device]);
+    }
+    if args.get("includeMic").and_then(Value::as_bool) == Some(true) {
+        extra.push("--include-mic".into());
+        if let Some(device) = text(args, "micDevice") {
+            extra.extend(["--mic-device".into(), device]);
+        }
+    }
+    extra
+}
+
+fn script(label: &str, path: &str, args: Vec<String>) -> CommandSpec {
+    let mut all = vec!["/c".to_string(), path.to_string()];
+    all.extend(args);
+    CommandSpec { label: label.into(), executable: "cmd.exe".into(), args: all }
+}
+
+fn with_chunk(mut extra: Vec<String>, args: &Args) -> Vec<String> {
+    if let Some(seconds) = number(args, "chunkSeconds") {
+        extra.extend(["--chunk-seconds".into(), seconds]);
+    }
+    extra
+}
+
+/// File transcription jobs read an existing audio file.
+pub fn reads_input_audio(kind: &str) -> bool {
+    matches!(kind, "cpp-gpu" | "cpp-cpu" | "cpp-vulkan" | "cpp-npu" | "cpp-openvino-gpu" | "qwen-gpu" | "qwen-cpu")
+}
+
+/// Python capture jobs stop on the stop file: they close their WAV and release
+/// the model first. Everything else is terminated.
+pub fn is_cooperative(kind: &str) -> bool {
+    (kind.starts_with("live-") && !kind.starts_with("live-cpp-stream-loopback")) || kind.starts_with("record-")
+}
+
+pub fn is_loopback_stream(kind: &str) -> bool {
+    kind.starts_with("live-cpp-stream-loopback")
+}
+
+fn whisper_cli(paths: &AppPaths, runtime: &str) -> String {
+    path_text(&paths.data_root.join("whisper_cpp").join(runtime).join("Release").join("whisper-cli.exe"))
+}
+
+fn small_model(paths: &AppPaths) -> String {
+    path_text(&paths.data_root.join("whisper_cpp").join("models").join("ggml-small.bin"))
+}
+
+fn openvino(paths: &AppPaths, audio: &str, output: String, device: &str) -> Vec<String> {
+    [
+        "-m",
+        &small_model(paths),
+        "-f",
+        audio,
+        "-l",
+        "ja",
+        "-oved",
+        device,
+        "-t",
+        "8",
+        "-bs",
+        "1",
+        "-bo",
+        "1",
+        "-nf",
+        "-nt",
+        "-np",
+        "-otxt",
+        "-of",
+        &output,
+    ]
+    .iter()
+    .map(|value| value.to_string())
+    .collect()
+}
+
+pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, String> {
+    let output_dir = resolve_output_dir(paths, args)?;
+    let out = path_text(&output_dir);
+    let audio = text(args, "audioPath");
+    let need_audio = || audio.clone().ok_or_else(|| "Choose an audio file first.".to_string());
+    let post_output = |suffix: &str| -> Result<String, String> {
+        Ok(without_txt(transcript_output_path(Path::new(&need_audio()?), &output_dir, suffix)))
+    };
+    let recording = |extra: Vec<String>| {
+        let mut all = vec!["--recording-dir".to_string(), out.clone()];
+        all.extend(extra);
+        all.extend(capture_args(args));
+        all
+    };
+
+    Ok(match kind {
+        "live-meeting" => {
+            script("Live meeting", r"python_backend\live_meeting.cmd", with_chunk(recording(vec![]), args))
+        }
+        "live-whisper" => {
+            let output = timestamped_dir(&output_dir, "live_text")?.join("live_transcript.txt");
+            let mut extra = vec!["--output".to_string(), path_text(&output)];
+            extra.extend(capture_args(args));
+            script("Live transcript", r"python_backend\live_transcribe.cmd", with_chunk(extra, args))
+        }
+        "live-cpp-gpu" => {
+            script("Live whisper.cpp GPU", r"whisper_cpp\live_cpp.cmd", with_chunk(recording(vec![]), args))
+        }
+        "live-cpp-turbo-gpu" => script(
+            "Live whisper.cpp Turbo GPU",
+            r"whisper_cpp\live_cpp.cmd",
+            recording(vec![
+                "--model".into(),
+                "models/ggml-large-v3-turbo.bin".into(),
+                "--session-prefix".into(),
+                "cpp_turbo_live".into(),
+            ]),
+        ),
+        "live-cpp-cpu" => script(
+            "Live whisper.cpp CPU",
+            r"whisper_cpp\live_cpp_cpu.cmd",
+            with_chunk(recording(vec!["--threads".into(), live_threads()]), args),
+        ),
+        "live-cpp-server-cpu" => script(
+            "Live whisper.cpp server CPU",
+            r"whisper_cpp\live_cpp_server_cpu.cmd",
+            with_chunk(recording(vec!["--threads".into(), live_threads()]), args),
+        ),
+        "live-cpp-server-vulkan" => script(
+            "Live whisper.cpp server Vulkan",
+            r"whisper_cpp\live_cpp_server_vulkan.cmd",
+            with_chunk(recording(vec![]), args),
+        ),
+        "live-cpp-server-openvino" => script(
+            "Live whisper.cpp server OpenVINO NPU",
+            r"whisper_cpp\live_cpp_server_openvino.cmd",
+            with_chunk(recording(vec![]), args),
+        ),
+        "live-cpp-server-openvino-gpu" => script(
+            "Live whisper.cpp server OpenVINO GPU",
+            r"whisper_cpp\live_cpp_server_openvino_gpu.cmd",
+            with_chunk(recording(vec![]), args),
+        ),
+        "live-cpp-stream-loopback" | "live-cpp-stream-loopback-base" | "live-cpp-stream-loopback-small" => {
+            let (label, path, prefix) = match kind {
+                "live-cpp-stream-loopback-base" => (
+                    "Live whisper.cpp Vulkan LB stream base",
+                    r"whisper_cpp\stream_cpp_vulkan_loopback_base.cmd",
+                    "loopback_stream_base",
+                ),
+                "live-cpp-stream-loopback-small" => (
+                    "Live whisper.cpp Vulkan LB stream small",
+                    r"whisper_cpp\stream_cpp_vulkan_loopback_small.cmd",
+                    "loopback_stream_small",
+                ),
+                _ => (
+                    "Live whisper.cpp Vulkan LB stream",
+                    r"whisper_cpp\stream_cpp_vulkan_loopback.cmd",
+                    "loopback_stream",
+                ),
+            };
+            let session = timestamped_dir(&output_dir, prefix)?;
+            script(
+                label,
+                path,
+                vec![
+                    "-f".into(),
+                    path_text(&session.join("live_transcript.txt")),
+                    "--save-wav".into(),
+                    path_text(&session.join("audio.wav")),
+                ],
+            )
+        }
+        "record-enter" => {
+            let output = timestamped_dir(&output_dir, "meeting")?.join("audio.wav");
+            let mut extra = vec!["--until-enter".to_string(), "--output".into(), path_text(&output)];
+            extra.extend(capture_args(args));
+            script("Record until Enter", r"python_backend\record_meeting.cmd", extra)
+        }
+        "record-timed" => {
+            let duration = number(args, "durationSeconds").unwrap_or_else(|| "3600".into());
+            let output = timestamped_dir(&output_dir, "meeting")?.join("audio.wav");
+            let mut extra = vec!["--duration".to_string(), duration, "--output".into(), path_text(&output)];
+            extra.extend(capture_args(args));
+            script("Timed recording", r"python_backend\record_meeting.cmd", extra)
+        }
+        "cpp-gpu" => CommandSpec {
+            label: "whisper.cpp GPU".into(),
+            executable: whisper_cli(paths, "bin_cuda"),
+            args: vec![
+                "-m".into(),
+                small_model(paths),
+                "-f".into(),
+                need_audio()?,
+                "-l".into(),
+                "ja".into(),
+                "-otxt".into(),
+                "-of".into(),
+                post_output("cpp_gpu_transcript")?,
+            ],
+        },
+        "cpp-cpu" => CommandSpec {
+            label: "whisper.cpp CPU".into(),
+            executable: whisper_cli(paths, "bin_cpu"),
+            args: vec![
+                "-m".into(),
+                small_model(paths),
+                "-f".into(),
+                need_audio()?,
+                "-l".into(),
+                "ja".into(),
+                "-otxt".into(),
+                "-of".into(),
+                post_output("cpp_cpu_transcript")?,
+                "-t".into(),
+                post_threads(),
+            ],
+        },
+        "cpp-vulkan" => script(
+            "whisper.cpp Vulkan",
+            r"whisper_cpp\post_cpp_vulkan.cmd",
+            vec![need_audio()?, post_output("cpp_vulkan_transcript")?, "8".into()],
+        ),
+        "cpp-npu" => CommandSpec {
+            label: "whisper.cpp NPU".into(),
+            executable: whisper_cli(paths, "bin_openvino"),
+            args: openvino(paths, &need_audio()?, post_output("cpp_npu_transcript")?, "NPU"),
+        },
+        "cpp-openvino-gpu" => CommandSpec {
+            label: "whisper.cpp OpenVINO GPU".into(),
+            executable: whisper_cli(paths, "bin_openvino"),
+            args: openvino(paths, &need_audio()?, post_output("cpp_openvino_gpu_transcript")?, "GPU"),
+        },
+        "qwen-gpu" | "qwen-cpu" => {
+            let gpu = kind == "qwen-gpu";
+            let audio = need_audio()?;
+            let output = transcript_output_path(
+                Path::new(&audio),
+                &output_dir,
+                if gpu { "qwen_gpu_transcript" } else { "qwen_cpu_transcript" },
+            );
+            let requirements = paths.repo_root.join("python_backend").join("qwen-requirements.txt");
+            let script_path = paths.repo_root.join("python_backend").join("post_transcribe_qwen.py");
+            let model = paths.data_root.join("models").join("Qwen3-ASR-0.6B");
+            let mut all: Vec<String> = [
+                "run",
+                "--no-project",
+                "--python",
+                "3.11",
+                "--index-strategy",
+                "unsafe-best-match",
+                "--index-url",
+                "https://download.pytorch.org/whl/cu128",
+                "--extra-index-url",
+                "https://pypi.org/simple",
+                "--with-requirements",
+            ]
+            .iter()
+            .map(|value| value.to_string())
+            .collect();
+            all.extend([
+                path_text(&requirements),
+                "python".into(),
+                "-u".into(),
+                path_text(&script_path),
+                audio,
+                "-o".into(),
+                path_text(&output),
+                "--device".into(),
+                (if gpu { "cuda:0" } else { "cpu" }).into(),
+                "--model".into(),
+                path_text(&model),
+                "--max-new-tokens".into(),
+                number(args, "qwenTokens").unwrap_or_else(|| "4096".into()),
+                "--chunk-seconds".into(),
+                number(args, "chunkSeconds").unwrap_or_else(|| "60".into()),
+                "--batch-size".into(),
+                number(args, "qwenBatch").unwrap_or_else(|| "4".into()),
+            ]);
+            CommandSpec { label: if gpu { "Qwen GPU" } else { "Qwen CPU" }.into(), executable: "uv".into(), args: all }
+        }
+        _ => return Err(format!("Unknown command: {kind}")),
+    })
+}
+
+pub fn asset_download(paths: &AppPaths, asset_id: &str) -> CommandSpec {
+    CommandSpec {
+        label: crate::assets::label(asset_id),
+        executable: "uv".into(),
+        args: [
+            "run",
+            "--with",
+            "huggingface-hub",
+            "python",
+            "python_backend/download_assets.py",
+            "--target-root",
+            &path_text(&paths.data_root),
+            "--only",
+            asset_id,
+        ]
+        .iter()
+        .map(|value| value.to_string())
+        .collect(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn session_audio_gets_its_transcript_beside_it() {
+        let out = Path::new(r"C:\data\outputs");
+        assert_eq!(
+            transcript_output_path(Path::new(r"C:\data\outputs\meeting_1\audio.wav"), out, "cpp_cpu_transcript"),
+            PathBuf::from(r"C:\data\outputs\meeting_1\cpp_cpu_transcript.txt")
+        );
+        assert_eq!(
+            transcript_output_path(Path::new(r"D:\calls\weekly sync.m4a"), out, "qwen_gpu_transcript"),
+            PathBuf::from(r"C:\data\outputs\weekly sync_qwen_gpu_transcript.txt")
+        );
+    }
+
+    #[test]
+    fn capture_args_follow_the_settings() {
+        let args: Args = serde_json::from_value(serde_json::json!({
+            "previewSeconds": 1.5,
+            "systemDevice": "{0.0.0.00000000}.{abc}",
+            "includeMic": true,
+            "micDevice": ""
+        }))
+        .unwrap();
+        assert_eq!(
+            capture_args(&args),
+            vec!["--preview-seconds", "1.5", "--system-device", "{0.0.0.00000000}.{abc}", "--include-mic"]
+        );
+    }
+
+    #[test]
+    fn whole_numbers_print_without_a_fraction() {
+        let args: Args =
+            serde_json::from_value(serde_json::json!({ "durationSeconds": 3600.0, "previewSeconds": 1 })).unwrap();
+        assert_eq!(number(&args, "durationSeconds").as_deref(), Some("3600"));
+        assert_eq!(number(&args, "previewSeconds").as_deref(), Some("1"));
+    }
+
+    #[test]
+    fn stop_behaviour_matches_the_backend() {
+        assert!(is_cooperative("live-meeting"));
+        assert!(is_cooperative("record-enter"));
+        assert!(!is_cooperative("live-cpp-stream-loopback-small"));
+        assert!(!is_cooperative("cpp-gpu"));
+        assert!(is_loopback_stream("live-cpp-stream-loopback-base"));
+    }
+}
