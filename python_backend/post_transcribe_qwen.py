@@ -4,6 +4,8 @@ from argparse import ArgumentParser, Namespace
 from pathlib import Path
 import time
 
+from text_script import SCRIPTS, convert_lines
+
 LOCAL_MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "Qwen3-ASR-0.6B"
 
 
@@ -17,6 +19,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--max-new-tokens", type=int, default=4096, help="Maximum output tokens. Default: 4096")
     parser.add_argument("--chunk-seconds", type=float, default=60.0, help="Manual audio chunk size in seconds. Default: 60")
     parser.add_argument("--batch-size", type=int, default=16, help="Maximum inference batch size. Default: 16")
+    parser.add_argument("--chinese-script", choices=SCRIPTS, default="as-is", help="Convert Chinese text to Traditional (HK) or Simplified. Default: as-is")
     return parser.parse_args()
 
 
@@ -140,6 +143,8 @@ def main() -> None:
     audio_input = load_audio_chunks(args.audio, args.chunk_seconds)
     results = model.transcribe(audio=audio_input, language=args.language or None)
     text = "\n".join(extract_text(result) for result in results).strip()
+    # Qwen writes Mandarin in Simplified and Cantonese in Traditional; the app's setting decides.
+    text = convert_lines(text, args.chinese_script, "ja" if args.language == "Japanese" else None)
     if text:
         text += "\n"
 

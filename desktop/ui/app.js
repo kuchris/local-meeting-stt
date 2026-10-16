@@ -922,8 +922,11 @@ function startOrStop(tab) {
     void run(
       state.postKind,
       state.postKind.startsWith("qwen")
-        ? { audioPath, language: state.language, chunkSeconds: state.qwen.chunkSeconds, qwenTokens: state.qwen.tokens, qwenBatch: state.qwen.batch }
-        : { audioPath, language: state.language },
+        ? {
+          audioPath, language: state.language, chineseScript: state.chineseScript,
+          chunkSeconds: state.qwen.chunkSeconds, qwenTokens: state.qwen.tokens, qwenBatch: state.qwen.batch,
+        }
+        : { audioPath, language: state.language, chineseScript: state.chineseScript },
     );
   }
 }

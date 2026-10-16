@@ -401,6 +401,8 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
                 number(args, "chunkSeconds").unwrap_or_else(|| "60".into()),
                 "--batch-size".into(),
                 number(args, "qwenBatch").unwrap_or_else(|| "16".into()),
+                "--chinese-script".into(),
+                chinese_script(args).into(),
             ]);
             let label = match (large, gpu) {
                 (false, true) => "Qwen GPU",
@@ -508,6 +510,10 @@ mod tests {
         assert!(value(&turbo, "-m").unwrap().ends_with("ggml-large-v3-turbo.bin"));
         assert!(value(&turbo, "-of").unwrap().ends_with("cpp_turbo_gpu_transcript"));
         assert_eq!(value(&build(&paths, "qwen17-gpu", &yue).unwrap(), "--language").as_deref(), Some("Cantonese"));
+        assert_eq!(
+            value(&build(&paths, "qwen-gpu", &yue).unwrap(), "--chinese-script").as_deref(),
+            Some("traditional")
+        );
         let auto = with(serde_json::json!({ "language": "auto" }));
         assert_eq!(value(&build(&paths, "qwen-cpu", &auto).unwrap(), "--language").as_deref(), Some(""));
         let sensevoice = build(&paths, "live-sensevoice-cpu", &auto).unwrap();

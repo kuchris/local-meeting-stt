@@ -2,3 +2,5 @@
 qwen-asr==0.0.6
 torch==2.11.0+cu128
 torchvision==0.26.0+cu128
+# Traditional/Simplified conversion of the transcript (text_script.py).
+opencc-python-reimplemented==0.1.7

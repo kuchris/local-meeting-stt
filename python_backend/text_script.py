@@ -28,6 +28,13 @@ def converter(script: str, language: str | None = None) -> Callable[[str], str]:
     return apply
 
 
+def convert_lines(text: str, script: str, language: str | None = None) -> str:
+    """A whole transcript, line by line, so a Japanese line with kana is kept while
+    the Chinese lines around it are converted."""
+    convert = converter(script, language)
+    return "\n".join(convert(line) for line in text.split("\n"))
+
+
 def with_script(transcribe: Callable, script: str, language: str | None = None) -> Callable:
     convert = converter(script, language)
     return lambda audio: convert(transcribe(audio))
