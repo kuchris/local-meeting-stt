@@ -69,6 +69,10 @@ format are the same. Differences:
   (`live_sensevoice.cmd`) or fp32 on CUDA (`live_sensevoice_gpu.cmd`, with
   NVIDIA's CUDA 12 / cuDNN 9 pip packages). `test/sensevoice_replay.py` runs the
   whole live path on a public Cantonese clip without opening an audio device.
+- **Two live models**: Whisper large-v3-turbo (CUDA) and SenseVoice-Small (CPU
+  or CUDA). The Whisper small/base live modes (faster-whisper, whisper.cpp CPU,
+  CUDA, Vulkan, OpenVINO and the Vulkan loopback stream) were removed; a saved
+  one opens as SenseVoice-Small on CPU. Their scripts remain for command-line use.
 - **Drop an audio file anywhere** in the window; it opens Recordings with that file.
 - **Light, dark or system** theme, set in Settings.
 - The File/Run/View menu bar and the resizable recordings column are gone.

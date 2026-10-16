@@ -287,17 +287,6 @@ const carried ={
     "Captions may revise, then finalize after a pause. The full recording is saved; stopping releases the model.",
     "字幕は修正され、発話後の間で確定します。録音は完全に保存され、停止時にモデルを解放します。",
   ],
-  "Loopback 使用後端內建的 VAD 分段。": [
-    "Loopback 使用後端內建的 VAD 分段。",
-    "Loopback uses the backend's built-in VAD segmentation.",
-    "ループバックはバックエンド内蔵の VAD で音声を分割します。",
-  ],
-  "每段收集完成後才辨識；想更快更新可試 2 秒，短分段可能影響句子完整度。停止會釋放模型。":
-    [
-      "每段收集完成後才辨識；想更快更新可試 2 秒，短分段可能影響句子完整度。停止會釋放模型。",
-      "Recognition starts after each chunk. Try 2 seconds for faster updates; shorter chunks may lose sentence context. Stopping releases the model.",
-      "各区間の収録後に認識します。2 秒にすると更新が速くなりますが、文脈が失われる場合があります。停止時にモデルを解放します。",
-    ],
   "Process log": ["程序日誌", "Process log", "プロセスログ"],
   "清除 log": ["清除日誌", "Clear log", "ログを消去"],
   "尚無程序訊息。": [
@@ -309,11 +298,6 @@ const carried ={
     "whisper.cpp · CUDA（會議期間常駐）",
     "whisper.cpp · CUDA (resident)",
     "whisper.cpp · CUDA（会議中は常駐）",
-  ],
-  "whisper.cpp · CPU（會議期間常駐）": [
-    "whisper.cpp · CPU（會議期間常駐）",
-    "whisper.cpp · CPU (resident)",
-    "whisper.cpp · CPU（会議中は常駐）",
   ],
   Starting: ["正在開始", "Starting", "開始中"],
   Done: ["完成", "Done", "完了"],
@@ -332,11 +316,6 @@ const carried ={
     "由 small 模型在本機產生，供 OpenVINO 使用。",
     "Generated locally from the small model for OpenVINO.",
     "small モデルからローカルで生成する OpenVINO 用ファイルです。",
-  ],
-  "Custom local build; see whisper_cpp/vulkan-loopback-custom-build.md.": [
-    "自訂本機版本；參閱 whisper_cpp/vulkan-loopback-custom-build.md。",
-    "Custom local build; see whisper_cpp/vulkan-loopback-custom-build.md.",
-    "独自のローカルビルドです。whisper_cpp/vulkan-loopback-custom-build.md を参照してください。",
   ],
   "無法讀取拖放檔案，請使用選取音訊。": [
     "無法讀取拖放檔案，請使用選取音訊。",
@@ -435,7 +414,6 @@ const added = {
   "System": ["跟隨系統", "System", "システム"],
   "Light": ["淺色", "Light", "ライト"],
   "Dark": ["深色", "Dark", "ダーク"],
-  "Recognition stays Japanese": ["辨識語言仍為日文", "Recognition stays Japanese", "認識言語は日本語のままです"],
   "Recordings and transcripts are saved here": [
     "錄音和逐字稿會存在這裡",
     "Recordings and transcripts are saved here",

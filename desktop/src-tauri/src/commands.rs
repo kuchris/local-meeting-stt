@@ -28,15 +28,6 @@ fn logical_threads() -> usize {
     std::thread::available_parallelism().map(usize::from).unwrap_or(1).max(1)
 }
 
-fn live_threads() -> String {
-    let threads = logical_threads();
-    if threads <= 4 {
-        threads.to_string()
-    } else {
-        "8".into()
-    }
-}
-
 fn post_threads() -> String {
     match logical_threads() {
         threads if threads <= 4 => threads.to_string(),
@@ -138,13 +129,6 @@ fn script(label: &str, path: &str, args: Vec<String>) -> CommandSpec {
     let mut all = vec!["/c".to_string(), path.to_string()];
     all.extend(args);
     CommandSpec { label: label.into(), executable: "cmd.exe".into(), args: all }
-}
-
-fn with_chunk(mut extra: Vec<String>, args: &Args) -> Vec<String> {
-    if let Some(seconds) = number(args, "chunkSeconds") {
-        extra.extend(["--chunk-seconds".into(), seconds]);
-    }
-    extra
 }
 
 /// File transcription jobs read an existing audio file.
@@ -251,16 +235,6 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
     };
 
     Ok(match kind {
-        "live-meeting" => {
-            script("Live meeting", r"python_backend\live_meeting.cmd", with_chunk(recording(vec![]), args))
-        }
-        "live-whisper" => {
-            let output = timestamped_dir(&output_dir, "live_text")?.join("live_transcript.txt");
-            let mut extra = vec!["--output".to_string(), path_text(&output)];
-            extra.extend(capture_args(args));
-            extra.extend(recognition_args(args));
-            script("Live transcript", r"python_backend\live_transcribe.cmd", with_chunk(extra, args))
-        }
         "live-sensevoice-cpu" | "live-sensevoice-gpu" => {
             let gpu = kind.ends_with("-gpu");
             let save_wav = args.get("saveWav").and_then(Value::as_bool).unwrap_or(true);
@@ -287,9 +261,6 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
                 script("Live SenseVoice CPU", r"python_backend\live_sensevoice.cmd", extra)
             }
         }
-        "live-cpp-gpu" => {
-            script("Live whisper.cpp GPU", r"whisper_cpp\live_cpp.cmd", with_chunk(recording(vec![]), args))
-        }
         "live-cpp-turbo-gpu" => script(
             "Live whisper.cpp Turbo GPU",
             r"whisper_cpp\live_cpp.cmd",
@@ -300,61 +271,6 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
                 "cpp_turbo_live".into(),
             ]),
         ),
-        "live-cpp-cpu" => script(
-            "Live whisper.cpp CPU",
-            r"whisper_cpp\live_cpp_cpu.cmd",
-            with_chunk(recording(vec!["--threads".into(), live_threads()]), args),
-        ),
-        "live-cpp-server-cpu" => script(
-            "Live whisper.cpp server CPU",
-            r"whisper_cpp\live_cpp_server_cpu.cmd",
-            with_chunk(recording(vec!["--threads".into(), live_threads()]), args),
-        ),
-        "live-cpp-server-vulkan" => script(
-            "Live whisper.cpp server Vulkan",
-            r"whisper_cpp\live_cpp_server_vulkan.cmd",
-            with_chunk(recording(vec![]), args),
-        ),
-        "live-cpp-server-openvino" => script(
-            "Live whisper.cpp server OpenVINO NPU",
-            r"whisper_cpp\live_cpp_server_openvino.cmd",
-            with_chunk(recording(vec![]), args),
-        ),
-        "live-cpp-server-openvino-gpu" => script(
-            "Live whisper.cpp server OpenVINO GPU",
-            r"whisper_cpp\live_cpp_server_openvino_gpu.cmd",
-            with_chunk(recording(vec![]), args),
-        ),
-        "live-cpp-stream-loopback" | "live-cpp-stream-loopback-base" | "live-cpp-stream-loopback-small" => {
-            let (label, path, prefix) = match kind {
-                "live-cpp-stream-loopback-base" => (
-                    "Live whisper.cpp Vulkan LB stream base",
-                    r"whisper_cpp\stream_cpp_vulkan_loopback_base.cmd",
-                    "loopback_stream_base",
-                ),
-                "live-cpp-stream-loopback-small" => (
-                    "Live whisper.cpp Vulkan LB stream small",
-                    r"whisper_cpp\stream_cpp_vulkan_loopback_small.cmd",
-                    "loopback_stream_small",
-                ),
-                _ => (
-                    "Live whisper.cpp Vulkan LB stream",
-                    r"whisper_cpp\stream_cpp_vulkan_loopback.cmd",
-                    "loopback_stream",
-                ),
-            };
-            let session = timestamped_dir(&output_dir, prefix)?;
-            script(
-                label,
-                path,
-                vec![
-                    "-f".into(),
-                    path_text(&session.join("live_transcript.txt")),
-                    "--save-wav".into(),
-                    path_text(&session.join("audio.wav")),
-                ],
-            )
-        }
         "record-enter" => {
             let output = timestamped_dir(&output_dir, "meeting")?.join("audio.wav");
             let mut extra = vec!["--until-enter".to_string(), "--output".into(), path_text(&output)];
@@ -573,7 +489,12 @@ mod tests {
         assert_eq!(value(&build(&paths, "qwen17-gpu", &yue).unwrap(), "--language").as_deref(), Some("Cantonese"));
         let auto = with(serde_json::json!({ "language": "auto" }));
         assert_eq!(value(&build(&paths, "qwen-cpu", &auto).unwrap(), "--language").as_deref(), Some(""));
-        assert_eq!(value(&build(&paths, "live-meeting", &auto).unwrap(), "--language").as_deref(), Some("auto"));
+        assert_eq!(value(&build(&paths, "live-sensevoice-cpu", &auto).unwrap(), "--language").as_deref(), Some("auto"));
+        // Removed live modes (Whisper small/base, faster-whisper, Vulkan, OpenVINO) are refused.
+        for removed in ["live-meeting", "live-whisper", "live-cpp-gpu", "live-cpp-cpu", "live-cpp-stream-loopback-base"]
+        {
+            assert!(build(&paths, removed, &auto).is_err(), "{removed}");
+        }
         // Settings from before languages existed stay Japanese; unknown values too.
         let old = with(serde_json::json!({}));
         assert_eq!(value(&build(&paths, "cpp-cpu", &old).unwrap(), "-l").as_deref(), Some("ja"));
@@ -657,7 +578,7 @@ mod tests {
             args: vec!["run".into(), "--no-project".into(), "python".into()],
         };
         assert!(prefers_offline("qwen-gpu") && prefers_offline("qwen-cpu") && prefers_offline("qwen17-gpu"));
-        assert!(!prefers_offline("cpp-gpu") && !prefers_offline("live-meeting"));
+        assert!(!prefers_offline("cpp-gpu") && !prefers_offline("live-sensevoice-cpu"));
         assert_eq!(offline(&spec).args, vec!["run", "--offline", "--no-project", "python"]);
         let script = CommandSpec { label: "x".into(), executable: "cmd.exe".into(), args: vec!["/c".into()] };
         assert_eq!(offline(&script), script);
@@ -677,7 +598,7 @@ mod tests {
 
     #[test]
     fn stop_behaviour_matches_the_backend() {
-        assert!(is_cooperative("live-meeting"));
+        assert!(is_cooperative("live-cpp-turbo-gpu"));
         assert!(is_cooperative("record-enter"));
         assert!(!is_cooperative("live-cpp-stream-loopback-small"));
         assert!(!is_cooperative("cpp-gpu"));

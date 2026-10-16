@@ -51,10 +51,9 @@ cargo run
 5. Select **Start meeting**; the same button stops the task. The title bar shows
    the task's status and elapsed time on every page.
 
-A fresh configuration uses Whisper small with faster-whisper on CPU. For a
-compatible NVIDIA system, select the whisper.cpp CUDA backend.
-Whisper large-v3-turbo is an optional CUDA live model; download it in Settings &
-models first. Whisper base uses the existing Vulkan loopback backend.
+A fresh configuration uses SenseVoice-Small on CPU. On a compatible NVIDIA
+system, select its CUDA backend or Whisper large-v3-turbo; download either in
+Settings & models first.
 
 The first setup may download dependencies and model files. Once installed,
 recognition uses local models rather than a cloud ASR service. A running process
@@ -77,8 +76,8 @@ The earlier Electron + React version is kept on the
 | Recordings | Choose a recording or drop an audio file anywhere in the window, then select a model and backend. A recording's existing transcripts open in one click. |
 | Settings | Appearance, language and output folder; inspect/download models and runtimes. |
 
-The live model choices are **Whisper large-v3-turbo** (CUDA), **SenseVoice-Small**
-(CPU or CUDA), **Whisper small**, and **Whisper base**. Post-meeting
+The live model choices are **Whisper large-v3-turbo** (CUDA) and
+**SenseVoice-Small** (CPU or CUDA). Post-meeting
 transcription offers **Whisper small**, **Qwen3-ASR 0.6B**, and the optional, more
 accurate **Qwen3-ASR 1.7B**. Qwen is currently a
 file-transcription option, not a live-caption backend.
@@ -86,8 +85,8 @@ file-transcription option, not a live-caption backend.
 Choose the **recognition language** (Auto-detect, Chinese, Cantonese, English,
 Japanese) on the Live and Recordings pages. **Chinese characters** in Settings
 converts Chinese and Cantonese captions to Traditional (HK) or Simplified
-characters; captions with Japanese kana are left as recognized. The Vulkan
-backends (loopback stream and file transcription) still recognize Japanese only.
+characters; captions with Japanese kana are left as recognized. Vulkan file
+transcription still recognizes Japanese only.
 
 Replaying 12 pinned FLEURS clips per language through the live pipeline on an
 RTX 5070 Ti, SenseVoice-Small was more accurate for Mandarin (6.6% vs 8.8% CER)
@@ -104,36 +103,33 @@ start on CPU. An explicit saved CPU choice is preserved.
 
 | Backend | Local files | Notes |
 | --- | --- | --- |
-| faster-whisper | `models/faster-whisper-small/` | CPU by default; live captions with optional WAV. |
-| SenseVoice-Small CPU | `models/SenseVoiceSmall/` | Live captions on CPU through sherpa-onnx (int8, about 230 MB); optional WAV. |
+| SenseVoice-Small CPU | `models/SenseVoiceSmall/` | Default live captions on CPU through sherpa-onnx (int8, about 230 MB); optional WAV. |
 | SenseVoice-Small CUDA | `models/SenseVoiceSmall-fp32/` | Optional live captions on an NVIDIA GPU (fp32, about 900 MB). The first run downloads NVIDIA's CUDA 12 / cuDNN 9 pip packages (about 1.5 GB). |
-| whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | Live server and file transcription. |
-| whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU; live server and file transcription. |
+| whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | File transcription. |
+| whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU; file transcription. |
 | whisper.cpp CUDA Turbo | `whisper_cpp/bin_cuda/Release/` + `ggml-large-v3-turbo.bin` | Optional NVIDIA live captions; model download is pinned and SHA-256 checked. |
-| whisper.cpp Vulkan | `whisper_cpp/bin_vulkan/Release/` + `ggml-small.bin` | Resident live server and file transcription. |
+| whisper.cpp Vulkan | `whisper_cpp/bin_vulkan/Release/` + `ggml-small.bin` | File transcription. |
 | OpenVINO NPU/GPU | `whisper_cpp/bin_openvino/Release/` + small model and encoder XML/BIN | Requires a compatible OpenVINO device and local build. |
-| Vulkan loopback | `whisper_cpp/bin_vulkan_loopback/Release/` + base or small model | System default loopback only; no custom device or microphone mixing. |
 | Qwen CPU/CUDA | `models/Qwen3-ASR-0.6B/` | File transcription; shared pinned Python runtime. |
 | Qwen 1.7B CPU/CUDA | `models/Qwen3-ASR-1.7B/` | Optional 4.4 GB download from its row in Settings; more accurate, uses more GPU memory. Same runtime as Qwen 0.6B. |
 
-The `ggml-*.bin` files belong in `whisper_cpp/models/`. Live CPU/CUDA paths need
+The `ggml-*.bin` files belong in `whisper_cpp/models/`. Turbo live captions need
 `whisper-server.exe` as well as `whisper-cli.exe`. Asset checks verify paths, not
 hardware compatibility or the integrity of every downloaded file. Vulkan and
 OpenVINO runtimes are local/release artifacts rather than normal model downloads.
 
 ## Latency and stopping
 
-Whisper CPU/CUDA live sessions keep one model server running for the meeting.
+Live sessions keep one model loaded for the meeting (a whisper.cpp server for Turbo).
 Silero VAD finds utterance boundaries. An unfinished utterance is re-transcribed
 for revisable previews every second by default; a pause triggers a final pass
 over the utterance. Change the preview interval on the Live page. Capture keeps all
 arriving audio even when inference is busy; stale previews may be skipped while
 completed utterances and WAV recording continue. The model is released at session end.
-The standalone Vulkan loopback stream retains its own capture and VAD behavior.
 
 Python live/record jobs get up to 10 seconds to stop capture, close their WAV,
 and release the model worker. If they do not exit, the app terminates the process
-tree. File transcription and native loopback jobs use forced termination.
+tree. File transcription jobs use forced termination.
 Closing the app also waits for cleanup. Stopping may omit queued/partial captions
 or interrupt unfinished output; use the saved recording for final transcription.
 

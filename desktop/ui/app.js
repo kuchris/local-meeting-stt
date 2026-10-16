@@ -12,25 +12,16 @@ const appWindow = tauri.window.getCurrentWindow();
 
 /* ───────────────────────── catalog ───────────────────────── */
 
-/** Existing launch paths only. This catalog does not install or replace models. */
+/**
+ * Live captions: Whisper large-v3-turbo on CUDA, or SenseVoice-Small on CPU or CUDA.
+ * Whisper small/base, faster-whisper, Vulkan and OpenVINO live modes were removed;
+ * a saved one falls back to the default. This catalog does not install models.
+ */
 const liveModes = [
-  { id: "live-meeting", model: "small", label: "faster-whisper", capture: true, optionalWav: true, assets: ["faster-whisper"] },
-  { id: "live-cpp-gpu", model: "small", label: "whisper.cpp · CUDA（會議期間常駐）", capture: true, optionalWav: false, assets: ["whisper-cpp-model", "whisper-cpp-cuda"] },
   { id: "live-cpp-turbo-gpu", model: "turbo", label: "whisper.cpp · CUDA（會議期間常駐）", capture: true, optionalWav: false, assets: ["whisper-cpp-turbo-model", "whisper-cpp-cuda"] },
-  { id: "live-cpp-cpu", model: "small", label: "whisper.cpp · CPU（會議期間常駐）", capture: true, optionalWav: false, assets: ["whisper-cpp-model", "whisper-cpp-cpu"] },
-  { id: "live-cpp-server-vulkan", model: "small", label: "whisper.cpp · Vulkan", capture: true, optionalWav: false, assets: ["whisper-cpp-model", "whisper-cpp-vulkan"] },
-  {
-    id: "live-cpp-server-openvino", model: "small", label: "OpenVINO · NPU", capture: true, optionalWav: false,
-    assets: ["whisper-cpp-model", "whisper-cpp-openvino", "whisper-cpp-openvino-model-xml", "whisper-cpp-openvino-model-bin"],
-  },
-  {
-    id: "live-cpp-server-openvino-gpu", model: "small", label: "OpenVINO · GPU", capture: true, optionalWav: false,
-    assets: ["whisper-cpp-model", "whisper-cpp-openvino", "whisper-cpp-openvino-model-xml", "whisper-cpp-openvino-model-bin"],
-  },
-  { id: "live-cpp-stream-loopback-small", model: "small", label: "Vulkan loopback", capture: false, optionalWav: false, assets: ["whisper-cpp-model", "whisper-cpp-vulkan-loopback"] },
-  { id: "live-cpp-stream-loopback-base", model: "base", label: "Vulkan loopback", capture: false, optionalWav: false, assets: ["whisper-cpp-base-model", "whisper-cpp-vulkan-loopback"] },
-  { id: "live-sensevoice-gpu", model: "sensevoice", label: "sherpa-onnx · CUDA", capture: true, optionalWav: true, assets: ["sensevoice-small-gpu"] },
+  // CPU first, so choosing SenseVoice picks it: update lag p95 0.12 s (0.05 s on GPU) with no 2.4 GB download.
   { id: "live-sensevoice-cpu", model: "sensevoice", label: "sherpa-onnx · CPU", capture: true, optionalWav: true, assets: ["sensevoice-small"] },
+  { id: "live-sensevoice-gpu", model: "sensevoice", label: "sherpa-onnx · CUDA", capture: true, optionalWav: true, assets: ["sensevoice-small-gpu"] },
 ];
 
 /** What the recognizers are told; "auto" detects each utterance's language. */
@@ -111,7 +102,7 @@ const state = {
   endedAt: null,
   lastKind: "",
   // live
-  liveModeId: "live-meeting",
+  liveModeId: "live-sensevoice-cpu",
   language: "auto",
   chineseScript: "as-is",
   saveWav: true,
@@ -312,7 +303,7 @@ function renderLive() {
   setValue(preview, state.previewSeconds);
   setDisabled(preview, running || !mode.capture);
   preview.classList.toggle("invalid", !previewValid());
-  setText($("live-preview-note"), t(mode.capture ? "字幕可修訂；停頓後定稿。錄音持續完整保存，停止會釋放模型。" : "Loopback 使用後端內建的 VAD 分段。"));
+  setText($("live-preview-note"), t("字幕可修訂；停頓後定稿。錄音持續完整保存，停止會釋放模型。"));
 
   const unavailable = liveUnavailable();
   setHidden($("live-assets-notice"), !unavailable);
@@ -711,7 +702,7 @@ async function loadSettings() {
   if (isLocale(settings.ui?.locale)) state.locale = settings.ui.locale;
   if (["system", "light", "dark"].includes(settings.ui?.theme)) state.theme = settings.ui.theme;
   if (isPostKind(settings.post?.kind)) state.postKind = settings.post.kind;
-  else if (settings.live?.mode === "live-cpp-gpu") state.postKind = "cpp-gpu";
+  else if (["live-cpp-turbo-gpu", "live-sensevoice-gpu", "live-cpp-gpu"].includes(settings.live?.mode)) state.postKind = "cpp-gpu";
   if (settings.capture) {
     state.systemDevice = settings.capture.systemDevice || "";
     state.micDevice = settings.capture.micDevice || "";
@@ -850,9 +841,7 @@ function startOrStop(tab) {
   if (!canStart(tab)) return;
   if (tab === "live") {
     const mode = liveMode();
-    // faster-whisper has a separate no-WAV launch; SenseVoice takes saveWav.
-    const kind = mode.id === "live-meeting" && !state.saveWav ? "live-whisper" : mode.id;
-    void run(kind, {
+    void run(mode.id, {
       previewSeconds: state.previewSeconds,
       saveWav: mode.optionalWav ? state.saveWav : true,
       language: state.language,

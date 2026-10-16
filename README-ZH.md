@@ -42,7 +42,7 @@ cargo run
 4. 如有需要，在同一面板調整字幕預覽間隔。
 5. 按下 **Start meeting** 開始；同一個按鈕可停止工作。標題列會在所有頁面顯示工作狀態及經過時間。
 
-全新設定預設使用 faster-whisper，在 CPU 上執行 Whisper small。支援 NVIDIA CUDA 的電腦可選擇 whisper.cpp CUDA 後端；Whisper large-v3-turbo 是可另外下載的 CUDA 即時模型。Whisper base 透過現有的 Vulkan loopback 後端使用。
+全新設定預設在 CPU 上執行 SenseVoice-Small。支援 NVIDIA CUDA 的電腦可選擇它的 CUDA 後端或 Whisper large-v3-turbo；兩者都要先在 Settings & models 下載。
 
 首次設定可能需要下載相依套件及模型。安裝後，辨識使用本機模型，不會呼叫雲端 ASR 服務。程序正在執行不代表已收到音訊，請查看字幕及程序日誌確認。
 
@@ -59,9 +59,9 @@ cargo run
 | Recordings | 選擇錄音，或把音訊檔案拖放到視窗任何位置，再選擇模型與後端；錄音已有的逐字稿可一鍵開啟。 |
 | Settings | 外觀、語言及輸出資料夾；檢查／下載模型及執行檔。 |
 
-即時字幕可選 **Whisper large-v3-turbo**（CUDA）、**SenseVoice-Small**（CPU 或 CUDA）、**Whisper small** 或 **Whisper base**。會後轉錄可選 **Whisper small**、**Qwen3-ASR 0.6B**，或較準確但需另外下載的 **Qwen3-ASR 1.7B**。Qwen 目前用於檔案轉錄，不支援即時字幕。
+即時字幕可選 **Whisper large-v3-turbo**（CUDA）或 **SenseVoice-Small**（CPU 或 CUDA）。會後轉錄可選 **Whisper small**、**Qwen3-ASR 0.6B**，或較準確但需另外下載的 **Qwen3-ASR 1.7B**。Qwen 目前用於檔案轉錄，不支援即時字幕。
 
-**辨識語言**（自動偵測、中文、粵語、英文、日文）在即時會議及錄音檔頁面選擇。Settings 的**中文字體**可把中文及粵語字幕轉為繁體（香港）或簡體；含日文假名的字幕保持原樣。Vulkan 後端（loopback 串流及檔案轉錄）目前仍只辨識日文。
+**辨識語言**（自動偵測、中文、粵語、英文、日文）在即時會議及錄音檔頁面選擇。Settings 的**中文字體**可把中文及粵語字幕轉為繁體（香港）或簡體；含日文假名的字幕保持原樣。Vulkan 檔案轉錄目前仍只辨識日文。
 
 以 RTX 5070 Ti、每種語言 12 段固定 FLEURS 音訊經即時流程重播：SenseVoice-Small 在普通話（錯字率 6.6% 對 8.8%）及粵語（3.0% 對 6.2–7.7%）較準，Whisper large-v3-turbo 在日文（5.4% 對 7.7–8.6%）及英文（錯詞率 4.2% 對 7.6–8.0%）較準。這是乾淨朗讀而非會議，而且 FLEURS 粵語是以粵語朗讀書面語，並非口語粵語。
 
@@ -71,25 +71,23 @@ cargo run
 
 | 後端 | 本機檔案 | 備註 |
 | --- | --- | --- |
-| faster-whisper | `models/faster-whisper-small/` | 預設使用 CPU，支援即時字幕及可選的 WAV 錄音。 |
-| SenseVoice-Small CPU | `models/SenseVoiceSmall/` | 經 sherpa-onnx 以 CPU 執行的即時字幕（int8，約 230 MB）；WAV 可選。 |
+| SenseVoice-Small CPU | `models/SenseVoiceSmall/` | 預設的即時字幕，經 sherpa-onnx 以 CPU 執行（int8，約 230 MB）；WAV 可選。 |
 | SenseVoice-Small CUDA | `models/SenseVoiceSmall-fp32/` | 可選，以 NVIDIA GPU 執行的即時字幕（fp32，約 900 MB）。第一次執行會下載 NVIDIA 的 CUDA 12／cuDNN 9 套件（約 1.5 GB）。 |
-| whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | 即時伺服器及檔案轉錄。 |
-| whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU，即時伺服器及檔案轉錄。 |
+| whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | 檔案轉錄。 |
+| whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU，檔案轉錄。 |
 | whisper.cpp CUDA Turbo | `whisper_cpp/bin_cuda/Release/` + `ggml-large-v3-turbo.bin` | 可選的 NVIDIA 即時字幕；下載器會固定版本並核對 SHA-256。 |
-| whisper.cpp Vulkan | `whisper_cpp/bin_vulkan/Release/` + `ggml-small.bin` | 常駐即時伺服器及檔案轉錄。 |
+| whisper.cpp Vulkan | `whisper_cpp/bin_vulkan/Release/` + `ggml-small.bin` | 檔案轉錄。 |
 | OpenVINO NPU/GPU | `whisper_cpp/bin_openvino/Release/` + small 模型及 encoder XML/BIN | 需要相容的 OpenVINO 裝置及本機建置。 |
-| Vulkan loopback | `whisper_cpp/bin_vulkan_loopback/Release/` + base 或 small 模型 | 只使用系統預設音訊回送，不支援自訂裝置或麥克風混音。 |
 | Qwen CPU/CUDA | `models/Qwen3-ASR-0.6B/` | 檔案轉錄，共用固定版本的 Python 執行環境。 |
 | Qwen 1.7B CPU/CUDA | `models/Qwen3-ASR-1.7B/` | 可選，約 4.4 GB，在 Settings 的對應行下載；辨識較準，需要更多 GPU 記憶體。與 Qwen 0.6B 共用執行環境。 |
 
-`ggml-*.bin` 應放在 `whisper_cpp/models/`。即時 CPU／CUDA 後端同時需要 `whisper-server.exe` 及 `whisper-cli.exe`。檔案檢查只確認路徑存在，不會驗證硬體相容性或所有下載檔案的完整性。Vulkan 與 OpenVINO 執行檔來自本機建置或發佈包，並非一般模型下載的一部分。
+`ggml-*.bin` 應放在 `whisper_cpp/models/`。Turbo 即時字幕同時需要 `whisper-server.exe` 及 `whisper-cli.exe`。檔案檢查只確認路徑存在，不會驗證硬體相容性或所有下載檔案的完整性。Vulkan 與 OpenVINO 執行檔來自本機建置或發佈包，並非一般模型下載的一部分。
 
 ## 延遲與停止行為
 
-Whisper CPU／CUDA 即時會議會維持一個已載入模型的伺服器。Silero VAD 偵測句子邊界；未完句子預設每秒重新辨識一次，顯示可修訂預覽，偵測到停頓後再辨識整句並定稿。可在 Live 頁面調整預覽間隔。推論忙碌時仍保留到達的音訊，可略過過期預覽，但會繼續處理已完成的句子及保存 WAV。會議結束時會釋放模型。獨立的 Vulkan loopback 串流仍使用其自身的收音與 VAD 行為。
+即時會議期間會一直載入同一個模型（Turbo 使用 whisper.cpp 伺服器）。Silero VAD 偵測句子邊界；未完句子預設每秒重新辨識一次，顯示可修訂預覽，偵測到停頓後再辨識整句並定稿。可在 Live 頁面調整預覽間隔。推論忙碌時仍保留到達的音訊，可略過過期預覽，但會繼續處理已完成的句子及保存 WAV。會議結束時會釋放模型。
 
-Python 即時辨識／錄音工作最多有 10 秒停止擷取、關閉 WAV 並釋放模型程序。若未能退出，應用程式會終止整個程序樹。檔案轉錄及原生 loopback 工作採用強制終止。關閉應用程式時亦會等待清理。停止可能捨棄排隊中或未完整的字幕，亦可能中斷尚未完成的輸出；最終逐字稿請使用已儲存的錄音重新轉錄。
+Python 即時辨識／錄音工作最多有 10 秒停止擷取、關閉 WAV 並釋放模型程序。若未能退出，應用程式會終止整個程序樹。檔案轉錄工作採用強制終止。關閉應用程式時亦會等待清理。停止可能捨棄排隊中或未完整的字幕，亦可能中斷尚未完成的輸出；最終逐字稿請使用已儲存的錄音重新轉錄。
 
 Qwen 啟動器共用 `python_backend/qwen-requirements.txt`，包含 PyTorch 2.11／CUDA 12.8，支援 RTX 5070 Ti 等相容的 NVIDIA GPU。CPU 選項使用相同執行環境，但在 CPU 上推論。載入模型權重前會測試 GPU 運算核心；缺少本機模型時會顯示明確錯誤。
 

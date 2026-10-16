@@ -42,7 +42,7 @@ cargo run
 4. 必要に応じて同じパネルで字幕プレビューの間隔を調整します。
 5. **Start meeting** で開始し、同じボタンで停止します。タイトルバーにはどのページでも処理の状態と経過時間が表示されます。
 
-新規設定では、faster-whisper の Whisper small を CPU で実行します。対応する NVIDIA GPU がある場合は whisper.cpp CUDA を選べます。Whisper large-v3-turbo は追加ダウンロードできる CUDA ライブモデルです。Whisper base は既存の Vulkan loopback バックエンドで利用できます。
+新規設定では SenseVoice-Small を CPU で実行します。対応する NVIDIA GPU がある場合は、その CUDA バックエンドか Whisper large-v3-turbo を選べます。どちらも先に Settings & models でダウンロードしてください。
 
 初回設定時には依存パッケージやモデルをダウンロードする場合があります。導入後はクラウド ASR サービスではなくローカルモデルで認識します。プロセスが動いていても音声を取得できているとは限らないため、字幕とログを確認してください。
 
@@ -59,9 +59,9 @@ cargo run
 | Recordings | 録音を選択するか、音声ファイルをウィンドウのどこにでもドロップして、モデルとバックエンドを指定。既存の文字起こしはワンクリックで開けます。 |
 | Settings | 外観、言語、出力先。モデルとランタイムの確認・ダウンロード。 |
 
-リアルタイム字幕では **Whisper large-v3-turbo**（CUDA）、**SenseVoice-Small**（CPU または CUDA）、**Whisper small**、**Whisper base**、会議後の文字起こしでは **Whisper small**、**Qwen3-ASR 0.6B**、追加ダウンロードでより高精度な **Qwen3-ASR 1.7B** を選べます。Qwen は現在、ファイルの文字起こし専用で、リアルタイム字幕には使用しません。
+リアルタイム字幕では **Whisper large-v3-turbo**（CUDA）と **SenseVoice-Small**（CPU または CUDA）、会議後の文字起こしでは **Whisper small**、**Qwen3-ASR 0.6B**、追加ダウンロードでより高精度な **Qwen3-ASR 1.7B** を選べます。Qwen は現在、ファイルの文字起こし専用で、リアルタイム字幕には使用しません。
 
-**認識言語**（自動検出、中国語、広東語、英語、日本語）はライブと録音一覧のページで選びます。Settings の**中国語の字体**で、中国語と広東語の字幕を繁体字（香港）または簡体字に変換できます。仮名を含む字幕はそのままです。Vulkan バックエンド（loopback ストリームとファイルの文字起こし）は現在も日本語のみです。
+**認識言語**（自動検出、中国語、広東語、英語、日本語）はライブと録音一覧のページで選びます。Settings の**中国語の字体**で、中国語と広東語の字幕を繁体字（香港）または簡体字に変換できます。仮名を含む字幕はそのままです。Vulkan のファイル文字起こしは現在も日本語のみです。
 
 RTX 5070 Ti で各言語 12 件の固定 FLEURS 音声をライブ処理で再生した結果、中国語（CER 6.6% 対 8.8%）と広東語（3.0% 対 6.2–7.7%）では SenseVoice-Small、日本語（5.4% 対 7.7–8.6%）と英語（WER 4.2% 対 7.6–8.0%）では Whisper large-v3-turbo がより正確でした。会議ではなくきれいな朗読音声で、FLEURS の広東語は口語ではなく書き言葉の朗読です。
 
@@ -71,25 +71,23 @@ RTX 5070 Ti で各言語 12 件の固定 FLEURS 音声をライブ処理で再�
 
 | バックエンド | ローカルファイル | 備考 |
 | --- | --- | --- |
-| faster-whisper | `models/faster-whisper-small/` | 初期設定は CPU。リアルタイム字幕と任意の WAV 録音。 |
-| SenseVoice-Small CPU | `models/SenseVoiceSmall/` | sherpa-onnx による CPU のリアルタイム字幕（int8、約 230 MB）。WAV は任意。 |
+| SenseVoice-Small CPU | `models/SenseVoiceSmall/` | 初期設定のリアルタイム字幕。sherpa-onnx により CPU で実行（int8、約 230 MB）。WAV は任意。 |
 | SenseVoice-Small CUDA | `models/SenseVoiceSmall-fp32/` | 任意。NVIDIA GPU のリアルタイム字幕（fp32、約 900 MB）。初回実行時に NVIDIA の CUDA 12／cuDNN 9 パッケージ（約 1.5 GB）をダウンロードします。 |
-| whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | ライブサーバーとファイルの文字起こし。 |
-| whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU。ライブサーバーとファイルの文字起こし。 |
+| whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | ファイルの文字起こし。 |
+| whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU。ファイルの文字起こし。 |
 | whisper.cpp CUDA Turbo | `whisper_cpp/bin_cuda/Release/` + `ggml-large-v3-turbo.bin` | 追加の NVIDIA ライブ字幕。ダウンロード時にバージョンと SHA-256 を確認。 |
-| whisper.cpp Vulkan | `whisper_cpp/bin_vulkan/Release/` + `ggml-small.bin` | 常駐ライブサーバーとファイルの文字起こし。 |
+| whisper.cpp Vulkan | `whisper_cpp/bin_vulkan/Release/` + `ggml-small.bin` | ファイルの文字起こし。 |
 | OpenVINO NPU/GPU | `whisper_cpp/bin_openvino/Release/` + small モデルと encoder XML/BIN | 対応する OpenVINO デバイスとローカルビルドが必要。 |
-| Vulkan loopback | `whisper_cpp/bin_vulkan_loopback/Release/` + base または small モデル | システム既定のループバックのみ。個別のデバイス指定やマイク音声のミックスには非対応。 |
 | Qwen CPU/CUDA | `models/Qwen3-ASR-0.6B/` | ファイルの文字起こし。バージョンを固定した Python 実行環境を共用。 |
 | Qwen 1.7B CPU/CUDA | `models/Qwen3-ASR-1.7B/` | 任意・約 4.4 GB。Settings の該当行からダウンロード。精度が高い分、GPU メモリを多く使います。Qwen 0.6B と同じ実行環境を使います。 |
 
-`ggml-*.bin` は `whisper_cpp/models/` に配置します。ライブ CPU／CUDA には `whisper-cli.exe` に加えて `whisper-server.exe` が必要です。ファイルチェックはパスの存在を確認するもので、ハードウェア互換性や全ダウンロードファイルの完全性までは検証しません。Vulkan と OpenVINO の実行ファイルはローカルビルドまたはリリースに含まれるもので、通常のモデルダウンロードとは別です。
+`ggml-*.bin` は `whisper_cpp/models/` に配置します。Turbo のライブ字幕には `whisper-cli.exe` に加えて `whisper-server.exe` が必要です。ファイルチェックはパスの存在を確認するもので、ハードウェア互換性や全ダウンロードファイルの完全性までは検証しません。Vulkan と OpenVINO の実行ファイルはローカルビルドまたはリリースに含まれるもので、通常のモデルダウンロードとは別です。
 
 ## 遅延と停止時の動作
 
-Whisper CPU／CUDA のライブ会議では、モデルを読み込んだサーバーを会議中維持します。Silero VAD が発話の区切りを検出します。発話中は初期値で毎秒、修正可能な字幕を更新し、短い無音の後に発話全体を再認識して確定します。Live ページでプレビュー間隔を変更できます。推論が遅い場合も到着した音声は保持し、古いプレビューだけを省略できます。完了した発話と WAV 録音は処理を続け、終了時にモデルを解放します。独立した Vulkan loopback ストリームは従来どおり固有の録音と VAD を使います。
+ライブ会議中は同じモデルを読み込んだまま維持します（Turbo は whisper.cpp サーバー）。Silero VAD が発話の区切りを検出します。発話中は初期値で毎秒、修正可能な字幕を更新し、短い無音の後に発話全体を再認識して確定します。Live ページでプレビュー間隔を変更できます。推論が遅い場合も到着した音声は保持し、古いプレビューだけを省略できます。完了した発話と WAV 録音は処理を続け、終了時にモデルを解放します。
 
-Python のライブ認識／録音ジョブには、音声取得の停止、WAV のクローズ、モデルプロセスの解放に最大 10 秒の猶予があります。終了しない場合、アプリがプロセスツリーを終了します。ファイルの文字起こしとネイティブの loopback ジョブは強制終了します。アプリを閉じる際も終了処理を待ちます。停止によって待機中・途中の字幕が欠けたり、未完了の出力が中断されたりする場合があります。最終的な文字起こしには保存した録音を使用してください。
+Python のライブ認識／録音ジョブには、音声取得の停止、WAV のクローズ、モデルプロセスの解放に最大 10 秒の猶予があります。終了しない場合、アプリがプロセスツリーを終了します。ファイルの文字起こしジョブは強制終了します。アプリを閉じる際も終了処理を待ちます。停止によって待機中・途中の字幕が欠けたり、未完了の出力が中断されたりする場合があります。最終的な文字起こしには保存した録音を使用してください。
 
 Qwen ランチャーは `python_backend/qwen-requirements.txt` を共用します。PyTorch 2.11／CUDA 12.8 を含み、RTX 5070 Ti などの対応 NVIDIA GPU をサポートします。CPU オプションも同じ実行環境を使い、CPU 上で推論します。重みの読み込み前に GPU カーネルを確認し、ローカルモデルがない場合は明確なエラーを表示します。
 

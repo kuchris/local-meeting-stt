@@ -56,13 +56,6 @@ const ASSETS: &[Asset] = &[
         note: Some("Optional, about 900 MB. The first GPU run also downloads NVIDIA CUDA libraries (about 1.5 GB)."),
     },
     Asset {
-        id: "faster-whisper",
-        label: "faster-whisper small",
-        relative_path: "models/faster-whisper-small",
-        downloadable: true,
-        note: None,
-    },
-    Asset {
         id: "whisper-cpp-cpu",
         label: "whisper.cpp CPU",
         relative_path: "whisper_cpp/bin_cpu/Release/whisper-cli.exe",
@@ -103,20 +96,6 @@ const ASSETS: &[Asset] = &[
         relative_path: "whisper_cpp/models/ggml-small-encoder-openvino.bin",
         downloadable: false,
         note: Some("Generated locally from the small model for OpenVINO."),
-    },
-    Asset {
-        id: "whisper-cpp-vulkan-loopback",
-        label: "whisper.cpp Vulkan loopback",
-        relative_path: "whisper_cpp/bin_vulkan_loopback/Release/whisper-stream-loopback.exe",
-        downloadable: false,
-        note: Some("Custom local build; see whisper_cpp/vulkan-loopback-custom-build.md."),
-    },
-    Asset {
-        id: "whisper-cpp-base-model",
-        label: "whisper.cpp base model",
-        relative_path: "whisper_cpp/models/ggml-base.bin",
-        downloadable: true,
-        note: None,
     },
     Asset {
         id: "whisper-cpp-turbo-model",
