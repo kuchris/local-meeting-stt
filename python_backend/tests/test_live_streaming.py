@@ -55,6 +55,20 @@ class LiveStreamingTests(unittest.TestCase):
         self.assertEqual(segmenter.feed(speech), [])
         self.assertEqual([item.kind for item in segmenter.feed(speech)], ["partial"])
 
+    def test_long_utterance_is_finalized_at_its_latest_short_pause(self):
+        def runs(audio: np.ndarray) -> list[dict]:
+            voiced = (audio > 0.5).astype(np.int8)
+            edges = np.flatnonzero(np.diff(np.concatenate(([0], voiced, [0]))))
+            return [{"start": int(a), "end": int(b)} for a, b in zip(edges[::2], edges[1::2])]
+
+        segmenter = SpeechSegmenter(vad=fake_vad, split_after_seconds=3, short_pause_vad=runs)
+        audio = np.concatenate([np.ones(40000), np.zeros(1600), np.ones(16000)]).astype(np.float32)
+        requests = [item for offset in range(0, len(audio), 8000) for item in segmenter.feed(audio[offset:offset + 8000])]
+        finals = [item for item in requests if item.kind == "final"]
+        self.assertEqual(len(finals), 1)
+        self.assertEqual(len(finals[0].audio), 40800)
+        self.assertEqual(len(segmenter.finish()[0].audio), 16000)
+
     def test_previews_in_another_script_are_dropped(self):
         self.assertFalse(plausible_preview("So tiendin", "yue"))
         self.assertTrue(plausible_preview("在短短兩週內", "yue"))

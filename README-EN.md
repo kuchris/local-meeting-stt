@@ -124,7 +124,8 @@ Live sessions keep one model loaded for the meeting (a whisper.cpp server for Tu
 Silero VAD finds utterance boundaries. The unfinished utterance is re-transcribed
 every 0.3 s (SenseVoice) or 0.5 s (Turbo) from 0.1 s capture blocks, and appears as
 the last transcript line, typed out as it grows; a revision rewrites the characters
-in place. A pause triggers a final pass, which replaces that line. Capture keeps
+in place. A pause triggers a final pass, which replaces that line; an utterance
+longer than 8 s is also finalized at its latest 250 ms pause (20 s at most). Capture keeps
 all arriving audio even when inference is busy; stale previews may be skipped while
 completed utterances and WAV recording continue. The model is released at session end.
 Capture keeps a 0.5 s WASAPI buffer (soundcard's default is about 10 ms, which

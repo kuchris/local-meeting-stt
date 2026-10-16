@@ -46,6 +46,8 @@ class SpeechSegmenter:
         max_utterance_seconds: float = 20.0,
         vad: Callable[[np.ndarray], list[dict]] | None = None,
         min_preview_seconds: float = 0.4,
+        split_after_seconds: float | None = 8.0,
+        short_pause_vad: Callable[[np.ndarray], list[dict]] | None = None,
     ) -> None:
         if sample_rate != 16000:
             raise ValueError("Silero VAD live captions require 16 kHz audio")
@@ -61,7 +63,15 @@ class SpeechSegmenter:
                 speech_pad_ms=200,
             )
             vad = lambda audio: get_speech_timestamps(audio, options, sampling_rate=sample_rate)
+            if short_pause_vad is None and split_after_seconds is not None:
+                # Same detector, but a 250 ms gap counts as a pause: speakers who never
+                # stop for half a second still breathe between phrases.
+                short = VadOptions(threshold=0.5, min_speech_duration_ms=150, min_silence_duration_ms=250, speech_pad_ms=50)
+                short_pause_vad = lambda audio: get_speech_timestamps(audio, short, sampling_rate=sample_rate)
         self.vad = vad
+        self.short_pause_vad = short_pause_vad if split_after_seconds is not None else None
+        self.split_after_samples = round((split_after_seconds or 0) * sample_rate)
+        self.min_split_samples = round(2.0 * sample_rate)
         self.sample_rate = sample_rate
         self.preview_interval_samples = round(preview_interval_seconds * sample_rate)
         self.max_utterance_samples = round(max_utterance_seconds * sample_rate)
@@ -100,14 +110,32 @@ class SpeechSegmenter:
                 self.pending = np.empty(0, dtype=np.float32)
                 self.last_preview_samples = self.total_samples
                 return requests
-            if (
-                self.total_samples - self.last_preview_samples >= self.preview_interval_samples
-                and len(self.pending) - start >= self.min_preview_samples
-            ):
+            preview_due = self.total_samples - self.last_preview_samples >= self.preview_interval_samples
+            # Checked when a preview is due, so the second VAD pass runs a few times a second at most.
+            cut = self.short_pause_cut(start) if preview_due else None
+            if cut is not None:
+                requests.append(CaptionRequest("final", self.pending[start:cut].copy()))
+                self.pending = self.pending[cut:]
+                self.last_preview_samples = self.total_samples
+                continue
+            if preview_due and len(self.pending) - start >= self.min_preview_samples:
                 requests.append(CaptionRequest("partial", self.pending[start:].copy()))
                 self.last_preview_samples = self.total_samples
             return requests
         return requests
+
+    def short_pause_cut(self, start: int) -> int | None:
+        """Where to end a long unfinished utterance: the middle of its latest short
+        pause, if that leaves at least 2 s to finalize. None until the utterance is
+        longer than split_after_seconds."""
+        if self.short_pause_vad is None or len(self.pending) - start < self.split_after_samples:
+            return None
+        spans = self.short_pause_vad(self.pending[start:])
+        for before, after in zip(reversed(spans[:-1]), reversed(spans[1:])):
+            cut = start + (int(before["end"]) + int(after["start"])) // 2
+            if cut - start >= self.min_split_samples:
+                return cut
+        return None
 
     def finish(self) -> list[CaptionRequest]:
         spans = self.vad(self.pending) if len(self.pending) else []
@@ -131,8 +159,11 @@ def run_streaming(
     preview_interval_seconds: float = 1.0,
     language: str | None = None,
     min_preview_seconds: float = 0.4,
+    split_after_seconds: float | None = 8.0,
 ) -> None:
-    segmenter = SpeechSegmenter(sample_rate, preview_interval_seconds, min_preview_seconds=min_preview_seconds)
+    segmenter = SpeechSegmenter(
+        sample_rate, preview_interval_seconds, min_preview_seconds=min_preview_seconds, split_after_seconds=split_after_seconds,
+    )
     last_partial = ""
 
     def process(request: CaptionRequest) -> None:
