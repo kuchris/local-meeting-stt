@@ -4,6 +4,7 @@ from argparse import ArgumentParser, Namespace
 from datetime import datetime
 from io import BytesIO
 import os
+import re
 from pathlib import Path
 from queue import Empty, Full, Queue
 import socket
@@ -280,13 +281,32 @@ def wait_for_port(host: str, port: int, process: Popen, timeout: float = 30.0) -
     raise TimeoutError("Timed out waiting for whisper-server to start")
 
 
+# whisper-server prints three lines per request (a blank line, system_info and
+# "processing chunk.wav"), about 9,000 an hour of live captions, which pushed
+# everything else out of the app's 600-entry log; model-load parameter dumps add
+# 40 more at start. Those are dropped; anything that looks like a problem is kept.
+_ROUTINE_SERVER_LINE = re.compile(
+    r"^(system_info:|operator \(\): processing|whisper_init_state: |whisper_init_with_params_no_state: "
+    r"|whisper_backend_init_gpu: (device|found)|whisper_model_load: (?!model size))"
+)
+_PROBLEM = re.compile(r"error|warn|fail|abort|unable|cannot|not found", re.IGNORECASE)
+
+
+def server_line_worth_logging(line: str) -> bool:
+    text = line.strip()
+    if not text:
+        return False
+    return bool(_PROBLEM.search(text)) or not _ROUTINE_SERVER_LINE.match(text)
+
+
 def stream_process_output(process: Popen, stop_event: Event) -> None:
     if process.stdout is None:
         return
     for line in process.stdout:
         if stop_event.is_set():
             break
-        print(f"[whisper-server] {line.rstrip()}")
+        if server_line_worth_logging(line):
+            print(f"[whisper-server] {line.rstrip()}")
 
 
 def start_whisper_server(args: Namespace) -> tuple[Popen, str, Event, Thread]:
