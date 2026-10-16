@@ -10,7 +10,7 @@ use std::path::Path;
 pub fn default_settings() -> Value {
     json!({
         "outputDir": "outputs",
-        "qwen": { "chunkSeconds": 60, "tokens": 4096, "batch": 4 },
+        "qwen": { "chunkSeconds": 60, "tokens": 4096, "batch": 16 },
         "ui": { "locale": "en", "theme": "system" }
     })
 }

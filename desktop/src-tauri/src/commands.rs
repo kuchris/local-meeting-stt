@@ -382,7 +382,7 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
                 "--chunk-seconds".into(),
                 number(args, "chunkSeconds").unwrap_or_else(|| "60".into()),
                 "--batch-size".into(),
-                number(args, "qwenBatch").unwrap_or_else(|| "4".into()),
+                number(args, "qwenBatch").unwrap_or_else(|| "16".into()),
             ]);
             CommandSpec { label: if gpu { "Qwen GPU" } else { "Qwen CPU" }.into(), executable: "uv".into(), args: all }
         }
@@ -449,6 +449,25 @@ mod tests {
             serde_json::from_value(serde_json::json!({ "durationSeconds": 3600.0, "previewSeconds": 1 })).unwrap();
         assert_eq!(number(&args, "durationSeconds").as_deref(), Some("3600"));
         assert_eq!(number(&args, "previewSeconds").as_deref(), Some("1"));
+    }
+
+    #[test]
+    fn qwen_batch_defaults_to_16() {
+        let root = std::env::temp_dir().join(format!("lmstt-qwen-batch-{}", std::process::id()));
+        let paths = AppPaths {
+            repo_root: root.clone(),
+            data_root: root.clone(),
+            runtime_dir: root.join("runtime"),
+            settings_path: root.join("settings.json"),
+        };
+        let args: Args =
+            serde_json::from_value(serde_json::json!({ "audioPath": r"C:\calls\weekly.wav", "outputDir": "outputs" }))
+                .unwrap();
+        let spec = build(&paths, "qwen-gpu", &args).unwrap();
+        let at = spec.args.iter().position(|arg| arg == "--batch-size").unwrap();
+        assert_eq!(spec.args[at + 1], "16");
+        assert_eq!(crate::settings::default_settings()["qwen"]["batch"], 16);
+        std::fs::remove_dir_all(&root).unwrap();
     }
 
     #[test]

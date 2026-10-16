@@ -43,7 +43,7 @@ if (Test-Path -LiteralPath $whisperLicense) {
 }
 $settings = @{
     outputDir = 'outputs'
-    qwen = @{ chunkSeconds = 60; tokens = 4096; batch = 4 }
+    qwen = @{ chunkSeconds = 60; tokens = 4096; batch = 16 }
     ui = @{ locale = 'en'; theme = 'system' }
 } | ConvertTo-Json -Depth 4
 [IO.File]::WriteAllText((Join-Path $folder 'settings.json'), $settings, (New-Object Text.UTF8Encoding($false)))

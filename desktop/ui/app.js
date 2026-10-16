@@ -106,7 +106,7 @@ const state = {
   selectedSessionId: "",
   audioPath: "",
   postKind: "cpp-cpu",
-  qwen: { chunkSeconds: 60, tokens: 4096, batch: 4 },
+  qwen: { chunkSeconds: 60, tokens: 4096, batch: 16 },
   lastOutputPath: "",
   dragging: false,
   // models

@@ -16,7 +16,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--device", default="auto", help="auto, cuda:0, or cpu. Default: auto")
     parser.add_argument("--max-new-tokens", type=int, default=4096, help="Maximum output tokens. Default: 4096")
     parser.add_argument("--chunk-seconds", type=float, default=60.0, help="Manual audio chunk size in seconds. Default: 60")
-    parser.add_argument("--batch-size", type=int, default=4, help="Maximum inference batch size. Default: 4")
+    parser.add_argument("--batch-size", type=int, default=16, help="Maximum inference batch size. Default: 16")
     return parser.parse_args()
 
 
