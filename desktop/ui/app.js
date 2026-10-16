@@ -118,6 +118,8 @@ const state = {
   saveWav: true,
   follow: true,
   transcriptPath: "",
+  /** The WAV the last live or record job wrote, from its `Recording:`/`Writing:` line. */
+  savedAudioPath: "",
   // capture
   systemDevice: "",
   micDevice: "",
@@ -188,6 +190,13 @@ const selectedSession = () => state.sessions.find((session) => session.id === st
 const selectedAudioPath = () => selectedSession()?.audioPath || state.audioPath;
 const outputDirSetting = () => state.outputDir.trim() || "outputs";
 const basename = (path) => path.split(/[\\/]/).pop() || path;
+const folderKey = (path) => path.replace(/[\\/][^\\/]*$/, "").replace(/\//g, "\\").toLowerCase();
+/** The recording the last live or record job saved, once Recordings lists it; null without a WAV. */
+function finishedRecording() {
+  if (isRunning() || !state.savedAudioPath) return null;
+  const folder = folderKey(state.savedAudioPath);
+  return state.sessions.find((session) => session.audioPath && folderKey(session.audioPath) === folder) ?? null;
+}
 
 function canStart(tab) {
   if (!state.settingsLoaded || isRunning()) return false;
@@ -321,6 +330,7 @@ function renderLive() {
   setText($("transcript-path"), state.transcriptPath || `${t("輸出資料夾：")}${outputDirSetting()}`);
   $("transcript-path").title = state.transcriptPath;
   setHidden($("open-transcript"), !state.transcriptPath);
+  setHidden($("transcribe-recording"), !(state.lastKind.startsWith("live-") && finishedRecording()));
   setChecked($("follow"), state.follow);
   const label = languages.find(([id]) => id === state.language)?.[1] ?? "自動偵測";
   setText($("caption-language"), `/ ${t(label)}`);
@@ -380,6 +390,7 @@ function renderRecord() {
   setValue($("record-seconds"), state.durationSeconds);
   setDisabled($("record-seconds"), running || !state.timedRecording);
   setText($("record-output"), outputDirSetting());
+  setHidden($("record-transcribe"), !(state.lastKind.startsWith("record-") && finishedRecording()));
 }
 
 function renderRecordings() {
@@ -678,6 +689,11 @@ function onProcessEvent(event) {
     invalidate();
     return;
   }
+  if (event.type === "audio-path") {
+    state.savedAudioPath = event.path;
+    invalidate();
+    return;
+  }
   if (event.type === "exit") {
     const stopped = event.stopped || state.stoppingId === event.processId;
     state.activeId = null;
@@ -840,6 +856,7 @@ async function run(kind, args = {}) {
   state.startedAt = null;
   state.endedAt = null;
   expectOutput(kind);
+  if (kind.startsWith("live-") || kind.startsWith("record-")) state.savedAudioPath = "";
   if (kind.startsWith("live-")) {
     state.transcriptPath = "";
     clearCaptions();
@@ -1000,6 +1017,16 @@ function bind() {
   $("live-manage-assets").addEventListener("click", () => setTab("settings"));
   $("post-manage-assets").addEventListener("click", () => setTab("settings"));
   $("open-transcript").addEventListener("click", () => openPath(state.transcriptPath));
+  for (const button of [$("transcribe-recording"), $("record-transcribe")]) {
+    button.addEventListener("click", () => {
+      const session = finishedRecording();
+      if (!session) return;
+      state.selectedSessionId = session.id;
+      state.audioPath = "";
+      invalidate("selection");
+      setTab("recordings");
+    });
+  }
   $("follow").addEventListener("change", (event) => {
     state.follow = event.target.checked;
     if (state.follow) $("transcript").scrollTop = $("transcript").scrollHeight;

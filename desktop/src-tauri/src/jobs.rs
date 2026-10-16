@@ -84,6 +84,16 @@ fn recording_path(line: &str, repo_root: &Path) -> Option<PathBuf> {
     Some(if path.is_absolute() { path } else { repo_root.join(path) })
 }
 
+/// The WAV a capture job announces it is writing: `Recording:` from the live
+/// scripts, `Writing:` from record_audio.py.
+fn saved_audio_path(line: &str, repo_root: &Path) -> Option<PathBuf> {
+    static SAVED: OnceLock<Regex> = OnceLock::new();
+    let found =
+        SAVED.get_or_init(|| Regex::new(r"(?i)^(?:Recording|Writing):\s*(.+\.wav)\s*$").unwrap()).captures(line)?;
+    let path = PathBuf::from(found[1].trim());
+    Some(if path.is_absolute() { path } else { repo_root.join(path) })
+}
+
 /// Splits a byte stream into lines on `\n` or `\r`, so progress bars that
 /// redraw with `\r` still arrive line by line.
 fn for_each_read(mut stream: impl Read, mut on_lines: impl FnMut(Vec<String>)) {
@@ -284,6 +294,12 @@ impl Jobs {
                     for line in lines {
                         if let Some(path) = recording_path(line.trim(), &repo_root) {
                             recordings.lock().unwrap().push(path);
+                        }
+                        if let Some(path) = saved_audio_path(line.trim(), &repo_root) {
+                            let _ = app.emit(
+                                "process-event",
+                                json!({ "type": "audio-path", "processId": process_id, "path": path.to_string_lossy() }),
+                            );
                         }
                         if !live {
                             log.push(line);
@@ -549,6 +565,12 @@ mod tests {
         );
         assert_eq!(recording_path("Recording: C:\\x\\audio.WAV", root), Some(PathBuf::from(r"C:\x\audio.WAV")));
         assert_eq!(recording_path("Writing: C:\\x\\audio.wav", root), None);
+        assert_eq!(saved_audio_path("Writing: C:\\x\\audio.wav", root), Some(PathBuf::from(r"C:\x\audio.wav")));
+        assert_eq!(
+            saved_audio_path("Recording: outputs\\m\\audio.wav", root),
+            Some(PathBuf::from(r"C:\repo\outputs\m\audio.wav"))
+        );
+        assert_eq!(saved_audio_path("Saved: C:\\x\\audio.wav (3.0s)", root), None);
     }
 
     #[test]

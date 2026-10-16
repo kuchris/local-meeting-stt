@@ -447,6 +447,7 @@ const added = {
     "中国語と広東語の字幕を変換します。日本語はそのままです",
   ],
   "繁體（香港）": ["繁體（香港）", "Traditional (HK)", "繁体字（香港）"],
+  "轉錄這段錄音": ["轉錄這段錄音", "Transcribe this recording", "この録音を文字起こし"],
   "簡體": ["簡體", "Simplified", "簡体字"],
   "Chinese, Cantonese, English, Japanese live captions on CPU; about 230 MB.": [
     "中文、粵語、英文、日文即時字幕，以 CPU 執行；約 230 MB。",

@@ -80,6 +80,8 @@ format are the same. Differences:
   interval setting is gone. SenseVoice starts with `UV_OFFLINE=1`, so uv does
   not re-read the CUDA wheel index online on every start (2 s instead of 16 s).
 - **Drop an audio file anywhere** in the window; it opens Recordings with that file.
+- **Transcribe this recording**: after a live meeting that saved its WAV, or a
+  recording on Record, one click opens Recordings on that recording.
 - **Light, dark or system** theme, set in Settings.
 - The File/Run/View menu bar and the resizable recordings column are gone.
   Shortcuts: `Ctrl+O` open audio, `Ctrl+1`–`4` pages, `Ctrl+L` log, `Esc` close log.
