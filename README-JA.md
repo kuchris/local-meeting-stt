@@ -66,7 +66,7 @@ cargo run
 
 RTX 5070 Ti で各言語 12 件の固定 FLEURS 音声をライブ処理で再生した結果、中国語（CER 6.6% 対 8.8%）と広東語（3.0% 対 6.2–7.7%）では SenseVoice-Small、日本語（5.4% 対 7.7–8.6%）と英語（WER 4.2% 対 7.6–8.0%）では Whisper large-v3-turbo がより正確でした。会議ではなくきれいな朗読音声で、FLEURS の広東語は口語ではなく書き言葉の朗読です。
 
-文字起こしのバックエンド選択は保存されます。Whisper と Qwen を切り替えても CPU／CUDA の選択を引き継ぎます。文字起こしの設定がまだない場合、ライブ設定が CUDA なら文字起こしも CUDA（ライブのモデルが Whisper large-v3-turbo ならそれを使用）、それ以外は CPU が初期選択になります。明示的に保存した CPU 設定は維持されます。
+文字起こしのバックエンド選択は保存されます。Whisper と Qwen を切り替えても CPU／CUDA の選択を引き継ぎます。文字起こしの設定がまだない場合は、ライブ字幕のモデルが初期選択になります。Turbo なら Whisper large-v3-turbo、SenseVoice なら同じバックエンドの SenseVoice-Small（新規設定では SenseVoice CPU）です。明示的に保存した CPU 設定は維持されます。
 
 ## バックエンドとローカルファイル
 

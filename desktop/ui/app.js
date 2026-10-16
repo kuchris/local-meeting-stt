@@ -141,7 +141,8 @@ const state = {
   sessions: [],
   selectedSessionId: "",
   audioPath: "",
-  postKind: "cpp-cpu",
+  // SenseVoice CPU like the live default: Whisper small failed on Cantonese files.
+  postKind: "sensevoice-cpu",
   // context: names and terms of the meeting, given to Qwen; empty by default.
   qwen: { chunkSeconds: 60, tokens: 4096, batch: 16, context: "" },
   lastOutputPath: "",
@@ -780,9 +781,11 @@ async function loadSettings() {
   if (isLocale(settings.ui?.locale)) state.locale = settings.ui.locale;
   if (["system", "light", "dark"].includes(settings.ui?.theme)) state.theme = settings.ui.theme;
   if (isPostKind(settings.post?.kind)) state.postKind = settings.post.kind;
-  // No saved choice: a CUDA live setup transcribes on CUDA, with Turbo when that is the live model.
+  // No saved choice: transcribe with the live model where it can (Turbo on CUDA, SenseVoice on its
+  // backend); an older CUDA Whisper live setup starts on Whisper small CUDA.
   else if (settings.live?.mode === "live-cpp-turbo-gpu") state.postKind = "cpp-turbo-gpu";
-  else if (["live-sensevoice-gpu", "live-cpp-gpu"].includes(settings.live?.mode)) state.postKind = "cpp-gpu";
+  else if (settings.live?.mode === "live-sensevoice-gpu") state.postKind = "sensevoice-gpu";
+  else if (settings.live?.mode === "live-cpp-gpu") state.postKind = "cpp-gpu";
   if (settings.capture) {
     state.systemDevice = settings.capture.systemDevice || "";
     state.micDevice = settings.capture.micDevice || "";

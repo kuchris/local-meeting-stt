@@ -66,7 +66,7 @@ cargo run
 
 以 RTX 5070 Ti、每種語言 12 段固定 FLEURS 音訊經即時流程重播：SenseVoice-Small 在普通話（錯字率 6.6% 對 8.8%）及粵語（3.0% 對 6.2–7.7%）較準，Whisper large-v3-turbo 在日文（5.4% 對 7.7–8.6%）及英文（錯詞率 4.2% 對 7.6–8.0%）較準。這是乾淨朗讀而非會議，而且 FLEURS 粵語是以粵語朗讀書面語，並非口語粵語。
 
-程式會儲存會後轉錄的後端選擇。在 Whisper 與 Qwen 之間切換時，會保留 CPU／CUDA 偏好。若未儲存轉錄偏好，而即時會議已使用 CUDA，轉錄亦會預選 CUDA（即時模型是 Whisper large-v3-turbo 時就用它）；其他情況預選 CPU。明確儲存的 CPU 選擇不會被覆蓋。
+程式會儲存會後轉錄的後端選擇。在 Whisper 與 Qwen 之間切換時，會保留 CPU／CUDA 偏好。若未儲存轉錄偏好，轉錄會預選即時字幕的模型：Turbo 用 Whisper large-v3-turbo，SenseVoice 用相同後端的 SenseVoice-Small（全新設定為 SenseVoice CPU）。明確儲存的 CPU 選擇不會被覆蓋。
 
 ## 後端與本機檔案
 

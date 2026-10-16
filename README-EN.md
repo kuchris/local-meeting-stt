@@ -132,10 +132,10 @@ and Cantonese (3.0% vs 6.2–7.7%), and Whisper large-v3-turbo for Japanese (5.4
 meetings, and FLEURS Cantonese is read written Chinese, not colloquial Cantonese.
 
 The selected post-transcription backend is saved. Switching between Whisper and
-Qwen preserves CPU/CUDA preference. When no post preference exists, an existing
-CUDA live configuration initializes transcription to CUDA (Whisper large-v3-turbo
-when that is the live model); other configurations start on CPU. An explicit saved
-CPU choice is preserved.
+Qwen preserves CPU/CUDA preference. When no post preference exists, transcription
+starts on the live model: Whisper large-v3-turbo for Turbo, SenseVoice-Small on
+CUDA or CPU for SenseVoice (a fresh configuration starts on SenseVoice CPU). An
+explicit saved choice is preserved.
 
 ## Backends and local assets
 
