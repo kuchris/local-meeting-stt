@@ -55,7 +55,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--server-host", default="127.0.0.1", help="whisper-server bind host. Default: 127.0.0.1")
     parser.add_argument("--server-port", type=int, help="whisper-server port. Default: auto")
     parser.add_argument("--server-timeout", type=float, default=60.0, help="Seconds to wait for each server inference response. Default: 60")
-    parser.add_argument("--silence-rms", type=float, default=0.003, help="Skip server inference below this chunk RMS. Default: 0.003")
+    parser.add_argument("--silence-rms", type=float, default=0.003, help="Skip server inference below this fixed-chunk RMS; --streaming VAD utterances are always sent. Default: 0.003")
     parser.add_argument("--no-gpu", action="store_true", help="Disable whisper.cpp GPU inference")
     parser.add_argument("--threads", type=int, help="whisper.cpp CPU thread count. Default: auto")
     parser.add_argument("--openvino-device", help="OpenVINO encoder device for whisper-server, for example NPU, GPU, or CPU")
@@ -193,8 +193,9 @@ def transcribe_with_cpp(args: Namespace, audio_path: Path) -> str:
     return text
 
 
-def transcribe_with_server(args: Namespace, session, url: str, chunk: np.ndarray) -> str:
-    if np.sqrt(np.mean(np.square(chunk))) < args.silence_rms:
+def transcribe_with_server(args: Namespace, session, url: str, chunk: np.ndarray, skip_quiet: bool = True) -> str:
+    # A fixed chunk may be pure silence, which Whisper fills with invented text.
+    if skip_quiet and np.sqrt(np.mean(np.square(chunk))) < args.silence_rms:
         return ""
 
     wav_data = BytesIO()
@@ -210,6 +211,13 @@ def transcribe_with_server(args: Namespace, session, url: str, chunk: np.ndarray
     response.raise_for_status()
     payload = response.json()
     return " ".join(str(payload.get("text", "")).split())
+
+
+def stream_transcriber(args: Namespace, session, url: str):
+    """Recognizes --streaming VAD utterances. VAD has already judged each one to
+    be speech, so quiet speech is sent rather than dropped by --silence-rms: a
+    distant or softly spoken sentence (RMS about 0.001) was otherwise lost whole."""
+    return lambda audio: transcribe_with_server(args, session, url, audio, skip_quiet=False)
 
 
 def append_transcript(output_path: Path, text: str) -> None:
@@ -377,7 +385,7 @@ def run_live(args: Namespace) -> None:
                     run_streaming(
                         chunks, stop_event, capture_errors, args.capture_rate, args.sample_rate,
                         output_path,
-                        lambda audio: transcribe_with_server(args, session, server_url, audio),
+                        stream_transcriber(args, session, server_url),
                         resample_audio,
                         args.preview_seconds,
                     )

@@ -24,7 +24,7 @@ from run import percentile, write_json
 sys.path.insert(0, str(ROOT / "whisper_cpp"))
 sys.path.insert(0, str(ROOT / "python_backend"))
 import live_cpp
-from live_cpp import start_whisper_server, stop_whisper_server, transcribe_with_server
+from live_cpp import start_whisper_server, stop_whisper_server, stream_transcriber, transcribe_with_server
 from live_streaming import SpeechSegmenter
 
 
@@ -64,6 +64,7 @@ def main() -> None:
     process, url, output_stop, output_thread = start_whisper_server(server_args)
     try:
         with requests.Session() as session:
+            transcribe_utterance = stream_transcriber(server_args, session, url)  # as the app's --streaming path
             for item in manifest["samples"][:args.count]:
                 path = DATA / item["file"]
                 if hashlib.sha256(path.read_bytes()).hexdigest() != item["sha256"]:
@@ -88,7 +89,7 @@ def main() -> None:
                     for request in segmenter.feed(audio[offset:offset + rate // 2]):
                         queued = max(0.0, time.perf_counter() - replay_start - arrived) if args.realtime else None
                         started = time.perf_counter()
-                        text = transcribe_with_server(server_args, session, url, request.audio)
+                        text = transcribe_utterance(request.audio)
                         elapsed = time.perf_counter() - started
                         events.append({"kind": request.kind, "audio_end": arrived,
                                        "clip_seconds": len(request.audio) / rate,
@@ -99,7 +100,7 @@ def main() -> None:
                             finals.append(text)
                 for request in segmenter.finish():
                     started = time.perf_counter()
-                    text = transcribe_with_server(server_args, session, url, request.audio)
+                    text = transcribe_utterance(request.audio)
                     events.append({"kind": "final", "audio_end": len(audio) / rate,
                                    "clip_seconds": len(request.audio) / rate,
                                    "inference_seconds": time.perf_counter() - started,
