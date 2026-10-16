@@ -117,6 +117,35 @@ def resample_audio(samples: np.ndarray, input_rate: int, output_rate: int) -> np
     return soxr.resample(samples, input_rate, output_rate).astype(np.float32, copy=False)
 
 
+# soundcard's default WASAPI buffer is one device period (about 10 ms), so a
+# capture thread that runs late by more than that loses audio: replaying speech
+# through SenseVoice on CPU dropped 8-18 ms per 40 s session. Half a second
+# absorbs such stalls; packets are still read as they arrive, so it adds no latency.
+CAPTURE_BUFFER_SECONDS = 0.5
+
+
+def capture_blocksize(samplerate: int) -> int:
+    return int(samplerate * CAPTURE_BUFFER_SECONDS)
+
+
+class StreamResampler:
+    """Resamples consecutive capture blocks as one continuous signal. Resampling
+    each block on its own leaves a small click at every block edge: against a
+    one-pass resample, 0.1 s blocks came to 40 dB SNR (0.5 s blocks: 46 dB)."""
+
+    def __init__(self, input_rate: int, output_rate: int) -> None:
+        self.stream = None if input_rate == output_rate else soxr.ResampleStream(input_rate, output_rate, 1, dtype="float32")
+
+    def __call__(self, samples: np.ndarray) -> np.ndarray:
+        samples = samples.astype(np.float32, copy=False)
+        return samples if self.stream is None else self.stream.resample_chunk(samples)
+
+    def flush(self) -> np.ndarray:
+        """The last few milliseconds the filter still holds."""
+        empty = np.empty(0, dtype=np.float32)
+        return empty if self.stream is None else self.stream.resample_chunk(empty, last=True)
+
+
 def wait_for_enter(stop_event: Event) -> None:
     input()
     stop_event.set()
@@ -147,7 +176,7 @@ def record_audio(args: Namespace) -> Path:
 
     try:
         with sf.SoundFile(output_path, mode="w", samplerate=args.sample_rate, channels=1, subtype="PCM_16") as wav:
-            with system_device.recorder(samplerate=args.capture_rate) as system_recorder:
+            with system_device.recorder(samplerate=args.capture_rate, blocksize=capture_blocksize(args.capture_rate)) as system_recorder:
                 if mic_device is None:
                     while not stop_event.is_set() and (total_frames is None or recorded_frames < total_frames):
                         frames = chunk_frames if total_frames is None else min(chunk_frames, total_frames - recorded_frames)
@@ -156,7 +185,7 @@ def record_audio(args: Namespace) -> Path:
                         wav.write(resample_audio(mono, args.capture_rate, args.sample_rate))
                         recorded_frames += frames
                 else:
-                    with mic_device.recorder(samplerate=args.capture_rate) as mic_recorder:
+                    with mic_device.recorder(samplerate=args.capture_rate, blocksize=capture_blocksize(args.capture_rate)) as mic_recorder:
                         while not stop_event.is_set() and (total_frames is None or recorded_frames < total_frames):
                             frames = chunk_frames if total_frames is None else min(chunk_frames, total_frames - recorded_frames)
                             system_chunk = system_recorder.record(numframes=frames)

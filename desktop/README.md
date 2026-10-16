@@ -74,6 +74,11 @@ format are the same. Differences:
   or CUDA). The Whisper small/base live modes (faster-whisper, whisper.cpp CPU,
   CUDA, Vulkan, OpenVINO and the Vulkan loopback stream) were removed; a saved
   one opens as SenseVoice-Small on CPU. Their scripts remain for command-line use.
+- **Real-time captions**: the unfinished utterance is the last transcript line,
+  typed out as it grows (previews every 0.3 s for SenseVoice, 0.5 s for Turbo,
+  from 0.1 s capture blocks) and rewritten in place on a revision. The preview
+  interval setting is gone. SenseVoice starts with `UV_OFFLINE=1`, so uv does
+  not re-read the CUDA wheel index online on every start (2 s instead of 16 s).
 - **Drop an audio file anywhere** in the window; it opens Recordings with that file.
 - **Light, dark or system** theme, set in Settings.
 - The File/Run/View menu bar and the resizable recordings column are gone.

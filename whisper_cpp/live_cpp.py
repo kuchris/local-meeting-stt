@@ -24,7 +24,7 @@ for import_path in (PYTHON_BACKEND, ROOT):
     if str(import_path) not in sys.path:
         sys.path.insert(0, str(import_path))
 
-from record_audio import mix_audio, resample_audio, select_microphone, select_system_loopback
+from record_audio import StreamResampler, capture_blocksize, mix_audio, resample_audio, select_microphone, select_system_loopback
 from live_streaming import run_streaming
 from session_control import capture_worker, next_chunk, watch_stop_request
 from text_script import SCRIPTS, with_script
@@ -43,7 +43,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--chunk-seconds", type=float, default=3.0, help="Chunk size in seconds. Default: 3")
     parser.add_argument("--streaming", action="store_true", help="Use VAD utterances and revisable one-second captions")
     parser.add_argument("--preview-seconds", type=float, default=1.0, help="Streaming preview interval. Default: 1")
-    parser.add_argument("--capture-block-seconds", type=float, default=0.5, help="Capture block size in seconds. Default: 0.5")
+    parser.add_argument("--capture-block-seconds", type=float, default=0.1, help="Capture block size in seconds. Default: 0.1")
     parser.add_argument("--max-backlog", type=int, default=1, help="Maximum queued chunks before old chunks are dropped")
     parser.add_argument("--sample-rate", type=int, default=16000, help="ASR sample rate. Default: 16000")
     parser.add_argument("--capture-rate", type=int, default=48000, help="Capture sample rate. Default: 48000")
@@ -112,7 +112,9 @@ def capture_audio(args: Namespace, chunks: Queue[np.ndarray], stop_event: Event)
     system_device = select_system_loopback(args.system_device)
     mic_device = select_microphone(args.mic_device) if args.include_mic else None
     block_frames = max(1, int(args.capture_rate * args.capture_block_seconds))
-    chunk_frames = block_frames if args.streaming else max(1, int(args.capture_rate * args.chunk_seconds))
+    # Chunks are queued at the ASR rate, resampled here as one continuous signal.
+    resample = StreamResampler(args.capture_rate, args.sample_rate)
+    chunk_samples = 1 if args.streaming else max(1, int(args.sample_rate * args.chunk_seconds))
     pending: list[np.ndarray] = []
     pending_frames = 0
 
@@ -121,35 +123,39 @@ def capture_audio(args: Namespace, chunks: Queue[np.ndarray], stop_event: Event)
         recording_file = sf.SoundFile(args.recording_output, mode="w", samplerate=args.sample_rate, channels=1, subtype="PCM_16")
 
     try:
-        with system_device.recorder(samplerate=args.capture_rate) as system_recorder:
+        with system_device.recorder(samplerate=args.capture_rate, blocksize=capture_blocksize(args.capture_rate)) as system_recorder:
             if mic_device is None:
                 while not stop_event.is_set():
                     system_chunk = system_recorder.record(numframes=block_frames)
                     mono = mix_audio(system_chunk, None)
-                    mono = np.clip(mono * args.gain, -1.0, 1.0)
+                    mono = resample(np.clip(mono * args.gain, -1.0, 1.0))
                     if recording_file:
-                        recording_file.write(resample_audio(mono, args.capture_rate, args.sample_rate))
+                        recording_file.write(mono)
                     pending.append(mono)
                     pending_frames += len(mono)
-                    if pending_frames >= chunk_frames:
+                    if pending_frames >= chunk_samples:
                         enqueue_chunk(chunks, np.concatenate(pending))
                         pending = []
                         pending_frames = 0
             else:
-                with mic_device.recorder(samplerate=args.capture_rate) as mic_recorder:
+                with mic_device.recorder(samplerate=args.capture_rate, blocksize=capture_blocksize(args.capture_rate)) as mic_recorder:
                     while not stop_event.is_set():
                         system_chunk = system_recorder.record(numframes=block_frames)
                         mic_chunk = mic_recorder.record(numframes=block_frames)
                         mono = mix_audio(system_chunk, mic_chunk)
-                        mono = np.clip(mono * args.gain, -1.0, 1.0)
+                        mono = resample(np.clip(mono * args.gain, -1.0, 1.0))
                         if recording_file:
-                            recording_file.write(resample_audio(mono, args.capture_rate, args.sample_rate))
+                            recording_file.write(mono)
                         pending.append(mono)
                         pending_frames += len(mono)
-                        if pending_frames >= chunk_frames:
+                        if pending_frames >= chunk_samples:
                             enqueue_chunk(chunks, np.concatenate(pending))
                             pending = []
                             pending_frames = 0
+        tail = resample.flush()
+        if recording_file:
+            recording_file.write(tail)
+        pending.append(tail)
     finally:
         if recording_file:
             recording_file.close()
@@ -389,7 +395,7 @@ def run_live(args: Namespace) -> None:
             with requests.Session() as session:
                 if args.streaming:
                     run_streaming(
-                        chunks, stop_event, capture_errors, args.capture_rate, args.sample_rate,
+                        chunks, stop_event, capture_errors, args.sample_rate, args.sample_rate,
                         output_path,
                         stream_transcriber(args, session, server_url),
                         resample_audio,
@@ -400,7 +406,7 @@ def run_live(args: Namespace) -> None:
                         mono = get_latest_chunk(chunks, stop_event, capture_errors)
                         if mono is None:
                             break
-                        chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
+                        chunk = mono
                         started = time.perf_counter()
                         append_transcript(output_path, transcribe_with_server(args, session, server_url, chunk))
                         print(f"[timing] inference={time.perf_counter() - started:.3f}s audio={len(chunk) / args.sample_rate:.3f}s")
@@ -412,7 +418,7 @@ def run_live(args: Namespace) -> None:
                     mono = next_chunk(chunks, stop_event, capture_errors)
                     if mono is None:
                         break
-                    chunk = resample_audio(mono, args.capture_rate, args.sample_rate)
+                    chunk = mono
                     sf.write(temp_audio, chunk, args.sample_rate, subtype="PCM_16")
                     append_transcript(output_path, transcribe_with_cpp(args, temp_audio))
     finally:

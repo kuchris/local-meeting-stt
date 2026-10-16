@@ -119,7 +119,8 @@ def run_streaming(
         nonlocal last_partial
         text = transcribe(request.audio).strip()
         if request.kind == "partial":
-            if text != last_partial:
+            # An empty preview (a breath, a word just begun) keeps the last one on screen.
+            if text and text != last_partial:
                 print(f"@@PARTIAL\t{text}", flush=True)
                 last_partial = text
             return
@@ -148,15 +149,16 @@ def run_streaming(
                 blocks.append(chunks.get_nowait())
             except Empty:
                 break
+        # One VAD pass over everything that arrived: VAD reads the whole pending
+        # utterance, so running it per 0.1 s block would cost ten passes a second.
+        audio = np.concatenate([resample(item, capture_rate, sample_rate) for item in blocks])
         latest_partial = None
-        for item in blocks:
-            audio = resample(item, capture_rate, sample_rate)
-            for request in segmenter.feed(audio):
-                if request.kind == "final":
-                    latest_partial = None
-                    process(request)
-                else:
-                    latest_partial = request
+        for request in segmenter.feed(audio):
+            if request.kind == "final":
+                latest_partial = None
+                process(request)
+            else:
+                latest_partial = request
         if latest_partial is not None and not stop_event.is_set():
             process(latest_partial)
     if errors:

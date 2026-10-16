@@ -47,8 +47,7 @@ cargo run
 1. Open **Settings** and check/download the files you need.
 2. On **Live**, select a model, a backend and your system audio source.
 3. Optionally turn on **Include microphone** and select the microphone.
-4. Adjust the caption preview interval in the same panel if needed.
-5. Select **Start meeting**; the same button stops the task. The title bar shows
+4. Select **Start meeting**; the same button stops the task. The title bar shows
    the task's status and elapsed time on every page.
 
 A fresh configuration uses SenseVoice-Small on CPU. On a compatible NVIDIA
@@ -122,11 +121,20 @@ OpenVINO runtimes are local/release artifacts rather than normal model downloads
 ## Latency and stopping
 
 Live sessions keep one model loaded for the meeting (a whisper.cpp server for Turbo).
-Silero VAD finds utterance boundaries. An unfinished utterance is re-transcribed
-for revisable previews every second by default; a pause triggers a final pass
-over the utterance. Change the preview interval on the Live page. Capture keeps all
-arriving audio even when inference is busy; stale previews may be skipped while
+Silero VAD finds utterance boundaries. The unfinished utterance is re-transcribed
+every 0.3 s (SenseVoice) or 0.5 s (Turbo) from 0.1 s capture blocks, and appears as
+the last transcript line, typed out as it grows; a revision rewrites the characters
+in place. A pause triggers a final pass, which replaces that line. Capture keeps
+all arriving audio even when inference is busy; stale previews may be skipped while
 completed utterances and WAV recording continue. The model is released at session end.
+Capture keeps a 0.5 s WASAPI buffer (soundcard's default is about 10 ms, which
+dropped audio whenever the capture thread ran late) and resamples blocks as one
+continuous signal, so the WAV has no gaps or block seams.
+
+Replaying 40 s of continuous Cantonese through the app (SenseVoice on CPU), the
+line changed every 0.1–0.2 s instead of once a second. The live loop's update lag
+stayed at p95 0.13 s, or 0.35 s with six CPU cores busy. With Turbo, the first
+words of an utterance can be a wrong guess for about a second before they settle.
 
 Python live/record jobs get up to 10 seconds to stop capture, close their WAV,
 and release the model worker. If they do not exit, the app terminates the process

@@ -145,11 +145,6 @@ const carried ={
     "Check your audio source and start a meeting. Captions will appear here.",
     "音声入力を確認して会議を開始すると、ここに字幕が表示されます。",
   ],
-  "辨識中 · 文字仍可能修訂": [
-    "辨識中 · 文字仍可能修訂",
-    "Recognizing · Text may change",
-    "認識中・テキストは変更される場合があります",
-  ],
   "輸出資料夾：": ["輸出資料夾：", "Output folder: ", "出力フォルダー："],
   開啟逐字稿: ["開啟逐字稿", "Open transcript", "文字起こしを開く"],
   缺少此組合的檔案: [
@@ -280,13 +275,6 @@ const carried ={
     "音声分割長（秒）",
   ],
   音訊分段秒數: ["音訊分段秒數", "Audio chunk seconds", "音声分割の秒数"],
-  "字幕預覽間隔（秒）": ["字幕預覽間隔（秒）", "Caption preview interval (seconds)", "字幕プレビュー間隔（秒）"],
-  字幕預覽間隔秒數: ["字幕預覽間隔秒數", "Caption preview interval seconds", "字幕プレビュー間隔（秒）"],
-  "字幕可修訂；停頓後定稿。錄音持續完整保存，停止會釋放模型。": [
-    "字幕可修訂；停頓後定稿。錄音持續完整保存，停止會釋放模型。",
-    "Captions may revise, then finalize after a pause. The full recording is saved; stopping releases the model.",
-    "字幕は修正され、発話後の間で確定します。録音は完全に保存され、停止時にモデルを解放します。",
-  ],
   "Process log": ["程序日誌", "Process log", "プロセスログ"],
   "清除 log": ["清除日誌", "Clear log", "ログを消去"],
   "尚無程序訊息。": [

@@ -52,7 +52,7 @@
           <div class="transcript" id="transcript">
             <p class="empty" id="transcript-empty" data-i18n="確認音源後開始會議，字幕會顯示在這裡。"></p>
             <div id="caption-lines"></div>
-            <div class="cap partial" id="caption-partial" hidden><time></time><p></p><small data-i18n="辨識中 · 文字仍可能修訂"></small></div>
+            <div class="cap partial" id="caption-partial" hidden><time></time><p></p></div>
           </div>
           <footer class="card-foot">
             <span class="path" id="transcript-path"></span>
@@ -99,10 +99,6 @@
             <div class="row" id="live-wav-row">
               <div class="row-main"><strong data-i18n="儲存 WAV"></strong><small id="live-wav-note"></small></div>
               <input type="checkbox" class="switch" id="live-save-wav">
-            </div>
-            <div class="row" id="live-preview-row">
-              <div class="row-main"><strong data-i18n="字幕預覽間隔（秒）"></strong><small id="live-preview-note"></small></div>
-              <input class="pill number" id="live-preview" type="number" min="0.5" max="5" step="0.5" data-i18n-title="字幕預覽間隔秒數">
             </div>
           </div>
           <p class="notice" data-capture-error hidden></p>

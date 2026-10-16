@@ -158,20 +158,13 @@ pub fn is_loopback_stream(kind: &str) -> bool {
     kind.starts_with("live-cpp-stream-loopback")
 }
 
-/// Qwen's environment is pinned in qwen-requirements.txt, so a cached copy is
-/// used as is: online, uv rechecks the PyTorch and PyPI indexes on every start
-/// (about 2 s). A job whose cache is missing is rerun online.
+/// Jobs whose cached uv environment is used as is (`UV_OFFLINE=1`). Online, uv
+/// rechecks the package indexes on every start: about 2 s for Qwen (pinned in
+/// qwen-requirements.txt) and 14 s for SenseVoice on CUDA, whose sherpa-onnx
+/// CUDA wheels are listed on a large --find-links page. A job whose cache is
+/// missing is rerun online.
 pub fn prefers_offline(kind: &str) -> bool {
-    kind.starts_with("qwen")
-}
-
-/// The same `uv run` without network access.
-pub fn offline(spec: &CommandSpec) -> CommandSpec {
-    let mut spec = spec.clone();
-    if spec.executable == "uv" && spec.args.first().map(String::as_str) == Some("run") {
-        spec.args.insert(1, "--offline".into());
-    }
-    spec
+    kind.starts_with("qwen") || kind.starts_with("live-sensevoice")
 }
 
 /// Whether uv itself failed because `--offline` kept it from resolving the
@@ -579,17 +572,10 @@ mod tests {
     }
 
     #[test]
-    fn qwen_runs_offline_first() {
-        let spec = CommandSpec {
-            label: "Qwen GPU".into(),
-            executable: "uv".into(),
-            args: vec!["run".into(), "--no-project".into(), "python".into()],
-        };
+    fn qwen_and_sensevoice_run_offline_first() {
         assert!(prefers_offline("qwen-gpu") && prefers_offline("qwen-cpu") && prefers_offline("qwen17-gpu"));
-        assert!(!prefers_offline("cpp-gpu") && !prefers_offline("live-sensevoice-cpu"));
-        assert_eq!(offline(&spec).args, vec!["run", "--offline", "--no-project", "python"]);
-        let script = CommandSpec { label: "x".into(), executable: "cmd.exe".into(), args: vec!["/c".into()] };
-        assert_eq!(offline(&script), script);
+        assert!(prefers_offline("live-sensevoice-gpu") && prefers_offline("live-sensevoice-cpu"));
+        assert!(!prefers_offline("cpp-gpu") && !prefers_offline("live-cpp-turbo-gpu"));
     }
 
     #[test]

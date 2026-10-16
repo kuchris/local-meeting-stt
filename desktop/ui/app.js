@@ -18,10 +18,10 @@ const appWindow = tauri.window.getCurrentWindow();
  * a saved one falls back to the default. This catalog does not install models.
  */
 const liveModes = [
-  { id: "live-cpp-turbo-gpu", model: "turbo", label: "whisper.cpp · CUDA（會議期間常駐）", capture: true, optionalWav: false, assets: ["whisper-cpp-turbo-model", "whisper-cpp-cuda"] },
+  { id: "live-cpp-turbo-gpu", model: "turbo", label: "whisper.cpp · CUDA（會議期間常駐）", capture: true, optionalWav: false, previewSeconds: 0.5, assets: ["whisper-cpp-turbo-model", "whisper-cpp-cuda"] },
   // CPU first, so choosing SenseVoice picks it: update lag p95 0.12 s (0.05 s on GPU) with no 2.4 GB download.
-  { id: "live-sensevoice-cpu", model: "sensevoice", label: "sherpa-onnx · CPU", capture: true, optionalWav: true, assets: ["sensevoice-small"] },
-  { id: "live-sensevoice-gpu", model: "sensevoice", label: "sherpa-onnx · CUDA", capture: true, optionalWav: true, assets: ["sensevoice-small-gpu"] },
+  { id: "live-sensevoice-cpu", model: "sensevoice", label: "sherpa-onnx · CPU", capture: true, optionalWav: true, previewSeconds: 0.3, assets: ["sensevoice-small"] },
+  { id: "live-sensevoice-gpu", model: "sensevoice", label: "sherpa-onnx · CUDA", capture: true, optionalWav: true, previewSeconds: 0.3, assets: ["sensevoice-small-gpu"] },
 ];
 
 /** What the recognizers are told; "auto" detects each utterance's language. */
@@ -108,7 +108,6 @@ const state = {
   language: "auto",
   chineseScript: "traditional",
   saveWav: true,
-  previewSeconds: 1,
   follow: true,
   transcriptPath: "",
   // capture
@@ -177,7 +176,6 @@ const assetExists = (id) => state.assets.some((asset) => asset.id === id && asse
 const liveUnavailable = () => !state.assetsLoaded || liveMode().assets.some((id) => !assetExists(id));
 const postMissing = () => (postAssets[state.postKind] ?? []).filter((id) => !assetExists(id));
 const postUnavailable = () => state.assetsLoaded && postMissing().length > 0;
-const previewValid = () => Number.isFinite(state.previewSeconds) && state.previewSeconds >= 0.5 && state.previewSeconds <= 5;
 const selectedSession = () => state.sessions.find((session) => session.id === state.selectedSessionId) ?? null;
 const selectedAudioPath = () => selectedSession()?.audioPath || state.audioPath;
 const outputDirSetting = () => state.outputDir.trim() || "outputs";
@@ -185,7 +183,7 @@ const basename = (path) => path.split(/[\\/]/).pop() || path;
 
 function canStart(tab) {
   if (!state.settingsLoaded || isRunning()) return false;
-  if (tab === "live") return !liveUnavailable() && previewValid();
+  if (tab === "live") return !liveUnavailable();
   if (tab === "record") return !state.timedRecording || (Number.isFinite(state.durationSeconds) && state.durationSeconds > 0);
   if (tab === "recordings") return Boolean(selectedAudioPath()) && !postUnavailable();
   return false;
@@ -301,11 +299,6 @@ function renderLive() {
   setDisabled(wav, running || !mode.optionalWav);
   setText($("live-wav-note"), t(mode.optionalWav ? "Keep the meeting audio for a later transcript" : "This backend always saves a WAV"));
 
-  const preview = $("live-preview");
-  setValue(preview, state.previewSeconds);
-  setDisabled(preview, running || !mode.capture);
-  preview.classList.toggle("invalid", !previewValid());
-  setText($("live-preview-note"), t("字幕可修訂；停頓後定稿。錄音持續完整保存，停止會釋放模型。"));
 
   const unavailable = liveUnavailable();
   setHidden($("live-assets-notice"), !unavailable);
@@ -547,6 +540,53 @@ function captionElement(line, fresh) {
   return h("div", { class: fresh ? "cap fresh" : "cap" }, h("time", { text: line.time }), h("p", { text: line.text }));
 }
 
+/**
+ * The unfinished utterance types itself out: new characters appear over about
+ * one preview interval, so a caption grows smoothly instead of in jumps. A
+ * revision rewrites the characters already shown in place (南法 becomes 蘭法)
+ * rather than deleting them and typing them again.
+ */
+const typing = { target: [], shown: [], rate: 0, at: 0, frame: 0 };
+// SenseVoice ends every preview with 。; the caret marks the end until the final has it.
+const unfinished = (text) => text.replace(/[。．.]$/u, "");
+
+function typePartial(text) {
+  const target = Array.from(unfinished(text));
+  typing.target = target;
+  typing.shown = target.slice(0, Math.min(typing.shown.length, target.length));
+  typing.rate = Math.max(15, (target.length - typing.shown.length) / (liveMode().previewSeconds ?? 0.3));
+  typing.at = performance.now();
+  showTyped();
+  if (!typing.frame && typing.shown.length < target.length) typing.frame = requestAnimationFrame(typeStep);
+}
+
+function typeStep(now) {
+  typing.frame = 0;
+  const due = Math.floor(((now - typing.at) / 1000) * typing.rate);
+  if (due > 0) {
+    typing.shown = typing.target.slice(0, typing.shown.length + due);
+    typing.at = now;
+    showTyped();
+  }
+  if (typing.shown.length < typing.target.length) typing.frame = requestAnimationFrame(typeStep);
+}
+
+function showTyped() {
+  setText($("caption-partial").querySelector("p"), typing.shown.join(""));
+  followCaptions();
+}
+
+function resetTyping() {
+  cancelAnimationFrame(typing.frame);
+  Object.assign(typing, { target: [], shown: [], frame: 0 });
+}
+
+function followCaptions() {
+  if (!state.follow) return;
+  const transcript = $("transcript");
+  transcript.scrollTop = transcript.scrollHeight;
+}
+
 function flushStreams() {
   streamFrame = 0;
   if (captionQueue.length) {
@@ -561,13 +601,12 @@ function flushStreams() {
     setHidden(partialElement, !partial);
     if (partial) {
       setText(partialElement.querySelector("time"), partial.time);
-      setText(partialElement.querySelector("p"), partial.text);
+      typePartial(partial.text);
+    } else {
+      resetTyping();
     }
     setHidden($("transcript-empty"), lines.children.length > 0 || Boolean(partial));
-    if (state.follow) {
-      const transcript = $("transcript");
-      transcript.scrollTop = transcript.scrollHeight;
-    }
+    followCaptions();
   }
   if (logQueue.length) {
     const log = $("log");
@@ -582,6 +621,7 @@ function flushStreams() {
 function clearCaptions() {
   captionQueue.length = 0;
   $("caption-lines").replaceChildren();
+  resetTyping();
   setHidden($("caption-partial"), true);
   setHidden($("transcript-empty"), false);
 }
@@ -681,7 +721,7 @@ function persist() {
       ...state.saved,
       outputDir: state.outputDir,
       capture: { systemDevice: state.systemDevice, micDevice: state.micDevice, includeMic: state.includeMic },
-      live: { ...state.saved.live, mode: state.liveModeId, saveWav: state.saveWav, previewSeconds: state.previewSeconds },
+      live: { ...state.saved.live, mode: state.liveModeId, saveWav: state.saveWav },
       recognition: { language: state.language, chineseScript: state.chineseScript },
       post: { kind: state.postKind },
       qwen: { chunkSeconds: state.qwen.chunkSeconds, tokens: state.qwen.tokens, batch: state.qwen.batch },
@@ -714,8 +754,6 @@ async function loadSettings() {
   if (typeof settings.live?.saveWav === "boolean") state.saveWav = settings.live.saveWav;
   if (isLanguage(settings.recognition?.language)) state.language = settings.recognition.language;
   if (chineseScripts.includes(settings.recognition?.chineseScript)) state.chineseScript = settings.recognition.chineseScript;
-  const preview = settings.live?.previewSeconds;
-  if (typeof preview === "number" && preview >= 0.5 && preview <= 5) state.previewSeconds = preview;
   if (settings.outputDir) state.outputDir = settings.outputDir;
   for (const [key, field] of [["chunkSeconds", "chunkSeconds"], ["tokens", "tokens"], ["batch", "batch"]]) {
     if (typeof settings.qwen?.[key] === "number") state.qwen[field] = settings.qwen[key];
@@ -844,7 +882,7 @@ function startOrStop(tab) {
   if (tab === "live") {
     const mode = liveMode();
     void run(mode.id, {
-      previewSeconds: state.previewSeconds,
+      previewSeconds: mode.previewSeconds,
       saveWav: mode.optionalWav ? state.saveWav : true,
       language: state.language,
       chineseScript: state.chineseScript,
@@ -949,11 +987,6 @@ function bind() {
   });
   $("live-backend").addEventListener("change", (event) => { state.liveModeId = event.target.value; persist(); invalidate(); });
   $("live-save-wav").addEventListener("change", (event) => { state.saveWav = event.target.checked; persist(); invalidate(); });
-  $("live-preview").addEventListener("input", (event) => {
-    state.previewSeconds = Number(event.target.value);
-    if (previewValid()) persist();
-    invalidate();
-  });
   $("live-manage-assets").addEventListener("click", () => setTab("settings"));
   $("post-manage-assets").addEventListener("click", () => setTab("settings"));
   $("open-transcript").addEventListener("click", () => openPath(state.transcriptPath));

@@ -113,7 +113,14 @@ fn for_each_read(mut stream: impl Read, mut on_lines: impl FnMut(Vec<String>)) {
     }
 }
 
-fn spawn(spec: &CommandSpec, paths: &AppPaths, stop_file: Option<&Path>) -> std::io::Result<std::process::Child> {
+/// With `offline`, uv uses its cached environment without network access
+/// (`UV_OFFLINE=1`), including inside the .cmd launchers.
+fn spawn(
+    spec: &CommandSpec,
+    paths: &AppPaths,
+    stop_file: Option<&Path>,
+    offline: bool,
+) -> std::io::Result<std::process::Child> {
     let mut command = Command::new(&spec.executable);
     command
         .args(&spec.args)
@@ -127,6 +134,11 @@ fn spawn(spec: &CommandSpec, paths: &AppPaths, stop_file: Option<&Path>) -> std:
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    if offline {
+        command.env("UV_OFFLINE", "1");
+    } else {
+        command.env_remove("UV_OFFLINE");
+    }
     match stop_file {
         Some(path) => command.env("LOCAL_MEETING_STT_STOP_FILE", path),
         None => command.env_remove("LOCAL_MEETING_STT_STOP_FILE"),
@@ -200,22 +212,22 @@ impl Jobs {
             let _ = fs::remove_file(path);
         }
         let offline_first = commands::prefers_offline(kind);
-        let first = if offline_first { commands::offline(&spec) } else { spec.clone() };
-        let mut child = spawn(&first, &self.paths, stop_file.as_deref())
-            .map_err(|error| format!("{}: {error}", first.executable))?;
+        let mut child = spawn(&spec, &self.paths, stop_file.as_deref(), offline_first)
+            .map_err(|error| format!("{}: {error}", spec.executable))?;
         state.jobs.insert(process_id, Job { pid: child.id(), stop_file, _stdin: child.stdin.take() });
         drop(state);
 
+        let command = format!("{}{}", if offline_first { "UV_OFFLINE=1 " } else { "" }, display_command(&spec));
         let _ = app.emit(
             "process-event",
-            json!({ "type": "start", "processId": process_id, "kind": kind, "label": first.label, "command": display_command(&first) }),
+            json!({ "type": "start", "processId": process_id, "kind": kind, "label": spec.label, "command": command }),
         );
-        Self::log(app, process_id, "info", vec![format!("Started {}", first.label), display_command(&first)]);
+        Self::log(app, process_id, "info", vec![format!("Started {}", spec.label), command]);
         self.watch(app, process_id, kind, child, offline_first.then(|| spec.clone()));
         Ok(Started { process_id, label: spec.label })
     }
 
-    /// Starts `online` in place of a job whose `uv --offline` attempt found no
+    /// Starts `online` in place of a job whose offline uv attempt found no
     /// cached environment, unless the job is being stopped. The state lock is
     /// held throughout, so a stop sees either the old process or the new one.
     fn retry_online(&self, app: &AppHandle, process_id: u32, online: &CommandSpec) -> Option<Child> {
@@ -233,7 +245,7 @@ impl Jobs {
                 display_command(online),
             ],
         );
-        match spawn(online, &self.paths, stop_file.as_deref()) {
+        match spawn(online, &self.paths, stop_file.as_deref(), false) {
             Ok(mut child) => {
                 let job = state.jobs.get_mut(&process_id)?;
                 job.pid = child.id();
@@ -433,7 +445,8 @@ impl Jobs {
             return Ok(false);
         }
         let spec = commands::asset_download(&self.paths, asset_id);
-        let mut child = spawn(&spec, &self.paths, None).map_err(|error| format!("{}: {error}", spec.executable))?;
+        let mut child =
+            spawn(&spec, &self.paths, None, false).map_err(|error| format!("{}: {error}", spec.executable))?;
         state.downloads.insert(asset_id.to_string(), child.id());
         drop(state);
 
