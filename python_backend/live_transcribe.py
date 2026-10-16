@@ -17,7 +17,7 @@ from record_audio import StreamResampler, capture_blocksize, mix_audio, resample
 from live_streaming import run_streaming
 from whisper_models import resolve_whisper_model
 from session_control import capture_worker, next_chunk, watch_stop_request
-from text_script import SCRIPTS, with_script
+from text_script import SCRIPTS, converter, with_script
 
 # Languages the app offers; "auto" lets the model detect each utterance's language.
 LANGUAGES = ("auto", "zh", "yue", "en", "ja")
@@ -71,8 +71,9 @@ def transcribe_file(model: WhisperModel, audio_path: Path, language: str | None)
     return " ".join(lines).strip()
 
 
-def sensevoice_transcriber(args: Namespace, language: str):
-    """SenseVoice-Small through sherpa-onnx: int8 on CPU, fp32 on CUDA."""
+def sensevoice_transcriber(args: Namespace, language: str, script: str = "as-is"):
+    """SenseVoice-Small through sherpa-onnx: int8 on CPU, fp32 on CUDA. Captions get
+    the Chinese script conversion, except an utterance SenseVoice tagged Japanese."""
     if args.provider == "cuda":
         import cuda_dlls  # noqa: F401  (CUDA 12 / cuDNN 9 DLLs from NVIDIA's pip packages)
     import sherpa_onnx
@@ -84,11 +85,17 @@ def sensevoice_transcriber(args: Namespace, language: str):
         use_itn=True, language=language, provider=args.provider,
     )
 
+    convert = converter(script, args.language)
+
     def transcribe(audio: np.ndarray) -> str:
         stream = recognizer.create_stream()
         stream.accept_waveform(args.sample_rate, audio)
         recognizer.decode_stream(stream)
-        return stream.result.text.strip()
+        result = stream.result
+        text = result.text.strip()
+        # With auto-detect, a kanji-only Japanese caption has no kana to tell it apart:
+        # SenseVoice's language tag keeps 会議 from becoming 會議.
+        return text if result.lang == "<|ja|>" else convert(text)
 
     return transcribe
 
@@ -197,7 +204,7 @@ def run_live(args: Namespace) -> None:
     print(f"Language: {args.language or 'auto'}")
     if args.engine == "sensevoice":
         print(f"Model: SenseVoice-Small ({args.provider}) {args.sensevoice_model}")
-        transcribe_stream = with_script(sensevoice_transcriber(args, language or "auto"), args.chinese_script, args.language)
+        transcribe_stream = sensevoice_transcriber(args, language or "auto", args.chinese_script)
     else:
         model_name_or_path = resolve_whisper_model(args.model)
         print(f"Model: {model_name_or_path}")

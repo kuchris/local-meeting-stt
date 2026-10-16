@@ -85,7 +85,8 @@ Choose the **recognition language** (Auto-detect, Chinese, Cantonese, English,
 Japanese) on the Live and Recordings pages. Live captions in Chinese and
 Cantonese are shown in Traditional (HK) characters, or Simplified if chosen
 under **Chinese characters** in Settings; SenseVoice itself writes Simplified.
-Japanese sessions, and captions with kana, are left as recognized. Vulkan file
+Japanese sessions, captions with kana, and captions SenseVoice detected as Japanese
+are left as recognized. Vulkan file
 transcription still recognizes Japanese only.
 
 Replaying 12 pinned FLEURS clips per language through the live pipeline on an
