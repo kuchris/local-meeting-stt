@@ -217,6 +217,7 @@ select.pill:focus-visible, input.pill:focus-visible { box-shadow: 0 0 0 2px var(
 input.pill.number { width: 84px; text-align: right; font-variant-numeric: tabular-nums; }
 input.pill.invalid:not(:disabled) { box-shadow: 0 0 0 1.5px var(--red); }
 input.pill.path { width: 320px; font-family: var(--code); font-size: 12px; user-select: text; }
+input.pill.glossary { width: 280px; }
 select.pill option { background: var(--card); color: var(--fg); }
 
 .switch {

@@ -96,6 +96,21 @@ Whisper small returned only punctuation and repeated letters for the Cantonese f
 Most of Qwen3-ASR 1.7B's Mandarin errors are years written in Chinese numerals
 (二零一一 for 2011); the reference uses digits.
 
+**Meeting glossary** (Recordings, with a Qwen model) gives Qwen the names and terms
+of a meeting as context. On the same files, with the 5 names each file contains
+(names recognized of 5, then CER):
+
+| Glossary | Qwen 0.6B yue | Qwen 0.6B zh | Qwen 1.7B yue | Qwen 1.7B zh |
+| --- | --- | --- | --- | --- |
+| none | 3, 4.7% | 4, 6.4% | 2, 3.5% | 3, 11.4% |
+| the 5 names | 4, 4.0% | 4, 5.5% | 3, 3.2% | 5, 10.7% |
+| the 5 names + 8 unrelated | 3, 5.0% | 5, 8.3% | 4, 2.7% | 5, 10.7% |
+| 8 unrelated words only | 3, 5.2% | 3, 6.2% | 2, 3.5% | 4, 10.9% |
+
+None of the unrelated words appeared in a transcript. Keep the list to the
+meeting's own names, especially with 0.6B. A Whisper prompt with the same names
+recognized none more and raised Turbo's Mandarin CER, so Whisper has no glossary.
+
 Choose the **recognition language** (Auto-detect, Chinese, Cantonese, English,
 Japanese) on the Live and Recordings pages. Live captions and file transcripts in
 Chinese and Cantonese are written in Traditional (HK) characters, or Simplified if

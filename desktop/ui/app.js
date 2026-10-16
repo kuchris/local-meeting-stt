@@ -134,7 +134,8 @@ const state = {
   selectedSessionId: "",
   audioPath: "",
   postKind: "cpp-cpu",
-  qwen: { chunkSeconds: 60, tokens: 4096, batch: 16 },
+  // context: names and terms of the meeting, given to Qwen; empty by default.
+  qwen: { chunkSeconds: 60, tokens: 4096, batch: 16, context: "" },
   lastOutputPath: "",
   dragging: false,
   // models
@@ -235,6 +236,7 @@ const changed = (key) => dirty.has("all") || dirty.has(key);
 function applyStaticText() {
   document.documentElement.lang = state.locale;
   for (const element of all("[data-i18n]")) setText(element, t(element.dataset.i18n));
+  for (const element of all("[data-i18n-placeholder]")) element.placeholder = t(element.dataset.i18nPlaceholder);
   for (const element of all("[data-i18n-title]")) {
     element.title = t(element.dataset.i18nTitle);
     element.setAttribute("aria-label", element.title);
@@ -458,6 +460,7 @@ function renderRecordings() {
   setValue($("qwen-chunk"), state.qwen.chunkSeconds);
   setValue($("qwen-tokens"), state.qwen.tokens);
   setValue($("qwen-batch"), state.qwen.batch);
+  setValue($("qwen-context"), state.qwen.context);
 
   renderAction($("transcribe-start"), "recordings", "開始轉錄");
   const showOutput = Boolean(state.lastOutputPath) && state.phase === "complete" && isPostKind(state.lastKind);
@@ -748,7 +751,7 @@ function persist() {
       live: { ...state.saved.live, mode: state.liveModeId, saveWav: state.saveWav },
       recognition: { language: state.language, chineseScript: state.chineseScript },
       post: { kind: state.postKind },
-      qwen: { chunkSeconds: state.qwen.chunkSeconds, tokens: state.qwen.tokens, batch: state.qwen.batch },
+      qwen: { chunkSeconds: state.qwen.chunkSeconds, tokens: state.qwen.tokens, batch: state.qwen.batch, context: state.qwen.context },
       ui: { ...state.saved.ui, locale: state.locale, theme: state.theme },
     };
     state.saved = settings;
@@ -784,6 +787,7 @@ async function loadSettings() {
   for (const [key, field] of [["chunkSeconds", "chunkSeconds"], ["tokens", "tokens"], ["batch", "batch"]]) {
     if (typeof settings.qwen?.[key] === "number") state.qwen[field] = settings.qwen[key];
   }
+  if (typeof settings.qwen?.context === "string") state.qwen.context = settings.qwen.context;
   state.settingsLoaded = true;
   applyTheme();
   invalidate("locale");
@@ -924,7 +928,7 @@ function startOrStop(tab) {
       state.postKind.startsWith("qwen")
         ? {
           audioPath, language: state.language, chineseScript: state.chineseScript,
-          chunkSeconds: state.qwen.chunkSeconds, qwenTokens: state.qwen.tokens, qwenBatch: state.qwen.batch,
+          chunkSeconds: state.qwen.chunkSeconds, qwenTokens: state.qwen.tokens, qwenBatch: state.qwen.batch, qwenContext: state.qwen.context,
         }
         : { audioPath, language: state.language, chineseScript: state.chineseScript },
     );
@@ -1071,6 +1075,7 @@ function bind() {
   for (const [id, field] of [["qwen-chunk", "chunkSeconds"], ["qwen-tokens", "tokens"], ["qwen-batch", "batch"]]) {
     $(id).addEventListener("input", (event) => { state.qwen[field] = Number(event.target.value); persist(); });
   }
+  $("qwen-context").addEventListener("input", (event) => { state.qwen.context = event.target.value; persist(); });
 
   // Settings
   for (const select of all("[data-language-select]")) {

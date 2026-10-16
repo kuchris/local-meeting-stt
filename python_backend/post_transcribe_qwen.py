@@ -20,6 +20,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--chunk-seconds", type=float, default=60.0, help="Manual audio chunk size in seconds. Default: 60")
     parser.add_argument("--batch-size", type=int, default=16, help="Maximum inference batch size. Default: 16")
     parser.add_argument("--chinese-script", choices=SCRIPTS, default="as-is", help="Convert Chinese text to Traditional (HK) or Simplified. Default: as-is")
+    parser.add_argument("--context", default="", help="Names and terms the recording uses, given to Qwen3-ASR as context")
     return parser.parse_args()
 
 
@@ -141,7 +142,11 @@ def main() -> None:
     )
     print(f"Model ready ({time.perf_counter() - started:.2f}s). Transcribing...", flush=True)
     audio_input = load_audio_chunks(args.audio, args.chunk_seconds)
-    results = model.transcribe(audio=audio_input, language=args.language or None)
+    if args.context:
+        print(f"Context: {args.context}")
+    # The same glossary for every chunk; Qwen favors these spellings when it hears them.
+    context = [args.context] * len(audio_input) if isinstance(audio_input, list) else args.context
+    results = model.transcribe(audio=audio_input, context=context, language=args.language or None)
     text = "\n".join(extract_text(result) for result in results).strip()
     # Qwen writes Mandarin in Simplified and Cantonese in Traditional; the app's setting decides.
     text = convert_lines(text, args.chinese_script, "ja" if args.language == "Japanese" else None)

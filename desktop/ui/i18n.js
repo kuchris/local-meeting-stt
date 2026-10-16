@@ -448,6 +448,13 @@ const added = {
   ],
   "繁體（香港）": ["繁體（香港）", "Traditional (HK)", "繁体字（香港）"],
   "轉錄這段錄音": ["轉錄這段錄音", "Transcribe this recording", "この録音を文字起こし"],
+  "會議詞彙": ["會議詞彙", "Meeting glossary", "会議の用語"],
+  "glossary.note": [
+    "人名、公司名、術語；Qwen 會優先用這些寫法。1.7B 效果最好",
+    "Names and terms; Qwen favors these spellings. Works best with 1.7B",
+    "人名や社名、専門用語。Qwen がこの表記を優先します。1.7B で最も効果的",
+  ],
+  "glossary.placeholder": ["例如：陳大文、滙豐、OKR", "e.g. Chan Tai Man, HSBC, OKR", "例：田中、トヨタ、OKR"],
   "簡體": ["簡體", "Simplified", "簡体字"],
   "Chinese, Cantonese, English, Japanese live captions on CPU; about 230 MB.": [
     "中文、粵語、英文、日文即時字幕，以 CPU 執行；約 230 MB。",

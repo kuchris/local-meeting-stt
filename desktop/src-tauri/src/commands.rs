@@ -405,6 +405,11 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
                 "--chinese-script".into(),
                 chinese_script(args).into(),
             ]);
+            if let Some(context) =
+                text(args, "qwenContext").map(|value| value.trim().to_string()).filter(|value| !value.is_empty())
+            {
+                all.extend(["--context".into(), context]);
+            }
             let label = match (large, gpu) {
                 (false, true) => "Qwen GPU",
                 (false, false) => "Qwen CPU",
@@ -555,6 +560,12 @@ mod tests {
         assert_eq!(
             value(&build(&paths, "qwen-gpu", &yue).unwrap(), "--chinese-script").as_deref(),
             Some("traditional")
+        );
+        assert_eq!(value(&build(&paths, "qwen-gpu", &yue).unwrap(), "--context"), None);
+        let glossary = with(serde_json::json!({ "language": "yue", "qwenContext": " 曼多薩、史密斯飛船 " }));
+        assert_eq!(
+            value(&build(&paths, "qwen17-gpu", &glossary).unwrap(), "--context").as_deref(),
+            Some("曼多薩、史密斯飛船")
         );
         let auto = with(serde_json::json!({ "language": "auto" }));
         assert_eq!(value(&build(&paths, "qwen-cpu", &auto).unwrap(), "--language").as_deref(), Some(""));
