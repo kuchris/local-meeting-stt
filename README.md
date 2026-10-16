@@ -93,6 +93,8 @@ Transcribing 12 pinned clips per language joined into one 2-minute file
 | Qwen3-ASR 1.7B | 8.6% | 11.4% | 3.5% | 9.1% | 13–17 s |
 
 Whisper small returned only punctuation and repeated letters for the Cantonese file.
+Most of Qwen3-ASR 1.7B's Mandarin errors are years written in Chinese numerals
+(二零一一 for 2011); the reference uses digits.
 
 Choose the **recognition language** (Auto-detect, Chinese, Cantonese, English,
 Japanese) on the Live and Recordings pages. Live captions in Chinese and
@@ -110,8 +112,9 @@ meetings, and FLEURS Cantonese is read written Chinese, not colloquial Cantonese
 
 The selected post-transcription backend is saved. Switching between Whisper and
 Qwen preserves CPU/CUDA preference. When no post preference exists, an existing
-CUDA live configuration initializes transcription to CUDA; other configurations
-start on CPU. An explicit saved CPU choice is preserved.
+CUDA live configuration initializes transcription to CUDA (Whisper large-v3-turbo
+when that is the live model); other configurations start on CPU. An explicit saved
+CPU choice is preserved.
 
 ## Backends and local assets
 

@@ -58,13 +58,13 @@ cargo run
 | Recordings | 選擇錄音，或把音訊檔案拖放到視窗任何位置，再選擇模型與後端；錄音已有的逐字稿可一鍵開啟。 |
 | Settings | 外觀、語言及輸出資料夾；檢查／下載模型及執行檔。 |
 
-即時字幕可選 **Whisper large-v3-turbo**（CUDA）或 **SenseVoice-Small**（CPU 或 CUDA）。會後轉錄可選 **Whisper small**、**Whisper large-v3-turbo**（CUDA，與即時字幕同一模型）、**Qwen3-ASR 0.6B**，或較準確但需另外下載的 **Qwen3-ASR 1.7B**。以每種語言 12 段固定音訊合併成約 2 分鐘的檔案轉錄（RTX 5070 Ti；日文、普通話、粵語為錯字率，英文為錯詞率）：Whisper small 為 15.6%／14.7%／失敗／17.0%，每檔 2.5–14 秒；Whisper large-v3-turbo 為 12.5%／7.8%／9.2%／16.7%，3–4 秒；Qwen3-ASR 0.6B 為 14.9%／6.4%／4.7%／21.6%，12–31 秒；Qwen3-ASR 1.7B 為 8.6%／11.4%／3.5%／9.1%，13–17 秒。Whisper small 對粵語檔案只輸出標點及重複字母。Qwen 目前用於檔案轉錄，不支援即時字幕。
+即時字幕可選 **Whisper large-v3-turbo**（CUDA）或 **SenseVoice-Small**（CPU 或 CUDA）。會後轉錄可選 **Whisper small**、**Whisper large-v3-turbo**（CUDA，與即時字幕同一模型）、**Qwen3-ASR 0.6B**，或較準確但需另外下載的 **Qwen3-ASR 1.7B**。以每種語言 12 段固定音訊合併成約 2 分鐘的檔案轉錄（RTX 5070 Ti；日文、普通話、粵語為錯字率，英文為錯詞率）：Whisper small 為 15.6%／14.7%／失敗／17.0%，每檔 2.5–14 秒；Whisper large-v3-turbo 為 12.5%／7.8%／9.2%／16.7%，3–4 秒；Qwen3-ASR 0.6B 為 14.9%／6.4%／4.7%／21.6%，12–31 秒；Qwen3-ASR 1.7B 為 8.6%／11.4%／3.5%／9.1%，13–17 秒。Whisper small 對粵語檔案只輸出標點及重複字母。Qwen3-ASR 1.7B 的普通話錯誤大多是把年份寫成中文數字（2011 寫成二零一一），而參考文本用阿拉伯數字。Qwen 目前用於檔案轉錄，不支援即時字幕。
 
 **辨識語言**（自動偵測、中文、粵語、英文、日文）在即時會議及錄音檔頁面選擇。中文及粵語即時字幕預設以繁體（香港）顯示，亦可在 Settings 的**中文字體**改為簡體；SenseVoice 本身輸出簡體。日文會議、含日文假名的字幕，以及 SenseVoice 判斷為日文的字幕保持原樣。Vulkan 檔案轉錄目前仍只辨識日文。
 
 以 RTX 5070 Ti、每種語言 12 段固定 FLEURS 音訊經即時流程重播：SenseVoice-Small 在普通話（錯字率 6.6% 對 8.8%）及粵語（3.0% 對 6.2–7.7%）較準，Whisper large-v3-turbo 在日文（5.4% 對 7.7–8.6%）及英文（錯詞率 4.2% 對 7.6–8.0%）較準。這是乾淨朗讀而非會議，而且 FLEURS 粵語是以粵語朗讀書面語，並非口語粵語。
 
-程式會儲存會後轉錄的後端選擇。在 Whisper 與 Qwen 之間切換時，會保留 CPU／CUDA 偏好。若未儲存轉錄偏好，而即時會議已使用 CUDA，轉錄亦會預選 CUDA；其他情況預選 CPU。明確儲存的 CPU 選擇不會被覆蓋。
+程式會儲存會後轉錄的後端選擇。在 Whisper 與 Qwen 之間切換時，會保留 CPU／CUDA 偏好。若未儲存轉錄偏好，而即時會議已使用 CUDA，轉錄亦會預選 CUDA（即時模型是 Whisper large-v3-turbo 時就用它）；其他情況預選 CPU。明確儲存的 CPU 選擇不會被覆蓋。
 
 ## 後端與本機檔案
 
