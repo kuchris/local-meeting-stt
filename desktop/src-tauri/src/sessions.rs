@@ -16,6 +16,8 @@ pub struct Transcripts {
     cpp_openvino_gpu: bool,
     qwen_cpu: bool,
     qwen_gpu: bool,
+    qwen17_cpu: bool,
+    qwen17_gpu: bool,
 }
 
 #[derive(Serialize)]
@@ -62,6 +64,8 @@ pub fn list(output_dir: &Path) -> Vec<OutputSession> {
                     cpp_openvino_gpu: has("cpp_openvino_gpu_transcript.txt"),
                     qwen_cpu: has("qwen_cpu_transcript.txt"),
                     qwen_gpu: has("qwen_gpu_transcript.txt"),
+                    qwen17_cpu: has("qwen17_cpu_transcript.txt"),
+                    qwen17_gpu: has("qwen17_gpu_transcript.txt"),
                 },
             })
         })

@@ -59,7 +59,7 @@ cargo run
 | Recordings | 選擇錄音，或把音訊檔案拖放到視窗任何位置，再選擇模型與後端；錄音已有的逐字稿可一鍵開啟。 |
 | Settings | 外觀、語言及輸出資料夾；檢查／下載模型及執行檔。 |
 
-即時字幕可選 **Whisper small**、**Whisper large-v3-turbo**（CUDA）或 **Whisper base**。會後轉錄可選 **Whisper small** 或 **Qwen3-ASR 0.6B**。Qwen 目前用於檔案轉錄，不支援即時字幕。
+即時字幕可選 **Whisper small**、**Whisper large-v3-turbo**（CUDA）或 **Whisper base**。會後轉錄可選 **Whisper small**、**Qwen3-ASR 0.6B**，或較準確但需另外下載的 **Qwen3-ASR 1.7B**。Qwen 目前用於檔案轉錄，不支援即時字幕。
 
 程式會儲存會後轉錄的後端選擇。在 Whisper 與 Qwen 之間切換時，會保留 CPU／CUDA 偏好。若未儲存轉錄偏好，而即時會議已使用 CUDA，轉錄亦會預選 CUDA；其他情況預選 CPU。明確儲存的 CPU 選擇不會被覆蓋。
 
@@ -75,6 +75,7 @@ cargo run
 | OpenVINO NPU/GPU | `whisper_cpp/bin_openvino/Release/` + small 模型及 encoder XML/BIN | 需要相容的 OpenVINO 裝置及本機建置。 |
 | Vulkan loopback | `whisper_cpp/bin_vulkan_loopback/Release/` + base 或 small 模型 | 只使用系統預設音訊回送，不支援自訂裝置或麥克風混音。 |
 | Qwen CPU/CUDA | `models/Qwen3-ASR-0.6B/` | 檔案轉錄，共用固定版本的 Python 執行環境。 |
+| Qwen 1.7B CPU/CUDA | `models/Qwen3-ASR-1.7B/` | 可選，約 4.4 GB，在 Settings 的對應行下載；辨識較準，需要更多 GPU 記憶體。與 Qwen 0.6B 共用執行環境。 |
 
 `ggml-*.bin` 應放在 `whisper_cpp/models/`。即時 CPU／CUDA 後端同時需要 `whisper-server.exe` 及 `whisper-cli.exe`。檔案檢查只確認路徑存在，不會驗證硬體相容性或所有下載檔案的完整性。Vulkan 與 OpenVINO 執行檔來自本機建置或發佈包，並非一般模型下載的一部分。
 

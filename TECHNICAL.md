@@ -123,6 +123,7 @@ Expected model folders:
 models/
   faster-whisper-small/
   Qwen3-ASR-0.6B/
+  Qwen3-ASR-1.7B/          optional; download with --only qwen-1.7b (pinned revision)
 ```
 
 Expected whisper.cpp folders:

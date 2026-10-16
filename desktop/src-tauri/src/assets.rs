@@ -12,6 +12,8 @@ pub struct AssetStatus {
     pub relative_path: &'static str,
     pub exists: bool,
     pub downloadable: bool,
+    /// Left out of "Download missing"; downloaded from its own row.
+    pub optional: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub note: Option<&'static str>,
 }
@@ -25,7 +27,20 @@ struct Asset {
 }
 
 const ASSETS: &[Asset] = &[
-    Asset { id: "qwen", label: "Qwen3-ASR", relative_path: "models/Qwen3-ASR-0.6B", downloadable: true, note: None },
+    Asset {
+        id: "qwen",
+        label: "Qwen3-ASR 0.6B",
+        relative_path: "models/Qwen3-ASR-0.6B",
+        downloadable: true,
+        note: None,
+    },
+    Asset {
+        id: "qwen-1.7b",
+        label: "Qwen3-ASR 1.7B",
+        relative_path: "models/Qwen3-ASR-1.7B",
+        downloadable: true,
+        note: Some("Optional, about 4.4 GB. More accurate, needs more GPU memory."),
+    },
     Asset {
         id: "faster-whisper",
         label: "faster-whisper small",
@@ -105,6 +120,23 @@ const ASSETS: &[Asset] = &[
     },
 ];
 
+const OPTIONAL: &[&str] = &["qwen-1.7b"];
+
+/// Files that must all be present, beyond the asset's own path. A sharded
+/// model only counts once every shard has finished: huggingface_hub moves a
+/// file into place when its download completes, so a paused download is missing one.
+fn required_files(asset_id: &str) -> &'static [&'static str] {
+    match asset_id {
+        "qwen-1.7b" => &[
+            "config.json",
+            "preprocessor_config.json",
+            "model-00001-of-00002.safetensors",
+            "model-00002-of-00002.safetensors",
+        ],
+        _ => &[],
+    }
+}
+
 pub fn label(asset_id: &str) -> String {
     ASSETS.iter().find(|asset| asset.id == asset_id).map_or(asset_id.to_string(), |asset| asset.label.into())
 }
@@ -116,13 +148,16 @@ pub fn check(paths: &AppPaths) -> Vec<AssetStatus> {
             let path = paths.data_root.join(asset.relative_path);
             // The live CPU/CUDA backends also need the resident server beside the CLI.
             let needs_server = matches!(asset.id, "whisper-cpp-cpu" | "whisper-cpp-cuda");
-            let exists = path.exists() && (!needs_server || path.with_file_name("whisper-server.exe").exists());
+            let exists = path.exists()
+                && (!needs_server || path.with_file_name("whisper-server.exe").exists())
+                && required_files(asset.id).iter().all(|file| path.join(file).is_file());
             AssetStatus {
                 id: asset.id,
                 label: asset.label,
                 relative_path: asset.relative_path,
                 exists,
                 downloadable: asset.downloadable,
+                optional: OPTIONAL.contains(&asset.id),
                 note: asset.note,
             }
         })
@@ -143,6 +178,28 @@ pub fn parse_progress(asset_id: &str, line: &str) -> Option<(u8, String)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_sharded_model_counts_only_when_every_shard_is_there() {
+        let root = std::env::temp_dir().join(format!("lmstt-assets-{}", std::process::id()));
+        let model = root.join("models").join("Qwen3-ASR-1.7B");
+        std::fs::create_dir_all(&model).unwrap();
+        for file in ["config.json", "preprocessor_config.json", "model-00001-of-00002.safetensors"] {
+            std::fs::write(model.join(file), b"x").unwrap();
+        }
+        let paths = AppPaths {
+            repo_root: root.clone(),
+            data_root: root.clone(),
+            runtime_dir: root.join("runtime"),
+            settings_path: root.join("settings.json"),
+        };
+        let status = |paths: &AppPaths| check(paths).into_iter().find(|asset| asset.id == "qwen-1.7b").unwrap();
+        assert!(!status(&paths).exists, "a missing shard means a paused download");
+        assert!(status(&paths).optional);
+        std::fs::write(model.join("model-00002-of-00002.safetensors"), b"x").unwrap();
+        assert!(status(&paths).exists);
+        std::fs::remove_dir_all(&root).unwrap();
+    }
 
     #[test]
     fn progress_lines_are_read_for_their_asset_only() {

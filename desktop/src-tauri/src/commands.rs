@@ -113,7 +113,18 @@ fn with_chunk(mut extra: Vec<String>, args: &Args) -> Vec<String> {
 
 /// File transcription jobs read an existing audio file.
 pub fn reads_input_audio(kind: &str) -> bool {
-    matches!(kind, "cpp-gpu" | "cpp-cpu" | "cpp-vulkan" | "cpp-npu" | "cpp-openvino-gpu" | "qwen-gpu" | "qwen-cpu")
+    matches!(
+        kind,
+        "cpp-gpu"
+            | "cpp-cpu"
+            | "cpp-vulkan"
+            | "cpp-npu"
+            | "cpp-openvino-gpu"
+            | "qwen-gpu"
+            | "qwen-cpu"
+            | "qwen17-gpu"
+            | "qwen17-cpu"
+    )
 }
 
 /// Python capture jobs stop on the stop file: they close their WAV and release
@@ -130,7 +141,7 @@ pub fn is_loopback_stream(kind: &str) -> bool {
 /// used as is: online, uv rechecks the PyTorch and PyPI indexes on every start
 /// (about 2 s). A job whose cache is missing is rerun online.
 pub fn prefers_offline(kind: &str) -> bool {
-    kind.starts_with("qwen-")
+    kind.starts_with("qwen")
 }
 
 /// The same `uv run` without network access.
@@ -338,17 +349,23 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
             executable: whisper_cli(paths, "bin_openvino"),
             args: openvino(paths, &need_audio()?, post_output("cpp_openvino_gpu_transcript")?, "GPU"),
         },
-        "qwen-gpu" | "qwen-cpu" => {
-            let gpu = kind == "qwen-gpu";
+        "qwen-gpu" | "qwen-cpu" | "qwen17-gpu" | "qwen17-cpu" => {
+            let gpu = kind.ends_with("-gpu");
+            let large = kind.starts_with("qwen17");
             let audio = need_audio()?;
             let output = transcript_output_path(
                 Path::new(&audio),
                 &output_dir,
-                if gpu { "qwen_gpu_transcript" } else { "qwen_cpu_transcript" },
+                match (large, gpu) {
+                    (false, true) => "qwen_gpu_transcript",
+                    (false, false) => "qwen_cpu_transcript",
+                    (true, true) => "qwen17_gpu_transcript",
+                    (true, false) => "qwen17_cpu_transcript",
+                },
             );
             let requirements = paths.repo_root.join("python_backend").join("qwen-requirements.txt");
             let script_path = paths.repo_root.join("python_backend").join("post_transcribe_qwen.py");
-            let model = paths.data_root.join("models").join("Qwen3-ASR-0.6B");
+            let model = paths.data_root.join("models").join(if large { "Qwen3-ASR-1.7B" } else { "Qwen3-ASR-0.6B" });
             let mut all: Vec<String> = [
                 "run",
                 "--no-project",
@@ -384,7 +401,13 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
                 "--batch-size".into(),
                 number(args, "qwenBatch").unwrap_or_else(|| "16".into()),
             ]);
-            CommandSpec { label: if gpu { "Qwen GPU" } else { "Qwen CPU" }.into(), executable: "uv".into(), args: all }
+            let label = match (large, gpu) {
+                (false, true) => "Qwen GPU",
+                (false, false) => "Qwen CPU",
+                (true, true) => "Qwen 1.7B GPU",
+                (true, false) => "Qwen 1.7B CPU",
+            };
+            CommandSpec { label: label.into(), executable: "uv".into(), args: all }
         }
         _ => return Err(format!("Unknown command: {kind}")),
     })
@@ -471,13 +494,39 @@ mod tests {
     }
 
     #[test]
+    fn qwen_17b_uses_its_own_model_and_transcript() {
+        let root = std::env::temp_dir().join(format!("lmstt-qwen17-{}", std::process::id()));
+        let paths = AppPaths {
+            repo_root: root.clone(),
+            data_root: root.clone(),
+            runtime_dir: root.join("runtime"),
+            settings_path: root.join("settings.json"),
+        };
+        let audio = root.join("outputs").join("meeting_1").join("audio.wav");
+        let args: Args =
+            serde_json::from_value(serde_json::json!({ "audioPath": audio.to_string_lossy(), "outputDir": "outputs" }))
+                .unwrap();
+        let spec = build(&paths, "qwen17-gpu", &args).unwrap();
+        let value = |flag: &str| spec.args[spec.args.iter().position(|arg| arg == flag).unwrap() + 1].clone();
+        assert_eq!(spec.label, "Qwen 1.7B GPU");
+        assert!(value("--model").ends_with("Qwen3-ASR-1.7B"));
+        assert!(value("-o").ends_with("qwen17_gpu_transcript.txt"));
+        assert_eq!(value("--device"), "cuda:0");
+        let small = build(&paths, "qwen-cpu", &args).unwrap();
+        let model = small.args[small.args.iter().position(|arg| arg == "--model").unwrap() + 1].clone();
+        assert!(model.ends_with("Qwen3-ASR-0.6B"));
+        assert!(reads_input_audio("qwen17-cpu"));
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
     fn qwen_runs_offline_first() {
         let spec = CommandSpec {
             label: "Qwen GPU".into(),
             executable: "uv".into(),
             args: vec!["run".into(), "--no-project".into(), "python".into()],
         };
-        assert!(prefers_offline("qwen-gpu") && prefers_offline("qwen-cpu"));
+        assert!(prefers_offline("qwen-gpu") && prefers_offline("qwen-cpu") && prefers_offline("qwen17-gpu"));
         assert!(!prefers_offline("cpp-gpu") && !prefers_offline("live-meeting"));
         assert_eq!(offline(&spec).args, vec!["run", "--offline", "--no-project", "python"]);
         let script = CommandSpec { label: "x".into(), executable: "cmd.exe".into(), args: vec!["/c".into()] };

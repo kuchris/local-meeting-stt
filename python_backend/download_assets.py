@@ -17,6 +17,7 @@ WHISPER_CPP_CPU_ASSET = "whisper-bin-x64.zip"
 ASSET_CHOICES = (
     "faster-whisper",
     "qwen",
+    "qwen-1.7b",
     "whisper-cpp-cpu",
     "whisper-cpp-cuda",
     "whisper-cpp-model",
@@ -58,19 +59,16 @@ def reset_path(path: Path, force: bool) -> None:
             path.unlink()
 
 
-def download_hf_snapshot(asset_id: str, repo_id: str, destination: Path, force: bool) -> None:
+def download_hf_snapshot(asset_id: str, repo_id: str, destination: Path, force: bool, revision: str | None = None) -> None:
     from huggingface_hub import snapshot_download
 
     reset_path(destination, force)
-    if destination.exists():
-        progress(asset_id, 100, "Already exists")
-        print(f"Already exists: {destination}")
-        return
-
+    # An existing folder may be a paused download. snapshot_download checks the
+    # files already there and resumes or skips them, so it is not skipped here.
     destination.parent.mkdir(parents=True, exist_ok=True)
     progress(asset_id, 10, "Downloading snapshot")
-    print(f"Downloading {repo_id} -> {destination}")
-    snapshot_download(repo_id=repo_id, local_dir=destination)
+    print(f"Downloading {repo_id}{f'@{revision}' if revision else ''} -> {destination}")
+    snapshot_download(repo_id=repo_id, local_dir=destination, revision=revision)
     progress(asset_id, 100, "Done")
 
 
@@ -186,6 +184,16 @@ def download_assets(args: Namespace) -> None:
             "Qwen/Qwen3-ASR-0.6B",
             root / "models" / "Qwen3-ASR-0.6B",
             args.force,
+        )
+
+    # Optional and 4.4 GB, so a full run leaves it out; download it by name.
+    if only == "qwen-1.7b":
+        download_hf_snapshot(
+            "qwen-1.7b",
+            "Qwen/Qwen3-ASR-1.7B",
+            root / "models" / "Qwen3-ASR-1.7B",
+            args.force,
+            revision="7278e1e70fe206f11671096ffdd38061171dd6e5",
         )
 
     if (only is None or only.startswith("whisper-cpp-")) and not args.skip_whisper_cpp:

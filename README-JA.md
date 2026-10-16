@@ -59,7 +59,7 @@ cargo run
 | Recordings | 録音を選択するか、音声ファイルをウィンドウのどこにでもドロップして、モデルとバックエンドを指定。既存の文字起こしはワンクリックで開けます。 |
 | Settings | 外観、言語、出力先。モデルとランタイムの確認・ダウンロード。 |
 
-リアルタイム字幕では **Whisper small**、**Whisper large-v3-turbo**（CUDA）、**Whisper base**、会議後の文字起こしでは **Whisper small** と **Qwen3-ASR 0.6B** を選べます。Qwen は現在、ファイルの文字起こし専用で、リアルタイム字幕には使用しません。
+リアルタイム字幕では **Whisper small**、**Whisper large-v3-turbo**（CUDA）、**Whisper base**、会議後の文字起こしでは **Whisper small**、**Qwen3-ASR 0.6B**、追加ダウンロードでより高精度な **Qwen3-ASR 1.7B** を選べます。Qwen は現在、ファイルの文字起こし専用で、リアルタイム字幕には使用しません。
 
 文字起こしのバックエンド選択は保存されます。Whisper と Qwen を切り替えても CPU／CUDA の選択を引き継ぎます。文字起こしの設定がまだない場合、ライブ設定が CUDA なら文字起こしも CUDA、それ以外は CPU が初期選択になります。明示的に保存した CPU 設定は維持されます。
 
@@ -75,6 +75,7 @@ cargo run
 | OpenVINO NPU/GPU | `whisper_cpp/bin_openvino/Release/` + small モデルと encoder XML/BIN | 対応する OpenVINO デバイスとローカルビルドが必要。 |
 | Vulkan loopback | `whisper_cpp/bin_vulkan_loopback/Release/` + base または small モデル | システム既定のループバックのみ。個別のデバイス指定やマイク音声のミックスには非対応。 |
 | Qwen CPU/CUDA | `models/Qwen3-ASR-0.6B/` | ファイルの文字起こし。バージョンを固定した Python 実行環境を共用。 |
+| Qwen 1.7B CPU/CUDA | `models/Qwen3-ASR-1.7B/` | 任意・約 4.4 GB。Settings の該当行からダウンロード。精度が高い分、GPU メモリを多く使います。Qwen 0.6B と同じ実行環境を使います。 |
 
 `ggml-*.bin` は `whisper_cpp/models/` に配置します。ライブ CPU／CUDA には `whisper-cli.exe` に加えて `whisper-server.exe` が必要です。ファイルチェックはパスの存在を確認するもので、ハードウェア互換性や全ダウンロードファイルの完全性までは検証しません。Vulkan と OpenVINO の実行ファイルはローカルビルドまたはリリースに含まれるもので、通常のモデルダウンロードとは別です。
 

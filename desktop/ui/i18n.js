@@ -458,6 +458,11 @@ const added = {
   "Transcripts": ["逐字稿", "Transcripts", "文字起こし"],
   "Elapsed": ["經過時間", "Elapsed", "経過時間"],
   "Recording": ["錄音中", "Recording", "録音中"],
+  "Optional, about 4.4 GB. More accurate, needs more GPU memory.": [
+    "可選，約 4.4 GB。辨識較準，但需要更多 GPU 記憶體。",
+    "Optional, about 4.4 GB. More accurate, needs more GPU memory.",
+    "任意・約 4.4 GB。認識精度が高い分、GPU メモリを多く使います。",
+  ],
 };
 
 export const messages = { ...carried, ...added };

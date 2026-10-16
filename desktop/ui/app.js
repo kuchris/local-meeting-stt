@@ -34,14 +34,20 @@ const liveModes = [
 const postBackends = {
   small: [["cpp-cpu", "CPU"], ["cpp-gpu", "CUDA"], ["cpp-vulkan", "Vulkan"], ["cpp-npu", "OpenVINO NPU"], ["cpp-openvino-gpu", "OpenVINO GPU"]],
   qwen: [["qwen-cpu", "CPU"], ["qwen-gpu", "CUDA"]],
+  qwen17: [["qwen17-cpu", "CPU"], ["qwen17-gpu", "CUDA"]],
 };
-const postKinds = [...postBackends.small, ...postBackends.qwen].map(([id]) => id);
+const postKinds = Object.values(postBackends).flat().map(([id]) => id);
 const isPostKind = (value) => typeof value === "string" && postKinds.includes(value);
-/** Switching between Whisper and Qwen keeps the CPU/CUDA choice. */
+/** The model a post kind runs: "small", "qwen" (0.6B) or "qwen17" (1.7B). */
+const postModelOf = (kind) => (kind.startsWith("qwen17") ? "qwen17" : kind.startsWith("qwen") ? "qwen" : "small");
+/** Switching models keeps the CPU/CUDA choice. */
 function switchPostModel(current, model) {
-  const cuda = current === "cpp-gpu" || current === "qwen-gpu";
-  return `${model === "qwen" ? "qwen" : "cpp"}-${cuda ? "gpu" : "cpu"}`;
+  const cuda = current === "cpp-gpu" || current === "qwen-gpu" || current === "qwen17-gpu";
+  const prefix = { small: "cpp", qwen: "qwen", qwen17: "qwen17" }[model] ?? "cpp";
+  return `${prefix}-${cuda ? "gpu" : "cpu"}`;
 }
+/** Model folders a Qwen transcription needs; the Whisper kinds are not checked here. */
+const postAssets = { "qwen-cpu": ["qwen"], "qwen-gpu": ["qwen"], "qwen17-cpu": ["qwen-1.7b"], "qwen17-gpu": ["qwen-1.7b"] };
 
 const phaseLabels = {
   idle: "準備就緒", starting: "正在啟動", running: "執行中", stopping: "正在停止",
@@ -51,6 +57,7 @@ const outputSuffixes = {
   "cpp-gpu": "cpp_gpu_transcript", "cpp-cpu": "cpp_cpu_transcript", "cpp-vulkan": "cpp_vulkan_transcript",
   "cpp-npu": "cpp_npu_transcript", "cpp-openvino-gpu": "cpp_openvino_gpu_transcript",
   "qwen-gpu": "qwen_gpu_transcript", "qwen-cpu": "qwen_cpu_transcript",
+  "qwen17-gpu": "qwen17_gpu_transcript", "qwen17-cpu": "qwen17_cpu_transcript",
 };
 const MAX_LOG_CHUNKS = 600;
 /** A session's transcript files, in the order they are listed. */
@@ -63,6 +70,8 @@ const transcriptFiles = [
   ["cppOpenvinoGpu", "cpp_openvino_gpu_transcript.txt", "Whisper OpenVINO GPU"],
   ["qwenCpu", "qwen_cpu_transcript.txt", "Qwen CPU"],
   ["qwenGpu", "qwen_gpu_transcript.txt", "Qwen CUDA"],
+  ["qwen17Cpu", "qwen17_cpu_transcript.txt", "Qwen 1.7B CPU"],
+  ["qwen17Gpu", "qwen17_gpu_transcript.txt", "Qwen 1.7B CUDA"],
 ];
 
 /* ───────────────────────── state ───────────────────────── */
@@ -156,6 +165,8 @@ const liveMode = () => liveModes.find((mode) => mode.id === state.liveModeId) ??
 const isRunning = () => state.activeId !== null || state.phase === "starting" || state.phase === "stopping";
 const assetExists = (id) => state.assets.some((asset) => asset.id === id && asset.exists);
 const liveUnavailable = () => !state.assetsLoaded || liveMode().assets.some((id) => !assetExists(id));
+const postMissing = () => (postAssets[state.postKind] ?? []).filter((id) => !assetExists(id));
+const postUnavailable = () => state.assetsLoaded && postMissing().length > 0;
 const previewValid = () => Number.isFinite(state.previewSeconds) && state.previewSeconds >= 0.5 && state.previewSeconds <= 5;
 const selectedSession = () => state.sessions.find((session) => session.id === state.selectedSessionId) ?? null;
 const selectedAudioPath = () => selectedSession()?.audioPath || state.audioPath;
@@ -166,7 +177,7 @@ function canStart(tab) {
   if (!state.settingsLoaded || isRunning()) return false;
   if (tab === "live") return !liveUnavailable() && previewValid();
   if (tab === "record") return !state.timedRecording || (Number.isFinite(state.durationSeconds) && state.durationSeconds > 0);
-  if (tab === "recordings") return Boolean(selectedAudioPath());
+  if (tab === "recordings") return Boolean(selectedAudioPath()) && !postUnavailable();
   return false;
 }
 
@@ -363,7 +374,7 @@ function renderRecordings() {
         const tags = [
           t2.live && "Live",
           (t2.cppCpu || t2.cppGpu || t2.cppVulkan || t2.cppNpu || t2.cppOpenvinoGpu) && "Whisper",
-          (t2.qwenCpu || t2.qwenGpu) && "Qwen",
+          (t2.qwenCpu || t2.qwenGpu || t2.qwen17Cpu || t2.qwen17Gpu) && "Qwen",
         ].filter(Boolean);
         return h(
           "button",
@@ -401,10 +412,17 @@ function renderRecordings() {
   }
 
   const qwen = state.postKind.startsWith("qwen");
+  const model = postModelOf(state.postKind);
   const postModel = $("post-model");
-  if (postModel.value !== (qwen ? "qwen" : "small")) postModel.value = qwen ? "qwen" : "small";
+  if (postModel.value !== model) postModel.value = model;
   setDisabled(postModel, running);
-  fillSelect($("post-backend"), postBackends[qwen ? "qwen" : "small"], state.postKind);
+  fillSelect($("post-backend"), postBackends[model], state.postKind);
+  const missing = postUnavailable() ? postMissing() : [];
+  setHidden($("post-assets-notice"), missing.length === 0);
+  if (missing.length) {
+    const labels = missing.map((id) => state.assets.find((asset) => asset.id === id)?.label ?? id);
+    setText($("post-assets-text"), `${t("缺少此組合的檔案")}: ${labels.join(", ")}`);
+  }
   setDisabled($("post-backend"), running);
   for (const row of all("[data-qwen]")) setHidden(row, !qwen);
   setValue($("qwen-chunk"), state.qwen.chunkSeconds);
@@ -471,7 +489,10 @@ function renderSettings() {
       }),
     );
   }
-  setDisabled($("download-missing"), !state.assets.some((asset) => asset.downloadable && !asset.exists && !state.downloads[asset.id]?.running));
+  setDisabled(
+    $("download-missing"),
+    !state.assets.some((asset) => asset.downloadable && !asset.optional && !asset.exists && !state.downloads[asset.id]?.running),
+  );
 }
 
 /** Counts while the job runs and keeps its final time once it ends. */
@@ -862,7 +883,8 @@ async function toggleDownload(assetId) {
 
 async function downloadMissing() {
   for (const asset of state.assets) {
-    if (asset.downloadable && !asset.exists && !state.downloads[asset.id]?.running) {
+    // Optional models (Qwen 1.7B, 4.4 GB) are downloaded from their own row.
+    if (asset.downloadable && !asset.optional && !asset.exists && !state.downloads[asset.id]?.running) {
       await invoke("start_asset_download", { assetId: asset.id }).catch((error) => setError(String(error)));
     }
   }
@@ -909,6 +931,7 @@ function bind() {
     invalidate();
   });
   $("live-manage-assets").addEventListener("click", () => setTab("settings"));
+  $("post-manage-assets").addEventListener("click", () => setTab("settings"));
   $("open-transcript").addEventListener("click", () => openPath(state.transcriptPath));
   $("follow").addEventListener("change", (event) => {
     state.follow = event.target.checked;

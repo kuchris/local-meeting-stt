@@ -78,7 +78,8 @@ The earlier Electron + React version is kept on the
 
 The live model choices are **Whisper small**, **Whisper large-v3-turbo** (CUDA),
 and **Whisper base**. Post-meeting
-transcription offers **Whisper small** and **Qwen3-ASR 0.6B**. Qwen is currently a
+transcription offers **Whisper small**, **Qwen3-ASR 0.6B**, and the optional, more
+accurate **Qwen3-ASR 1.7B**. Qwen is currently a
 file-transcription option, not a live-caption backend.
 
 The selected post-transcription backend is saved. Switching between Whisper and
@@ -98,6 +99,7 @@ start on CPU. An explicit saved CPU choice is preserved.
 | OpenVINO NPU/GPU | `whisper_cpp/bin_openvino/Release/` + small model and encoder XML/BIN | Requires a compatible OpenVINO device and local build. |
 | Vulkan loopback | `whisper_cpp/bin_vulkan_loopback/Release/` + base or small model | System default loopback only; no custom device or microphone mixing. |
 | Qwen CPU/CUDA | `models/Qwen3-ASR-0.6B/` | File transcription; shared pinned Python runtime. |
+| Qwen 1.7B CPU/CUDA | `models/Qwen3-ASR-1.7B/` | Optional 4.4 GB download from its row in Settings; more accurate, uses more GPU memory. Same runtime as Qwen 0.6B. |
 
 The `ggml-*.bin` files belong in `whisper_cpp/models/`. Live CPU/CUDA paths need
 `whisper-server.exe` as well as `whisper-cli.exe`. Asset checks verify paths, not
