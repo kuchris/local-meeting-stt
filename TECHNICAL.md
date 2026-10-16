@@ -12,7 +12,7 @@ whisper_cpp/       whisper.cpp runtimes, models, wrappers, and output
 test/              demo audio, demo transcripts, and drag/drop test .bat files
 recordings/        generated meeting recordings
 outputs/           app output folder for recordings and transcripts
-models/            faster-whisper and Qwen model folders
+models/            SenseVoice, Qwen and (command line only) faster-whisper model folders
 runtime/           portable/local runtime data, uv cache, venv, and WebView2 data
 settings.json      portable/local UI and output settings
 ```
@@ -25,7 +25,9 @@ Ignored local folders include `models/`, `outputs/`, `recordings/`, `runtime/`, 
 
 ```text
 python_backend/record_audio.py          records Windows system loopback audio
-python_backend/live_transcribe.py       records audio and writes revisable faster-whisper captions
+python_backend/live_transcribe.py       records audio and writes revisable SenseVoice (app) or faster-whisper (command line) captions
+python_backend/text_script.py          Traditional/Simplified conversion of captions and transcripts
+python_backend/post_whisper_cpp.py     runs whisper-cli, then converts a Chinese transcript to the chosen script
 python_backend/live_streaming.py        shared VAD utterance and preview/final caption flow
 python_backend/transcribe_audio.py      batch transcribes an existing audio file with faster-whisper
 python_backend/post_transcribe_qwen.py  post-processes a recording with Qwen3-ASR
@@ -45,7 +47,7 @@ cd desktop\src-tauri
 cargo run
 ```
 
-Live meeting mode:
+Live captions with faster-whisper on CPU (command line only; the app uses SenseVoice-Small or Whisper large-v3-turbo):
 
 ```powershell
 python_backend\live_meeting.cmd
@@ -143,12 +145,12 @@ whisper_cpp/
 Do not commit model files to normal Git history. Use releases, external storage, or Git LFS if distribution is needed later.
 
 `bin_cpu/`, `bin_cuda/`, and the ggml models can be downloaded by the asset downloader.
-`bin_vulkan/` and `bin_vulkan_loopback/` are local build artifacts. The Settings page
-checks whether they exist, but it does not download them. Build or copy them locally
-before using `CPP Vulkan`, `CPP Vulkan LB Base`, or `CPP Vulkan LB Small`.
+`bin_vulkan/` and `bin_vulkan_loopback/` are local build artifacts that the downloader
+does not fetch. The app uses `bin_vulkan/` for Vulkan file transcription (Settings
+checks it); `bin_vulkan_loopback/` is only used by the command-line loopback stream.
 
-`bin_openvino/` contains the separate OpenVINO whisper.cpp runtime used by `CPP OV NPU`
-and `CPP OV GPU`. It is copied into the folder-style portable package when present.
+`bin_openvino/` contains the separate OpenVINO whisper.cpp runtime used by the
+OpenVINO NPU and GPU file-transcription backends. It is copied into the folder-style portable package when present.
 The OpenVINO encoder files are expected beside the ggml model:
 
 ```text
@@ -205,8 +207,9 @@ It captures the Windows output device through WASAPI loopback and supports:
 --save-wav path\to\audio.wav
 ```
 
-The app's loopback live modes pass both `-f live_transcript.txt` and
-`--save-wav audio.wav`, so loopback live sessions can be post-transcribed later.
+Pass both `-f live_transcript.txt` and `--save-wav audio.wav` so a loopback stream
+session can be transcribed again later. The app no longer offers this stream as a
+live mode.
 
 No-sound whisper.cpp CPU file test:
 
