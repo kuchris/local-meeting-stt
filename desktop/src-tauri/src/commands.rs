@@ -126,6 +126,29 @@ pub fn is_loopback_stream(kind: &str) -> bool {
     kind.starts_with("live-cpp-stream-loopback")
 }
 
+/// Qwen's environment is pinned in qwen-requirements.txt, so a cached copy is
+/// used as is: online, uv rechecks the PyTorch and PyPI indexes on every start
+/// (about 2 s). A job whose cache is missing is rerun online.
+pub fn prefers_offline(kind: &str) -> bool {
+    kind.starts_with("qwen-")
+}
+
+/// The same `uv run` without network access.
+pub fn offline(spec: &CommandSpec) -> CommandSpec {
+    let mut spec = spec.clone();
+    if spec.executable == "uv" && spec.args.first().map(String::as_str) == Some("run") {
+        spec.args.insert(1, "--offline".into());
+    }
+    spec
+}
+
+/// Whether uv itself failed because `--offline` kept it from resolving the
+/// environment (packages or interpreter not cached), as opposed to the script
+/// failing. Both end with exit code 1 or 2, so only uv's own hints tell.
+pub fn failed_offline(stderr: &str) -> bool {
+    stderr.contains("because the network was disabled") || stderr.contains("uv is set to offline mode")
+}
+
 fn whisper_cli(paths: &AppPaths, runtime: &str) -> String {
     path_text(&paths.data_root.join("whisper_cpp").join(runtime).join("Release").join("whisper-cli.exe"))
 }
@@ -426,6 +449,32 @@ mod tests {
             serde_json::from_value(serde_json::json!({ "durationSeconds": 3600.0, "previewSeconds": 1 })).unwrap();
         assert_eq!(number(&args, "durationSeconds").as_deref(), Some("3600"));
         assert_eq!(number(&args, "previewSeconds").as_deref(), Some("1"));
+    }
+
+    #[test]
+    fn qwen_runs_offline_first() {
+        let spec = CommandSpec {
+            label: "Qwen GPU".into(),
+            executable: "uv".into(),
+            args: vec!["run".into(), "--no-project".into(), "python".into()],
+        };
+        assert!(prefers_offline("qwen-gpu") && prefers_offline("qwen-cpu"));
+        assert!(!prefers_offline("cpp-gpu") && !prefers_offline("live-meeting"));
+        assert_eq!(offline(&spec).args, vec!["run", "--offline", "--no-project", "python"]);
+        let script = CommandSpec { label: "x".into(), executable: "cmd.exe".into(), args: vec!["/c".into()] };
+        assert_eq!(offline(&script), script);
+    }
+
+    #[test]
+    fn only_uv_offline_failures_are_retried() {
+        // Messages printed by uv 0.12 with an empty cache and with a missing interpreter.
+        let packages = "  × No solution found when resolving `--with` dependencies:\n  ╰─▶ Because qwen-asr was not found in the cache and you require\n      qwen-asr==0.0.6, we can conclude that your requirements are\n      unsatisfiable.\n\nhint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.";
+        let interpreter = "error: No interpreter found for Python 3.9 in virtual environments, managed installations, search path, or registry\n\nhint: A managed Python download is available for Python 3.9, but uv is set to offline mode";
+        let script = "Traceback (most recent call last):\nRuntimeError: CUDA is unavailable. Select Qwen CPU or install the GPU runtime.";
+        assert!(failed_offline(packages));
+        assert!(failed_offline(interpreter));
+        assert!(!failed_offline(script));
+        assert!(!failed_offline("Local model missing: models/Qwen3-ASR-0.6B. Download it from Setup first."));
     }
 
     #[test]

@@ -30,6 +30,35 @@ def default_model_path() -> str:
     raise FileNotFoundError(f"Local model missing: {LOCAL_MODEL_PATH}. Download Qwen3-ASR from Setup first.")
 
 
+def defer_nagisa() -> None:
+    """qwen-asr imports nagisa (a Japanese tokenizer that loads its model on import,
+    about 1.6 s) only for forced alignment, which transcription does not use. Load
+    it on first attribute access instead of at import.
+
+    importlib's LazyLoader does not help here: `import` reads the module's
+    `__spec__`, which makes LazyLoader load it immediately. Dunder lookups
+    (torch's import scans every module for `__file__` via inspect) are answered
+    as missing instead of loading."""
+    import importlib
+    import importlib.util
+    import sys
+    import types
+
+    if "nagisa" in sys.modules or importlib.util.find_spec("nagisa") is None:
+        return
+
+    class DeferredNagisa(types.ModuleType):
+        def __getattr__(self, name):
+            if name.startswith("__") and name.endswith("__"):
+                raise AttributeError(name)
+            sys.modules.pop("nagisa", None)
+            real = importlib.import_module("nagisa")
+            self.__dict__.update(real.__dict__)
+            return getattr(real, name)
+
+    sys.modules["nagisa"] = DeferredNagisa("nagisa")
+
+
 def resolve_runtime(device_arg: str):
     import torch
 
@@ -79,6 +108,7 @@ def main() -> None:
     if not args.audio.exists():
         raise SystemExit(f"Audio file not found: {args.audio}")
 
+    defer_nagisa()
     try:
         from qwen_asr import Qwen3ASRModel
     except ImportError as exc:

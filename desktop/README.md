@@ -54,6 +54,11 @@ format are the same. Differences:
   logic). The page receives "replace from line N" updates and appends them, so
   a caption no longer re-renders the whole window. The log keeps the last 600
   chunks and updates at most once per frame.
+- **Qwen jobs start about 4 s sooner**: `uv run --offline` uses the cached,
+  pinned environment without rechecking the package indexes, and a job whose
+  cache is missing is rerun online (`commands::failed_offline` tells uv's
+  offline errors from the script's). `post_transcribe_qwen.py` also defers
+  `nagisa`, a tokenizer qwen-asr imports only for forced alignment.
 - **Drop an audio file anywhere** in the window; it opens Recordings with that file.
 - **Light, dark or system** theme, set in Settings.
 - The File/Run/View menu bar and the resizable recordings column are gone.

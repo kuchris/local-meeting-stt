@@ -17,7 +17,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::{ChildStdin, Command, Stdio};
+use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 use std::time::{Duration, Instant};
@@ -29,6 +29,7 @@ use std::os::windows::process::CommandExt;
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 const COOPERATIVE_STOP: Duration = Duration::from_secs(10);
 const LAST_ERROR_CHARS: usize = 1200;
+const STDERR_TAIL_BYTES: usize = 8192;
 
 struct Job {
     pid: u32,
@@ -198,24 +199,66 @@ impl Jobs {
         if let Some(path) = &stop_file {
             let _ = fs::remove_file(path);
         }
-        let mut child =
-            spawn(&spec, &self.paths, stop_file.as_deref()).map_err(|error| format!("{}: {error}", spec.executable))?;
-        let pid = child.id();
-        let stdout = child.stdout.take().expect("piped stdout");
-        let stderr = child.stderr.take().expect("piped stderr");
-        state.jobs.insert(process_id, Job { pid, stop_file: stop_file.clone(), _stdin: child.stdin.take() });
+        let offline_first = commands::prefers_offline(kind);
+        let first = if offline_first { commands::offline(&spec) } else { spec.clone() };
+        let mut child = spawn(&first, &self.paths, stop_file.as_deref())
+            .map_err(|error| format!("{}: {error}", first.executable))?;
+        state.jobs.insert(process_id, Job { pid: child.id(), stop_file, _stdin: child.stdin.take() });
         drop(state);
 
         let _ = app.emit(
             "process-event",
-            json!({ "type": "start", "processId": process_id, "kind": kind, "label": spec.label, "command": display_command(&spec) }),
+            json!({ "type": "start", "processId": process_id, "kind": kind, "label": first.label, "command": display_command(&first) }),
         );
-        Self::log(app, process_id, "info", vec![format!("Started {}", spec.label), display_command(&spec)]);
+        Self::log(app, process_id, "info", vec![format!("Started {}", first.label), display_command(&first)]);
+        self.watch(app, process_id, kind, child, offline_first.then(|| spec.clone()));
+        Ok(Started { process_id, label: spec.label })
+    }
 
+    /// Starts `online` in place of a job whose `uv --offline` attempt found no
+    /// cached environment, unless the job is being stopped. The state lock is
+    /// held throughout, so a stop sees either the old process or the new one.
+    fn retry_online(&self, app: &AppHandle, process_id: u32, online: &CommandSpec) -> Option<Child> {
+        let mut state = self.state.lock().unwrap();
+        if state.stopping.contains(&process_id) {
+            return None;
+        }
+        let stop_file = state.jobs.get(&process_id)?.stop_file.clone();
+        Self::log(
+            app,
+            process_id,
+            "info",
+            vec![
+                "Python environment is not cached yet; retrying online to install it.".into(),
+                display_command(online),
+            ],
+        );
+        match spawn(online, &self.paths, stop_file.as_deref()) {
+            Ok(mut child) => {
+                let job = state.jobs.get_mut(&process_id)?;
+                job.pid = child.id();
+                job._stdin = child.stdin.take();
+                Some(child)
+            }
+            Err(error) => {
+                Self::log(app, process_id, "stderr", vec![format!("{}: {error}", online.executable)]);
+                None
+            }
+        }
+    }
+
+    /// Reads a job's output until it exits, then reports the exit. With
+    /// `retry`, an offline attempt that uv could not set up is rerun online
+    /// in the same job instead of being reported.
+    fn watch(&self, app: &AppHandle, process_id: u32, kind: &str, mut child: Child, retry: Option<CommandSpec>) {
+        let stdout = child.stdout.take().expect("piped stdout");
+        let stderr = child.stderr.take().expect("piped stderr");
         let recordings: Arc<Mutex<Vec<PathBuf>>> = Arc::default();
         let last_error: Arc<Mutex<String>> = Arc::default();
+        let stderr_tail: Arc<Mutex<String>> = Arc::default();
+        let kind = kind.to_string();
         let live = kind.starts_with("live-");
-        let loopback = commands::is_loopback_stream(kind);
+        let loopback = commands::is_loopback_stream(&kind);
 
         let out_reader = {
             let app = app.clone();
@@ -262,6 +305,7 @@ impl Jobs {
         let err_reader = {
             let app = app.clone();
             let last_error = last_error.clone();
+            let stderr_tail = stderr_tail.clone();
             thread::spawn(move || {
                 for_each_read(stderr, |lines| {
                     let joined = lines.join("\n");
@@ -270,6 +314,16 @@ impl Jobs {
                         chars[chars.len().saturating_sub(LAST_ERROR_CHARS)..].iter().collect()
                     };
                     *last_error.lock().unwrap() = tail;
+                    // uv's error and its hint can arrive in separate reads.
+                    let mut all = stderr_tail.lock().unwrap();
+                    all.push_str(&joined);
+                    all.push('\n');
+                    if all.len() > STDERR_TAIL_BYTES {
+                        let cut = all.len() - STDERR_TAIL_BYTES;
+                        let cut = (cut..all.len()).find(|&index| all.is_char_boundary(index)).unwrap_or(all.len());
+                        all.drain(..cut);
+                    }
+                    drop(all);
                     Self::log(&app, process_id, "stderr", lines);
                 });
             })
@@ -281,6 +335,15 @@ impl Jobs {
             let status = child.wait();
             let _ = out_reader.join();
             let _ = err_reader.join();
+            if let Some(online) = retry {
+                let failed = status.as_ref().ok().and_then(|status| status.code()) != Some(0);
+                if failed && commands::failed_offline(&stderr_tail.lock().unwrap()) {
+                    if let Some(next) = jobs.retry_online(&app, process_id, &online) {
+                        jobs.watch(&app, process_id, &kind, next, None);
+                        return;
+                    }
+                }
+            }
             for path in recordings.lock().unwrap().drain(..) {
                 match wav::repair_pcm_header(&path) {
                     Ok(true) => {
@@ -316,8 +379,6 @@ impl Jobs {
                 json!({ "type": "exit", "processId": process_id, "code": code, "stopped": stopped, "lastError": error }),
             );
         });
-
-        Ok(Started { process_id, label: spec.label })
     }
 
     /// Asks a cooperative job to finish (stop file, up to 10 s), then
