@@ -78,8 +78,9 @@ The earlier Electron + React version is kept on the
 The live model choices are **Whisper large-v3-turbo** (CUDA) and
 **SenseVoice-Small** (CPU or CUDA). Post-meeting
 transcription offers **Whisper small**, **Whisper large-v3-turbo** (CUDA, the live
-Turbo model), **Qwen3-ASR 0.6B**, and the optional, more accurate
-**Qwen3-ASR 1.7B**. Qwen is currently a
+Turbo model), **SenseVoice-Small** (CPU or CUDA, the live model), **Qwen3-ASR 0.6B**,
+and the optional, more accurate **Qwen3-ASR 1.7B**. SenseVoice is the fast choice
+without an NVIDIA GPU. Qwen is currently a
 file-transcription option, not a live-caption backend.
 
 Transcribing 12 pinned clips per language joined into one 2-minute file
@@ -89,10 +90,14 @@ Transcribing 12 pinned clips per language joined into one 2-minute file
 | --- | --- | --- | --- | --- | --- |
 | Whisper small | 15.6% | 14.7% | failed | 17.0% | 2.5–14 s |
 | Whisper large-v3-turbo | 12.5% | 7.8% | 9.2% | 16.7% | 3–4 s |
+| SenseVoice-Small (CPU) | 9.1% | 6.6% | 4.2% | 12.5% | 3–4 s |
 | Qwen3-ASR 0.6B | 14.9% | 6.4% | 4.7% | 21.6% | 12–31 s |
 | Qwen3-ASR 1.7B | 8.6% | 11.4% | 3.5% | 9.1% | 13–17 s |
 
-Whisper small returned only punctuation and repeated letters for the Cantonese file.
+SenseVoice runs on the CPU here (CUDA took about as long). Whisper small returned
+only punctuation and repeated letters for the Cantonese file. SenseVoice
+transcription splits a recording with Silero VAD in 60 s windows: run over the
+whole file at once, the VAD missed its last 15 s sentence.
 Most of Qwen3-ASR 1.7B's Mandarin errors are years written in Chinese numerals
 (二零一一 for 2011); the reference uses digits.
 
@@ -136,7 +141,7 @@ CPU choice is preserved.
 
 | Backend | Local files | Notes |
 | --- | --- | --- |
-| SenseVoice-Small CPU | `models/SenseVoiceSmall/` | Default live captions on CPU through sherpa-onnx (int8, about 230 MB); optional WAV. |
+| SenseVoice-Small CPU | `models/SenseVoiceSmall/` | Default live captions on CPU through sherpa-onnx (int8, about 230 MB); optional WAV. Also file transcription. |
 | SenseVoice-Small CUDA | `models/SenseVoiceSmall-fp32/` | Optional live captions on an NVIDIA GPU (fp32, about 900 MB). The first run downloads NVIDIA's CUDA 12 / cuDNN 9 pip packages (about 1.5 GB). |
 | whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | File transcription. |
 | whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU; file transcription. |

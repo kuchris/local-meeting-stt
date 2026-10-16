@@ -42,19 +42,23 @@ function captionLang() {
 const postBackends = {
   small: [["cpp-cpu", "CPU"], ["cpp-gpu", "CUDA"], ["cpp-vulkan", "Vulkan"], ["cpp-npu", "OpenVINO NPU"], ["cpp-openvino-gpu", "OpenVINO GPU"]],
   turbo: [["cpp-turbo-gpu", "CUDA"]],
+  sensevoice: [["sensevoice-cpu", "CPU"], ["sensevoice-gpu", "CUDA"]],
   qwen: [["qwen-cpu", "CPU"], ["qwen-gpu", "CUDA"]],
   qwen17: [["qwen17-cpu", "CPU"], ["qwen17-gpu", "CUDA"]],
 };
 const postKinds = Object.values(postBackends).flat().map(([id]) => id);
 const isPostKind = (value) => typeof value === "string" && postKinds.includes(value);
-/** The model a post kind runs: "small", "turbo", "qwen" (0.6B) or "qwen17" (1.7B). */
+/** The model a post kind runs: "small", "turbo", "sensevoice", "qwen" (0.6B) or "qwen17" (1.7B). */
 const postModelOf = (kind) =>
-  kind.startsWith("qwen17") ? "qwen17" : kind.startsWith("qwen") ? "qwen" : kind === "cpp-turbo-gpu" ? "turbo" : "small";
+  kind.startsWith("qwen17") ? "qwen17"
+    : kind.startsWith("qwen") ? "qwen"
+    : kind.startsWith("sensevoice") ? "sensevoice"
+    : kind === "cpp-turbo-gpu" ? "turbo" : "small";
 /** Switching models keeps the CPU/CUDA choice; Turbo runs on CUDA only. */
 function switchPostModel(current, model) {
   if (model === "turbo") return "cpp-turbo-gpu";
-  const cuda = ["cpp-gpu", "cpp-turbo-gpu", "qwen-gpu", "qwen17-gpu"].includes(current);
-  const prefix = { small: "cpp", qwen: "qwen", qwen17: "qwen17" }[model] ?? "cpp";
+  const cuda = ["cpp-gpu", "cpp-turbo-gpu", "sensevoice-gpu", "qwen-gpu", "qwen17-gpu"].includes(current);
+  const prefix = { small: "cpp", sensevoice: "sensevoice", qwen: "qwen", qwen17: "qwen17" }[model] ?? "cpp";
   return `${prefix}-${cuda ? "gpu" : "cpu"}`;
 }
 /** Files a transcription needs: the Qwen model folders and the optional Turbo model. The
@@ -62,6 +66,7 @@ function switchPostModel(current, model) {
 const postAssets = {
   "qwen-cpu": ["qwen"], "qwen-gpu": ["qwen"], "qwen17-cpu": ["qwen-1.7b"], "qwen17-gpu": ["qwen-1.7b"],
   "cpp-turbo-gpu": ["whisper-cpp-turbo-model", "whisper-cpp-cuda"],
+  "sensevoice-cpu": ["sensevoice-small"], "sensevoice-gpu": ["sensevoice-small-gpu"],
 };
 
 const phaseLabels = {
@@ -69,7 +74,8 @@ const phaseLabels = {
   stopped: "已停止", complete: "已完成", error: "執行失敗",
 };
 const outputSuffixes = {
-  "cpp-gpu": "cpp_gpu_transcript", "cpp-turbo-gpu": "cpp_turbo_gpu_transcript", "cpp-cpu": "cpp_cpu_transcript", "cpp-vulkan": "cpp_vulkan_transcript",
+  "cpp-gpu": "cpp_gpu_transcript", "cpp-turbo-gpu": "cpp_turbo_gpu_transcript",
+  "sensevoice-cpu": "sensevoice_cpu_transcript", "sensevoice-gpu": "sensevoice_gpu_transcript", "cpp-cpu": "cpp_cpu_transcript", "cpp-vulkan": "cpp_vulkan_transcript",
   "cpp-npu": "cpp_npu_transcript", "cpp-openvino-gpu": "cpp_openvino_gpu_transcript",
   "qwen-gpu": "qwen_gpu_transcript", "qwen-cpu": "qwen_cpu_transcript",
   "qwen17-gpu": "qwen17_gpu_transcript", "qwen17-cpu": "qwen17_cpu_transcript",
@@ -88,6 +94,8 @@ const transcriptFiles = [
   ["qwenGpu", "qwen_gpu_transcript.txt", "Qwen CUDA"],
   ["qwen17Cpu", "qwen17_cpu_transcript.txt", "Qwen 1.7B CPU"],
   ["qwen17Gpu", "qwen17_gpu_transcript.txt", "Qwen 1.7B CUDA"],
+  ["sensevoiceCpu", "sensevoice_cpu_transcript.txt", "SenseVoice CPU"],
+  ["sensevoiceGpu", "sensevoice_gpu_transcript.txt", "SenseVoice CUDA"],
 ];
 
 /* ───────────────────────── state ───────────────────────── */
@@ -407,6 +415,7 @@ function renderRecordings() {
           t2.live && "Live",
           (t2.cppCpu || t2.cppGpu || t2.cppTurboGpu || t2.cppVulkan || t2.cppNpu || t2.cppOpenvinoGpu) && "Whisper",
           (t2.qwenCpu || t2.qwenGpu || t2.qwen17Cpu || t2.qwen17Gpu) && "Qwen",
+          (t2.sensevoiceCpu || t2.sensevoiceGpu) && "SenseVoice",
         ].filter(Boolean);
         return h(
           "button",

@@ -140,6 +140,8 @@ pub fn reads_input_audio(kind: &str) -> bool {
         kind,
         "cpp-gpu"
             | "cpp-turbo-gpu"
+            | "sensevoice-cpu"
+            | "sensevoice-gpu"
             | "cpp-cpu"
             | "cpp-vulkan"
             | "cpp-npu"
@@ -168,7 +170,7 @@ pub fn is_loopback_stream(kind: &str) -> bool {
 /// run their pinned OpenCC converter the same way. A job whose cache is missing
 /// is rerun online.
 pub fn prefers_offline(kind: &str) -> bool {
-    kind.starts_with("qwen") || kind.starts_with("live-sensevoice") || kind.starts_with("cpp-")
+    kind.starts_with("qwen") || kind.contains("sensevoice") || kind.starts_with("cpp-")
 }
 
 /// Whether uv itself failed because `--offline` kept it from resolving the
@@ -349,6 +351,30 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
             executable: whisper_cli(paths, "bin_openvino"),
             args: openvino(paths, &need_audio()?, post_output("cpp_openvino_gpu_transcript")?, "GPU", lang),
         },
+        "sensevoice-cpu" | "sensevoice-gpu" => {
+            let gpu = kind.ends_with("-gpu");
+            let audio = need_audio()?;
+            let suffix = if gpu { "sensevoice_gpu_transcript" } else { "sensevoice_cpu_transcript" };
+            let output = transcript_output_path(Path::new(&audio), &output_dir, suffix);
+            let model =
+                paths.data_root.join("models").join(if gpu { "SenseVoiceSmall-fp32" } else { "SenseVoiceSmall" });
+            let extra = vec![
+                audio,
+                "-o".into(),
+                path_text(&output),
+                "--model".into(),
+                path_text(&model),
+                "--language".into(),
+                lang.into(),
+                "--chinese-script".into(),
+                chinese_script(args).into(),
+            ];
+            if gpu {
+                script("SenseVoice GPU", r"python_backend\post_sensevoice_gpu.cmd", extra)
+            } else {
+                script("SenseVoice CPU", r"python_backend\post_sensevoice.cmd", extra)
+            }
+        }
         "qwen-gpu" | "qwen-cpu" | "qwen17-gpu" | "qwen17-cpu" => {
             let gpu = kind.ends_with("-gpu");
             let large = kind.starts_with("qwen17");
@@ -550,6 +576,11 @@ mod tests {
         assert_eq!(wrapped.executable, "uv");
         assert_eq!(value(&wrapped, "--chinese-script").as_deref(), Some("traditional"));
         assert!(value(&wrapped, "--").unwrap().ends_with("whisper-cli.exe"));
+        let sv = build(&paths, "sensevoice-gpu", &yue).unwrap();
+        assert!(sv.args.iter().any(|arg| arg.ends_with("post_sensevoice_gpu.cmd")));
+        assert_eq!(value(&sv, "--language").as_deref(), Some("yue"));
+        assert_eq!(value(&sv, "--chinese-script").as_deref(), Some("traditional"));
+        assert!(value(&sv, "-o").unwrap().ends_with("sensevoice_gpu_transcript.txt"));
         let ja = with(serde_json::json!({ "language": "ja" }));
         assert!(build(&paths, "cpp-gpu", &ja).unwrap().executable.ends_with("whisper-cli.exe"));
         let turbo = build(&paths, "cpp-turbo-gpu", &yue).unwrap();

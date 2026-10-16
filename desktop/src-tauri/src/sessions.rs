@@ -19,6 +19,8 @@ pub struct Transcripts {
     qwen_gpu: bool,
     qwen17_cpu: bool,
     qwen17_gpu: bool,
+    sensevoice_cpu: bool,
+    sensevoice_gpu: bool,
 }
 
 #[derive(Serialize)]
@@ -68,6 +70,8 @@ pub fn list(output_dir: &Path) -> Vec<OutputSession> {
                     qwen_gpu: has("qwen_gpu_transcript.txt"),
                     qwen17_cpu: has("qwen17_cpu_transcript.txt"),
                     qwen17_gpu: has("qwen17_gpu_transcript.txt"),
+                    sensevoice_cpu: has("sensevoice_cpu_transcript.txt"),
+                    sensevoice_gpu: has("sensevoice_gpu_transcript.txt"),
                 },
             })
         })
