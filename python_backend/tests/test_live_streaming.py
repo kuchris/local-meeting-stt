@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from live_streaming import SpeechSegmenter
+from live_streaming import SpeechSegmenter, plausible_preview
 
 
 def fake_vad(audio: np.ndarray) -> list[dict]:
@@ -48,6 +48,19 @@ class LiveStreamingTests(unittest.TestCase):
         requests = [item for _ in range(4) for item in segmenter.feed(speech)]
         self.assertEqual([item.kind for item in requests], ["partial", "final"])
         self.assertEqual(len(requests[-1].audio), 32000)
+
+    def test_first_preview_waits_for_enough_speech(self):
+        segmenter = SpeechSegmenter(vad=fake_vad, min_preview_seconds=0.8)
+        speech = np.ones(8000, dtype=np.float32)
+        self.assertEqual(segmenter.feed(speech), [])
+        self.assertEqual([item.kind for item in segmenter.feed(speech)], ["partial"])
+
+    def test_previews_in_another_script_are_dropped(self):
+        self.assertFalse(plausible_preview("So tiendin", "yue"))
+        self.assertTrue(plausible_preview("在短短兩週內", "yue"))
+        self.assertTrue(plausible_preview("今日は", "ja"))
+        self.assertFalse(plausible_preview("你好", "en"))
+        self.assertTrue(plausible_preview("So tiendin", "auto"))
 
 
 if __name__ == "__main__":

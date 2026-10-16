@@ -43,6 +43,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--chunk-seconds", type=float, default=3.0, help="Chunk size in seconds. Default: 3")
     parser.add_argument("--streaming", action="store_true", help="Use VAD utterances and revisable one-second captions")
     parser.add_argument("--preview-seconds", type=float, default=1.0, help="Streaming preview interval. Default: 1")
+    parser.add_argument("--first-preview-seconds", type=float, default=0.8, help="Speech heard before an utterance's first preview. Default: 0.8")
     parser.add_argument("--capture-block-seconds", type=float, default=0.1, help="Capture block size in seconds. Default: 0.1")
     parser.add_argument("--max-backlog", type=int, default=1, help="Maximum queued chunks before old chunks are dropped")
     parser.add_argument("--sample-rate", type=int, default=16000, help="ASR sample rate. Default: 16000")
@@ -400,6 +401,8 @@ def run_live(args: Namespace) -> None:
                         stream_transcriber(args, session, server_url),
                         resample_audio,
                         args.preview_seconds,
+                        language=args.language,
+                        min_preview_seconds=args.first_preview_seconds,
                     )
                 else:
                     while True:

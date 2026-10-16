@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+import re
 from queue import Empty, Queue
 from threading import Event
 from typing import Callable, Literal
@@ -22,6 +23,21 @@ class CaptionRequest:
     audio: np.ndarray
 
 
+_HAN_OR_KANA = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
+_LATIN = re.compile(r"[A-Za-z]")
+
+
+def plausible_preview(text: str, language: str | None) -> bool:
+    """Whether a preview is in the script of the language the user chose. Early in an
+    utterance a recognizer guesses from a fraction of a second of audio, and a
+    Cantonese sentence can come out as "So tiendin" before it settles."""
+    if language in ("zh", "yue", "ja"):
+        return bool(_HAN_OR_KANA.search(text))
+    if language == "en":
+        return bool(_LATIN.search(text))
+    return True
+
+
 class SpeechSegmenter:
     def __init__(
         self,
@@ -29,6 +45,7 @@ class SpeechSegmenter:
         preview_interval_seconds: float = 1.0,
         max_utterance_seconds: float = 20.0,
         vad: Callable[[np.ndarray], list[dict]] | None = None,
+        min_preview_seconds: float = 0.4,
     ) -> None:
         if sample_rate != 16000:
             raise ValueError("Silero VAD live captions require 16 kHz audio")
@@ -48,6 +65,7 @@ class SpeechSegmenter:
         self.sample_rate = sample_rate
         self.preview_interval_samples = round(preview_interval_seconds * sample_rate)
         self.max_utterance_samples = round(max_utterance_seconds * sample_rate)
+        self.min_preview_samples = round(min_preview_seconds * sample_rate)
         self.pre_roll_samples = round(0.3 * sample_rate)
         self.end_margin_samples = round(0.1 * sample_rate)
         self.pending = np.empty(0, dtype=np.float32)
@@ -84,7 +102,7 @@ class SpeechSegmenter:
                 return requests
             if (
                 self.total_samples - self.last_preview_samples >= self.preview_interval_samples
-                and len(self.pending) - start >= round(0.4 * self.sample_rate)
+                and len(self.pending) - start >= self.min_preview_samples
             ):
                 requests.append(CaptionRequest("partial", self.pending[start:].copy()))
                 self.last_preview_samples = self.total_samples
@@ -111,8 +129,10 @@ def run_streaming(
     transcribe: Callable[[np.ndarray], str],
     resample: Callable[[np.ndarray, int, int], np.ndarray],
     preview_interval_seconds: float = 1.0,
+    language: str | None = None,
+    min_preview_seconds: float = 0.4,
 ) -> None:
-    segmenter = SpeechSegmenter(sample_rate, preview_interval_seconds)
+    segmenter = SpeechSegmenter(sample_rate, preview_interval_seconds, min_preview_seconds=min_preview_seconds)
     last_partial = ""
 
     def process(request: CaptionRequest) -> None:
@@ -120,7 +140,7 @@ def run_streaming(
         text = transcribe(request.audio).strip()
         if request.kind == "partial":
             # An empty preview (a breath, a word just begun) keeps the last one on screen.
-            if text and text != last_partial:
+            if text and text != last_partial and plausible_preview(text, language):
                 print(f"@@PARTIAL\t{text}", flush=True)
                 last_partial = text
             return

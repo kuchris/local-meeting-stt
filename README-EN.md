@@ -133,8 +133,10 @@ continuous signal, so the WAV has no gaps or block seams.
 
 Replaying 40 s of continuous Cantonese through the app (SenseVoice on CPU), the
 line changed every 0.1–0.2 s instead of once a second. The live loop's update lag
-stayed at p95 0.13 s, or 0.35 s with six CPU cores busy. With Turbo, the first
-words of an utterance can be a wrong guess for about a second before they settle.
+stayed at p95 0.13 s, or 0.35 s with six CPU cores busy. A preview waits for
+0.6 s (SenseVoice) or 0.8 s (Turbo) of speech and must be in the chosen language's
+script: replaying 4 clips per language, previews that disagreed with the final
+text fell from 8.3% to 0.9% for Turbo and from 2.3% to 0.8% for SenseVoice.
 
 Python live/record jobs get up to 10 seconds to stop capture, close their WAV,
 and release the model worker. If they do not exit, the app terminates the process
