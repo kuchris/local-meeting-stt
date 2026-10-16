@@ -458,7 +458,6 @@ const added = {
     "Converts Chinese and Cantonese captions; Japanese is left as is",
     "中国語と広東語の字幕を変換します。日本語はそのままです",
   ],
-  "照原樣": ["照原樣", "As recognized", "そのまま"],
   "繁體（香港）": ["繁體（香港）", "Traditional (HK)", "繁体字（香港）"],
   "簡體": ["簡體", "Simplified", "簡体字"],
   "Chinese, Cantonese, English, Japanese live captions on CPU; about 230 MB.": [

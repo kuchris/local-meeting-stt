@@ -222,6 +222,7 @@ def stream_transcriber(args: Namespace, session, url: str):
     return with_script(
         lambda audio: transcribe_with_server(args, session, url, audio, skip_quiet=False),
         getattr(args, "chinese_script", "as-is"),
+        getattr(args, "language", None),
     )
 
 

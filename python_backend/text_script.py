@@ -13,8 +13,9 @@ SCRIPTS = ("as-is", "traditional", "simplified")
 _KANA = re.compile(r"[぀-ヿ]")
 
 
-def converter(script: str) -> Callable[[str], str]:
-    if script == "as-is":
+def converter(script: str, language: str | None = None) -> Callable[[str], str]:
+    # A Japanese session is never converted: a kanji-only caption has no kana to tell it apart.
+    if script == "as-is" or language == "ja":
         return lambda text: text
     from opencc import OpenCC
 
@@ -27,6 +28,6 @@ def converter(script: str) -> Callable[[str], str]:
     return apply
 
 
-def with_script(transcribe: Callable, script: str) -> Callable:
-    convert = converter(script)
+def with_script(transcribe: Callable, script: str, language: str | None = None) -> Callable:
+    convert = converter(script, language)
     return lambda audio: convert(transcribe(audio))

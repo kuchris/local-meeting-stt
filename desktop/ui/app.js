@@ -27,12 +27,14 @@ const liveModes = [
 /** What the recognizers are told; "auto" detects each utterance's language. */
 const languages = [["auto", "自動偵測"], ["zh", "中文（普通話）"], ["yue", "粵語"], ["en", "lang.en"], ["ja", "lang.ja"]];
 const isLanguage = (value) => languages.some(([id]) => id === value);
-const chineseScripts = ["as-is", "traditional", "simplified"];
+// SenseVoice writes Chinese and Cantonese in Simplified and Whisper mixes the two, so the
+// app always converts; a saved "as-is" from before this opens as Traditional (HK).
+const chineseScripts = ["traditional", "simplified"];
 /** The transcript's lang attribute, so Han characters take that language's glyphs. */
 function captionLang() {
   if (state.language === "ja") return "ja";
   if (state.language === "en") return "en";
-  if (state.language === "zh") return state.chineseScript === "traditional" ? "zh-Hant" : "zh-Hans";
+  if (state.language === "zh") return state.chineseScript === "simplified" ? "zh-Hans" : "zh-Hant";
   if (state.language === "yue") return state.chineseScript === "simplified" ? "zh-Hans" : "zh-HK";
   return "";
 }
@@ -104,7 +106,7 @@ const state = {
   // live
   liveModeId: "live-sensevoice-cpu",
   language: "auto",
-  chineseScript: "as-is",
+  chineseScript: "traditional",
   saveWav: true,
   previewSeconds: 1,
   follow: true,

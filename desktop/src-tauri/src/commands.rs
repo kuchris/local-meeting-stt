@@ -112,11 +112,12 @@ fn qwen_language(language: &str) -> &'static str {
     }
 }
 
+/// Traditional (HK) unless Simplified is chosen: the recognizers' own output is
+/// Simplified (SenseVoice) or a mix of both (Whisper).
 fn chinese_script(args: &Args) -> &'static str {
     match args.get("chineseScript").and_then(Value::as_str) {
-        Some("traditional") => "traditional",
         Some("simplified") => "simplified",
-        _ => "as-is",
+        _ => "traditional",
     }
 }
 
@@ -489,7 +490,14 @@ mod tests {
         assert_eq!(value(&build(&paths, "qwen17-gpu", &yue).unwrap(), "--language").as_deref(), Some("Cantonese"));
         let auto = with(serde_json::json!({ "language": "auto" }));
         assert_eq!(value(&build(&paths, "qwen-cpu", &auto).unwrap(), "--language").as_deref(), Some(""));
-        assert_eq!(value(&build(&paths, "live-sensevoice-cpu", &auto).unwrap(), "--language").as_deref(), Some("auto"));
+        let sensevoice = build(&paths, "live-sensevoice-cpu", &auto).unwrap();
+        assert_eq!(value(&sensevoice, "--language").as_deref(), Some("auto"));
+        assert_eq!(value(&sensevoice, "--chinese-script").as_deref(), Some("traditional"));
+        let as_is = with(serde_json::json!({ "language": "yue", "chineseScript": "as-is" }));
+        assert_eq!(
+            value(&build(&paths, "live-sensevoice-gpu", &as_is).unwrap(), "--chinese-script").as_deref(),
+            Some("traditional")
+        );
         // Removed live modes (Whisper small/base, faster-whisper, Vulkan, OpenVINO) are refused.
         for removed in ["live-meeting", "live-whisper", "live-cpp-gpu", "live-cpp-cpu", "live-cpp-stream-loopback-base"]
         {

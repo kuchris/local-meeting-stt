@@ -61,9 +61,10 @@ format are the same. Differences:
   `nagisa`, a tokenizer qwen-asr imports only for forced alignment.
 - **Four recognition languages**: Chinese (Mandarin), Cantonese, English and
   Japanese, or Auto-detect, chosen on Live and Recordings and passed to every
-  backend except Vulkan. Settings converts Chinese captions to Traditional (HK)
-  or Simplified in the live scripts (`python_backend/text_script.py`), so the
-  saved transcript matches the screen. Caption filters cover Chinese and English
+  backend except Vulkan. Live Chinese captions are converted to Traditional (HK),
+  or Simplified if chosen in Settings, in the live scripts
+  (`python_backend/text_script.py`), so the saved transcript matches the screen;
+  a Japanese session is never converted. Caption filters cover Chinese and English
   sign-offs Whisper invents, as well as Japanese ones.
 - **SenseVoice-Small live captions** through sherpa-onnx: int8 on CPU
   (`live_sensevoice.cmd`) or fp32 on CUDA (`live_sensevoice_gpu.cmd`, with

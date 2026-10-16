@@ -190,7 +190,7 @@ def run_live(args: Namespace) -> None:
     print(f"Language: {args.language or 'auto'}")
     if args.engine == "sensevoice":
         print(f"Model: SenseVoice-Small ({args.provider}) {args.sensevoice_model}")
-        transcribe_stream = with_script(sensevoice_transcriber(args, language or "auto"), args.chinese_script)
+        transcribe_stream = with_script(sensevoice_transcriber(args, language or "auto"), args.chinese_script, args.language)
     else:
         model_name_or_path = resolve_whisper_model(args.model)
         print(f"Model: {model_name_or_path}")
@@ -203,7 +203,7 @@ def run_live(args: Namespace) -> None:
             )
             return " ".join(segment.text.strip() for segment in segments if segment.text.strip()).strip()
 
-        transcribe_stream = with_script(transcribe_whisper, args.chinese_script)
+        transcribe_stream = with_script(transcribe_whisper, args.chinese_script, args.language)
     chunks: Queue[np.ndarray] = Queue(maxsize=0 if args.streaming else args.max_backlog)
     stop_event = Event()
     watch_stop_request(stop_event)
