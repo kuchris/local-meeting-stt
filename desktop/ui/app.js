@@ -29,7 +29,22 @@ const liveModes = [
   },
   { id: "live-cpp-stream-loopback-small", model: "small", label: "Vulkan loopback", capture: false, optionalWav: false, assets: ["whisper-cpp-model", "whisper-cpp-vulkan-loopback"] },
   { id: "live-cpp-stream-loopback-base", model: "base", label: "Vulkan loopback", capture: false, optionalWav: false, assets: ["whisper-cpp-base-model", "whisper-cpp-vulkan-loopback"] },
+  { id: "live-sensevoice-gpu", model: "sensevoice", label: "sherpa-onnx · CUDA", capture: true, optionalWav: true, assets: ["sensevoice-small-gpu"] },
+  { id: "live-sensevoice-cpu", model: "sensevoice", label: "sherpa-onnx · CPU", capture: true, optionalWav: true, assets: ["sensevoice-small"] },
 ];
+
+/** What the recognizers are told; "auto" detects each utterance's language. */
+const languages = [["auto", "自動偵測"], ["zh", "中文（普通話）"], ["yue", "粵語"], ["en", "lang.en"], ["ja", "lang.ja"]];
+const isLanguage = (value) => languages.some(([id]) => id === value);
+const chineseScripts = ["as-is", "traditional", "simplified"];
+/** The transcript's lang attribute, so Han characters take that language's glyphs. */
+function captionLang() {
+  if (state.language === "ja") return "ja";
+  if (state.language === "en") return "en";
+  if (state.language === "zh") return state.chineseScript === "traditional" ? "zh-Hant" : "zh-Hans";
+  if (state.language === "yue") return state.chineseScript === "simplified" ? "zh-Hans" : "zh-HK";
+  return "";
+}
 
 const postBackends = {
   small: [["cpp-cpu", "CPU"], ["cpp-gpu", "CUDA"], ["cpp-vulkan", "Vulkan"], ["cpp-npu", "OpenVINO NPU"], ["cpp-openvino-gpu", "OpenVINO GPU"]],
@@ -97,6 +112,8 @@ const state = {
   lastKind: "",
   // live
   liveModeId: "live-meeting",
+  language: "auto",
+  chineseScript: "as-is",
   saveWav: true,
   previewSeconds: 1,
   follow: true,
@@ -311,6 +328,14 @@ function renderLive() {
   $("transcript-path").title = state.transcriptPath;
   setHidden($("open-transcript"), !state.transcriptPath);
   setChecked($("follow"), state.follow);
+  const label = languages.find(([id]) => id === state.language)?.[1] ?? "自動偵測";
+  setText($("caption-language"), `/ ${t(label)}`);
+  const lang = captionLang();
+  if ($("transcript").lang !== lang) $("transcript").lang = lang;
+  for (const select of all("[data-language-select]")) {
+    fillSelect(select, languages.map(([id, key]) => [id, t(key)]), state.language);
+    setDisabled(select, isRunning());
+  }
 }
 
 function deviceOptions(devices, selected, defaultName, fallbackKey) {
@@ -444,6 +469,7 @@ function renderSettings() {
   const running = isRunning();
   for (const button of all("#theme-seg button")) button.setAttribute("aria-selected", String(button.dataset.themeValue === state.theme));
   for (const button of all("#locale-seg button")) button.setAttribute("aria-selected", String(button.dataset.locale === state.locale));
+  for (const button of all("#script-seg button")) button.setAttribute("aria-selected", String(button.dataset.scriptValue === state.chineseScript));
   const output = $("output-dir");
   setValue(output, state.outputDir);
   setDisabled(output, running);
@@ -663,6 +689,7 @@ function persist() {
       outputDir: state.outputDir,
       capture: { systemDevice: state.systemDevice, micDevice: state.micDevice, includeMic: state.includeMic },
       live: { ...state.saved.live, mode: state.liveModeId, saveWav: state.saveWav, previewSeconds: state.previewSeconds },
+      recognition: { language: state.language, chineseScript: state.chineseScript },
       post: { kind: state.postKind },
       qwen: { chunkSeconds: state.qwen.chunkSeconds, tokens: state.qwen.tokens, batch: state.qwen.batch },
       ui: { ...state.saved.ui, locale: state.locale, theme: state.theme },
@@ -692,6 +719,8 @@ async function loadSettings() {
   }
   if (liveModes.some((mode) => mode.id === settings.live?.mode)) state.liveModeId = settings.live.mode;
   if (typeof settings.live?.saveWav === "boolean") state.saveWav = settings.live.saveWav;
+  if (isLanguage(settings.recognition?.language)) state.language = settings.recognition.language;
+  if (chineseScripts.includes(settings.recognition?.chineseScript)) state.chineseScript = settings.recognition.chineseScript;
   const preview = settings.live?.previewSeconds;
   if (typeof preview === "number" && preview >= 0.5 && preview <= 5) state.previewSeconds = preview;
   if (settings.outputDir) state.outputDir = settings.outputDir;
@@ -821,9 +850,13 @@ function startOrStop(tab) {
   if (!canStart(tab)) return;
   if (tab === "live") {
     const mode = liveMode();
-    const kind = mode.optionalWav && !state.saveWav ? "live-whisper" : mode.id;
+    // faster-whisper has a separate no-WAV launch; SenseVoice takes saveWav.
+    const kind = mode.id === "live-meeting" && !state.saveWav ? "live-whisper" : mode.id;
     void run(kind, {
       previewSeconds: state.previewSeconds,
+      saveWav: mode.optionalWav ? state.saveWav : true,
+      language: state.language,
+      chineseScript: state.chineseScript,
       ...(mode.capture ? captureSettings() : { systemDevice: "", includeMic: false, micDevice: "" }),
     });
   } else if (tab === "record") {
@@ -833,8 +866,8 @@ function startOrStop(tab) {
     void run(
       state.postKind,
       state.postKind.startsWith("qwen")
-        ? { audioPath, chunkSeconds: state.qwen.chunkSeconds, qwenTokens: state.qwen.tokens, qwenBatch: state.qwen.batch }
-        : { audioPath },
+        ? { audioPath, language: state.language, chunkSeconds: state.qwen.chunkSeconds, qwenTokens: state.qwen.tokens, qwenBatch: state.qwen.batch }
+        : { audioPath, language: state.language },
     );
   }
 }
@@ -976,6 +1009,12 @@ function bind() {
   }
 
   // Settings
+  for (const select of all("[data-language-select]")) {
+    select.addEventListener("change", (event) => { state.language = event.target.value; persist(); invalidate(); });
+  }
+  for (const button of all("#script-seg button")) {
+    button.addEventListener("click", () => { state.chineseScript = button.dataset.scriptValue; persist(); invalidate(); });
+  }
   for (const button of all("#theme-seg button")) {
     button.addEventListener("click", () => { state.theme = button.dataset.themeValue; applyTheme(); persist(); invalidate(); });
   }

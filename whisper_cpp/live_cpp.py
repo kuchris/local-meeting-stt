@@ -27,6 +27,7 @@ for import_path in (PYTHON_BACKEND, ROOT):
 from record_audio import mix_audio, resample_audio, select_microphone, select_system_loopback
 from live_streaming import run_streaming
 from session_control import capture_worker, next_chunk, watch_stop_request
+from text_script import SCRIPTS, with_script
 
 
 def parse_args() -> Namespace:
@@ -37,7 +38,8 @@ def parse_args() -> Namespace:
     parser.add_argument("--recording-dir", type=Path, default=Path("output"), help="Directory for timestamped sessions")
     parser.add_argument("--session-prefix", default="cpp_live", help="Prefix for timestamped live session folders. Default: cpp_live")
     parser.add_argument("--model", type=Path, default=Path("models") / "ggml-small.bin", help="whisper.cpp ggml model path")
-    parser.add_argument("--language", default="ja", help="Language code. Default: ja")
+    parser.add_argument("--language", default="ja", help="auto, zh, yue, en or ja. Default: ja")
+    parser.add_argument("--chinese-script", choices=SCRIPTS, default="as-is", help="Convert Chinese captions to Traditional (HK) or Simplified. Default: as-is")
     parser.add_argument("--chunk-seconds", type=float, default=3.0, help="Chunk size in seconds. Default: 3")
     parser.add_argument("--streaming", action="store_true", help="Use VAD utterances and revisable one-second captions")
     parser.add_argument("--preview-seconds", type=float, default=1.0, help="Streaming preview interval. Default: 1")
@@ -217,7 +219,10 @@ def stream_transcriber(args: Namespace, session, url: str):
     """Recognizes --streaming VAD utterances. VAD has already judged each one to
     be speech, so quiet speech is sent rather than dropped by --silence-rms: a
     distant or softly spoken sentence (RMS about 0.001) was otherwise lost whole."""
-    return lambda audio: transcribe_with_server(args, session, url, audio, skip_quiet=False)
+    return with_script(
+        lambda audio: transcribe_with_server(args, session, url, audio, skip_quiet=False),
+        getattr(args, "chinese_script", "as-is"),
+    )
 
 
 def append_transcript(output_path: Path, text: str) -> None:

@@ -21,7 +21,8 @@ Recordings and recognition stay on your computer.
 
 **English is the default interface language.** Switch to Traditional Chinese or
 Japanese in Settings. The app remembers your choice. Interface language is
-separate from recognition language: the supplied workflows recognize Japanese.
+separate from recognition language, which can be Chinese (Mandarin), Cantonese,
+English, Japanese, or detected for each sentence.
 
 ![English meeting interface](docs/meeting-ui.png)
 
@@ -76,11 +77,23 @@ The earlier Electron + React version is kept on the
 | Recordings | Choose a recording or drop an audio file anywhere in the window, then select a model and backend. A recording's existing transcripts open in one click. |
 | Settings | Appearance, language and output folder; inspect/download models and runtimes. |
 
-The live model choices are **Whisper small**, **Whisper large-v3-turbo** (CUDA),
-and **Whisper base**. Post-meeting
+The live model choices are **Whisper large-v3-turbo** (CUDA), **SenseVoice-Small**
+(CPU or CUDA), **Whisper small**, and **Whisper base**. Post-meeting
 transcription offers **Whisper small**, **Qwen3-ASR 0.6B**, and the optional, more
 accurate **Qwen3-ASR 1.7B**. Qwen is currently a
 file-transcription option, not a live-caption backend.
+
+Choose the **recognition language** (Auto-detect, Chinese, Cantonese, English,
+Japanese) on the Live and Recordings pages. **Chinese characters** in Settings
+converts Chinese and Cantonese captions to Traditional (HK) or Simplified
+characters; captions with Japanese kana are left as recognized. The Vulkan
+backends (loopback stream and file transcription) still recognize Japanese only.
+
+Replaying 12 pinned FLEURS clips per language through the live pipeline on an
+RTX 5070 Ti, SenseVoice-Small was more accurate for Mandarin (6.6% vs 8.8% CER)
+and Cantonese (3.0% vs 6.2–7.7%), and Whisper large-v3-turbo for Japanese (5.4% vs
+7.7–8.6%) and English (4.2% vs 7.6–8.0% WER). This is clean read speech, not
+meetings, and FLEURS Cantonese is read written Chinese, not colloquial Cantonese.
 
 The selected post-transcription backend is saved. Switching between Whisper and
 Qwen preserves CPU/CUDA preference. When no post preference exists, an existing
@@ -92,6 +105,8 @@ start on CPU. An explicit saved CPU choice is preserved.
 | Backend | Local files | Notes |
 | --- | --- | --- |
 | faster-whisper | `models/faster-whisper-small/` | CPU by default; live captions with optional WAV. |
+| SenseVoice-Small CPU | `models/SenseVoiceSmall/` | Live captions on CPU through sherpa-onnx (int8, about 230 MB); optional WAV. |
+| SenseVoice-Small CUDA | `models/SenseVoiceSmall-fp32/` | Optional live captions on an NVIDIA GPU (fp32, about 900 MB). The first run downloads NVIDIA's CUDA 12 / cuDNN 9 pip packages (about 1.5 GB). |
 | whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | Live server and file transcription. |
 | whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU; live server and file transcription. |
 | whisper.cpp CUDA Turbo | `whisper_cpp/bin_cuda/Release/` + `ggml-large-v3-turbo.bin` | Optional NVIDIA live captions; model download is pinned and SHA-256 checked. |

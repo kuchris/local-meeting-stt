@@ -59,6 +59,16 @@ format are the same. Differences:
   cache is missing is rerun online (`commands::failed_offline` tells uv's
   offline errors from the script's). `post_transcribe_qwen.py` also defers
   `nagisa`, a tokenizer qwen-asr imports only for forced alignment.
+- **Four recognition languages**: Chinese (Mandarin), Cantonese, English and
+  Japanese, or Auto-detect, chosen on Live and Recordings and passed to every
+  backend except Vulkan. Settings converts Chinese captions to Traditional (HK)
+  or Simplified in the live scripts (`python_backend/text_script.py`), so the
+  saved transcript matches the screen. Caption filters cover Chinese and English
+  sign-offs Whisper invents, as well as Japanese ones.
+- **SenseVoice-Small live captions** through sherpa-onnx: int8 on CPU
+  (`live_sensevoice.cmd`) or fp32 on CUDA (`live_sensevoice_gpu.cmd`, with
+  NVIDIA's CUDA 12 / cuDNN 9 pip packages). `test/sensevoice_replay.py` runs the
+  whole live path on a public Cantonese clip without opening an audio device.
 - **Drop an audio file anywhere** in the window; it opens Recordings with that file.
 - **Light, dark or system** theme, set in Settings.
 - The File/Run/View menu bar and the resizable recordings column are gone.

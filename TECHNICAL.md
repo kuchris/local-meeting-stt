@@ -124,6 +124,8 @@ models/
   faster-whisper-small/
   Qwen3-ASR-0.6B/
   Qwen3-ASR-1.7B/          optional; download with --only qwen-1.7b (pinned revision)
+  SenseVoiceSmall/         int8 sherpa-onnx model for CPU live captions (--only sensevoice-small)
+  SenseVoiceSmall-fp32/    optional fp32 model for CUDA live captions (--only sensevoice-small-gpu)
 ```
 
 Expected whisper.cpp folders:

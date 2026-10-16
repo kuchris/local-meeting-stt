@@ -17,6 +17,10 @@ from record_audio import mix_audio, resample_audio, select_microphone, select_sy
 from live_streaming import run_streaming
 from whisper_models import resolve_whisper_model
 from session_control import capture_worker, next_chunk, watch_stop_request
+from text_script import SCRIPTS, with_script
+
+# Languages the app offers; "auto" lets the model detect each utterance's language.
+LANGUAGES = ("auto", "zh", "yue", "en", "ja")
 
 
 def parse_args() -> Namespace:
@@ -25,8 +29,14 @@ def parse_args() -> Namespace:
     parser.add_argument("--save-recording", action="store_true", help="Also save the captured meeting audio to a WAV file")
     parser.add_argument("--recording-output", type=Path, help="Recording output path when --save-recording is set")
     parser.add_argument("--recording-dir", type=Path, default=Path("recordings"), help="Directory for timestamped live recordings")
+    parser.add_argument("--engine", choices=("faster-whisper", "sensevoice"), default="faster-whisper", help="Recognizer. Default: faster-whisper")
     parser.add_argument("--model", default="small", help="faster-whisper model name. Default: small")
-    parser.add_argument("--language", default="ja", help="Language code, or empty string to auto-detect. Default: ja")
+    parser.add_argument("--sensevoice-model", type=Path, default=Path("models") / "SenseVoiceSmall", help="sherpa-onnx SenseVoice model folder")
+    parser.add_argument("--provider", choices=("cpu", "cuda"), default="cpu", help="SenseVoice ONNX Runtime provider. Default: cpu")
+    parser.add_argument("--threads", type=int, default=4, help="SenseVoice CPU threads. Default: 4")
+    parser.add_argument("--language", default="ja", help="auto, zh, yue, en or ja (empty also means auto). Default: ja")
+    parser.add_argument("--chinese-script", choices=SCRIPTS, default="as-is", help="Convert Chinese captions to Traditional (HK) or Simplified. Default: as-is")
+    parser.add_argument("--session-prefix", default="live_meeting", help="Prefix for timestamped session folders. Default: live_meeting")
     parser.add_argument("--device", default="cpu", help="Whisper inference device. Default: cpu")
     parser.add_argument("--compute-type", default="int8", help="Whisper compute type. Default: int8")
     parser.add_argument("--chunk-seconds", type=float, default=3.0, help="Chunk size in seconds. Default: 3")
@@ -43,9 +53,9 @@ def parse_args() -> Namespace:
     return parser.parse_args()
 
 
-def default_recording_path(output_dir: Path) -> Path:
+def default_recording_path(output_dir: Path, prefix: str = "live_meeting") -> Path:
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return output_dir / f"live_meeting_{stamp}" / "audio.wav"
+    return output_dir / f"{prefix}_{stamp}" / "audio.wav"
 
 
 def default_transcript_path(recording_path: Path | None) -> Path:
@@ -58,6 +68,28 @@ def transcribe_file(model: WhisperModel, audio_path: Path, language: str | None)
     segments, _ = model.transcribe(str(audio_path), language=language, beam_size=1, vad_filter=True)
     lines = [segment.text.strip() for segment in segments if segment.text.strip()]
     return " ".join(lines).strip()
+
+
+def sensevoice_transcriber(args: Namespace, language: str):
+    """SenseVoice-Small through sherpa-onnx: int8 on CPU, fp32 on CUDA."""
+    if args.provider == "cuda":
+        import cuda_dlls  # noqa: F401  (CUDA 12 / cuDNN 9 DLLs from NVIDIA's pip packages)
+    import sherpa_onnx
+
+    folder = args.sensevoice_model
+    model_file = folder / ("model.onnx" if args.provider == "cuda" else "model.int8.onnx")
+    recognizer = sherpa_onnx.OfflineRecognizer.from_sense_voice(
+        model=str(model_file), tokens=str(folder / "tokens.txt"), num_threads=args.threads,
+        use_itn=True, language=language, provider=args.provider,
+    )
+
+    def transcribe(audio: np.ndarray) -> str:
+        stream = recognizer.create_stream()
+        stream.accept_waveform(args.sample_rate, audio)
+        recognizer.decode_stream(stream)
+        return stream.result.text.strip()
+
+    return transcribe
 
 
 def append_transcript(output_path: Path, text: str) -> None:
@@ -132,14 +164,18 @@ def capture_audio(args: Namespace, chunks: Queue[np.ndarray], stop_event: Event)
 
 
 def run_live(args: Namespace) -> None:
+    if args.language not in ("",) + LANGUAGES:
+        raise SystemExit(f"Unsupported language: {args.language}")
+    if args.engine == "sensevoice" and not args.streaming:
+        raise SystemExit("SenseVoice runs only with --streaming")
     if args.save_recording:
-        args.recording_output = args.recording_output or default_recording_path(args.recording_dir)
+        args.recording_output = args.recording_output or default_recording_path(args.recording_dir, args.session_prefix)
     if args.recording_output:
         args.recording_output.parent.mkdir(parents=True, exist_ok=True)
     output_path = args.output or default_transcript_path(args.recording_output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    language = args.language or None
+    language = None if args.language in ("", "auto") else args.language
     system_device = select_system_loopback(args.system_device)
     mic_device = select_microphone(args.mic_device) if args.include_mic else None
 
@@ -151,10 +187,23 @@ def run_live(args: Namespace) -> None:
         print(f"Recording: {args.recording_output}")
     print("Press Ctrl+C to stop.")
 
-    model_name_or_path = resolve_whisper_model(args.model)
-    print(f"Model: {model_name_or_path}")
+    print(f"Language: {args.language or 'auto'}")
+    if args.engine == "sensevoice":
+        print(f"Model: SenseVoice-Small ({args.provider}) {args.sensevoice_model}")
+        transcribe_stream = with_script(sensevoice_transcriber(args, language or "auto"), args.chinese_script)
+    else:
+        model_name_or_path = resolve_whisper_model(args.model)
+        print(f"Model: {model_name_or_path}")
+        model = WhisperModel(model_name_or_path, device=args.device, compute_type=args.compute_type)
 
-    model = WhisperModel(model_name_or_path, device=args.device, compute_type=args.compute_type)
+        def transcribe_whisper(audio: np.ndarray) -> str:
+            segments, _ = model.transcribe(
+                audio, language=language, beam_size=1, temperature=0,
+                condition_on_previous_text=False, vad_filter=False,
+            )
+            return " ".join(segment.text.strip() for segment in segments if segment.text.strip()).strip()
+
+        transcribe_stream = with_script(transcribe_whisper, args.chinese_script)
     chunks: Queue[np.ndarray] = Queue(maxsize=0 if args.streaming else args.max_backlog)
     stop_event = Event()
     watch_stop_request(stop_event)
@@ -165,13 +214,6 @@ def run_live(args: Namespace) -> None:
 
     try:
         if args.streaming:
-            def transcribe_stream(audio: np.ndarray) -> str:
-                segments, _ = model.transcribe(
-                    audio, language=language, beam_size=1, temperature=0,
-                    condition_on_previous_text=False, vad_filter=False,
-                )
-                return " ".join(segment.text.strip() for segment in segments if segment.text.strip()).strip()
-
             run_streaming(
                 chunks, stop_event, capture_errors, args.capture_rate, args.sample_rate,
                 output_path, transcribe_stream, resample_audio, args.preview_seconds,

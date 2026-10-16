@@ -203,16 +203,26 @@ pub fn is_hallucination_line(line: &str) -> bool {
     if compact.is_empty() {
         return true;
     }
-    const BLOCKED: [&str; 4] = [
+    // Sign-offs Whisper invents on silence or music, in each caption language.
+    // Compared without spaces, punctuation or case, however they are punctuated.
+    const BLOCKED: [&str; 10] = [
         "ご視聴ありがとうございました",
         "ご視聴ありがとうございます",
         "チャンネル登録お願いします",
         "最後までご視聴いただきありがとうございました",
+        "字幕由amaraorg社区提供",
+        "字幕由amaraorg社區提供",
+        "请不吝点赞订阅转发打赏支持明镜与点点栏目",
+        "請不吝點贊訂閱轉發打賞支持明鏡與點點欄目",
+        "thanksforwatching",
+        "thankyouforwatching",
     ];
-    if BLOCKED.contains(&compact.as_str()) {
+    let key: String = line.chars().filter(|c| c.is_alphanumeric()).flat_map(char::to_lowercase).collect();
+    if BLOCKED.contains(&key.as_str()) {
         return true;
     }
-    re(&BRACKETED, r"^[（(\[【].*(音楽|拍手|笑|BGM|ノイズ).*[)）\]】]$").is_match(line.trim())
+    re(&BRACKETED, r"(?i)^[（(\[【].*(音楽|音乐|音樂|拍手|掌声|掌聲|笑|BGM|ノイズ|music|applause|laughter).*[)）\]】]$")
+        .is_match(line.trim())
 }
 
 fn only_punctuation(text: &str) -> bool {
@@ -439,6 +449,21 @@ mod tests {
         assert!(is_hallucination_line("[音楽]"));
         assert!(is_hallucination_line(" 。 "));
         assert!(!is_hallucination_line("今日の議題は三つです。"));
+    }
+
+    #[test]
+    fn hallucinations_in_chinese_and_english_are_recognized() {
+        assert!(is_hallucination_line("字幕由Amara.org社区提供"));
+        assert!(is_hallucination_line("請不吝點贊 訂閱 轉發 打賞支持明鏡與點點欄目"));
+        assert!(is_hallucination_line("Thanks for watching!"));
+        assert!(is_hallucination_line("(Applause)"));
+        assert!(is_hallucination_line("［音樂］".replace('［', "[").replace('］', "]").as_str()));
+        assert!(is_hallucination_line("（掌聲）"));
+        // Real speech stays, however short.
+        assert!(!is_hallucination_line("Thank you."));
+        assert!(!is_hallucination_line("謝謝大家"));
+        assert!(!is_hallucination_line("我哋聽日開會"));
+        assert!(!is_hallucination_line("The music budget is approved."));
     }
 
     #[test]

@@ -98,6 +98,42 @@ fn capture_args(args: &Args) -> Vec<String> {
     extra
 }
 
+/// The recognition language: auto (detected per utterance), zh, yue, en or ja.
+/// Settings saved before languages existed have none, and keep Japanese.
+pub fn language(args: &Args) -> &'static str {
+    match args.get("language").and_then(Value::as_str) {
+        Some("auto") => "auto",
+        Some("zh") => "zh",
+        Some("yue") => "yue",
+        Some("en") => "en",
+        _ => "ja",
+    }
+}
+
+/// Qwen3-ASR takes language names; an empty one lets it detect the language.
+fn qwen_language(language: &str) -> &'static str {
+    match language {
+        "zh" => "Chinese",
+        "yue" => "Cantonese",
+        "en" => "English",
+        "ja" => "Japanese",
+        _ => "",
+    }
+}
+
+fn chinese_script(args: &Args) -> &'static str {
+    match args.get("chineseScript").and_then(Value::as_str) {
+        Some("traditional") => "traditional",
+        Some("simplified") => "simplified",
+        _ => "as-is",
+    }
+}
+
+/// Language and Chinese script for the live scripts (live_transcribe.py, live_cpp.py).
+fn recognition_args(args: &Args) -> Vec<String> {
+    vec!["--language".into(), language(args).into(), "--chinese-script".into(), chinese_script(args).into()]
+}
+
 fn script(label: &str, path: &str, args: Vec<String>) -> CommandSpec {
     let mut all = vec!["/c".to_string(), path.to_string()];
     all.extend(args);
@@ -168,14 +204,14 @@ fn small_model(paths: &AppPaths) -> String {
     path_text(&paths.data_root.join("whisper_cpp").join("models").join("ggml-small.bin"))
 }
 
-fn openvino(paths: &AppPaths, audio: &str, output: String, device: &str) -> Vec<String> {
+fn openvino(paths: &AppPaths, audio: &str, output: String, device: &str, language: &str) -> Vec<String> {
     [
         "-m",
         &small_model(paths),
         "-f",
         audio,
         "-l",
-        "ja",
+        language,
         "-oved",
         device,
         "-t",
@@ -204,10 +240,13 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
     let post_output = |suffix: &str| -> Result<String, String> {
         Ok(without_txt(transcript_output_path(Path::new(&need_audio()?), &output_dir, suffix)))
     };
+    let lang = language(args);
+    // Live jobs that record into a session folder; record-* jobs do not recognize speech.
     let recording = |extra: Vec<String>| {
         let mut all = vec!["--recording-dir".to_string(), out.clone()];
         all.extend(extra);
         all.extend(capture_args(args));
+        all.extend(recognition_args(args));
         all
     };
 
@@ -219,7 +258,34 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
             let output = timestamped_dir(&output_dir, "live_text")?.join("live_transcript.txt");
             let mut extra = vec!["--output".to_string(), path_text(&output)];
             extra.extend(capture_args(args));
+            extra.extend(recognition_args(args));
             script("Live transcript", r"python_backend\live_transcribe.cmd", with_chunk(extra, args))
+        }
+        "live-sensevoice-cpu" | "live-sensevoice-gpu" => {
+            let gpu = kind.ends_with("-gpu");
+            let save_wav = args.get("saveWav").and_then(Value::as_bool).unwrap_or(true);
+            let mut extra = if save_wav {
+                vec![
+                    "--save-recording".into(),
+                    "--recording-dir".into(),
+                    out.clone(),
+                    "--session-prefix".into(),
+                    "sensevoice_live".into(),
+                ]
+            } else {
+                let output = timestamped_dir(&output_dir, "sensevoice_text")?.join("live_transcript.txt");
+                vec!["--output".to_string(), path_text(&output)]
+            };
+            let model =
+                paths.data_root.join("models").join(if gpu { "SenseVoiceSmall-fp32" } else { "SenseVoiceSmall" });
+            extra.extend(["--sensevoice-model".into(), path_text(&model)]);
+            extra.extend(capture_args(args));
+            extra.extend(recognition_args(args));
+            if gpu {
+                script("Live SenseVoice GPU", r"python_backend\live_sensevoice_gpu.cmd", extra)
+            } else {
+                script("Live SenseVoice CPU", r"python_backend\live_sensevoice.cmd", extra)
+            }
         }
         "live-cpp-gpu" => {
             script("Live whisper.cpp GPU", r"whisper_cpp\live_cpp.cmd", with_chunk(recording(vec![]), args))
@@ -311,7 +377,7 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
                 "-f".into(),
                 need_audio()?,
                 "-l".into(),
-                "ja".into(),
+                lang.into(),
                 "-otxt".into(),
                 "-of".into(),
                 post_output("cpp_gpu_transcript")?,
@@ -326,7 +392,7 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
                 "-f".into(),
                 need_audio()?,
                 "-l".into(),
-                "ja".into(),
+                lang.into(),
                 "-otxt".into(),
                 "-of".into(),
                 post_output("cpp_cpu_transcript")?,
@@ -342,12 +408,12 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
         "cpp-npu" => CommandSpec {
             label: "whisper.cpp NPU".into(),
             executable: whisper_cli(paths, "bin_openvino"),
-            args: openvino(paths, &need_audio()?, post_output("cpp_npu_transcript")?, "NPU"),
+            args: openvino(paths, &need_audio()?, post_output("cpp_npu_transcript")?, "NPU", lang),
         },
         "cpp-openvino-gpu" => CommandSpec {
             label: "whisper.cpp OpenVINO GPU".into(),
             executable: whisper_cli(paths, "bin_openvino"),
-            args: openvino(paths, &need_audio()?, post_output("cpp_openvino_gpu_transcript")?, "GPU"),
+            args: openvino(paths, &need_audio()?, post_output("cpp_openvino_gpu_transcript")?, "GPU", lang),
         },
         "qwen-gpu" | "qwen-cpu" | "qwen17-gpu" | "qwen17-cpu" => {
             let gpu = kind.ends_with("-gpu");
@@ -392,6 +458,8 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
                 path_text(&output),
                 "--device".into(),
                 (if gpu { "cuda:0" } else { "cpu" }).into(),
+                "--language".into(),
+                qwen_language(lang).into(),
                 "--model".into(),
                 path_text(&model),
                 "--max-new-tokens".into(),
@@ -472,6 +540,68 @@ mod tests {
             serde_json::from_value(serde_json::json!({ "durationSeconds": 3600.0, "previewSeconds": 1 })).unwrap();
         assert_eq!(number(&args, "durationSeconds").as_deref(), Some("3600"));
         assert_eq!(number(&args, "previewSeconds").as_deref(), Some("1"));
+    }
+
+    fn test_paths(name: &str) -> (PathBuf, AppPaths) {
+        let root = std::env::temp_dir().join(format!("lmstt-{name}-{}", std::process::id()));
+        let paths = AppPaths {
+            repo_root: root.clone(),
+            data_root: root.clone(),
+            runtime_dir: root.join("runtime"),
+            settings_path: root.join("settings.json"),
+        };
+        (root, paths)
+    }
+
+    fn value(spec: &CommandSpec, flag: &str) -> Option<String> {
+        spec.args.iter().position(|arg| arg == flag).map(|at| spec.args[at + 1].clone())
+    }
+
+    #[test]
+    fn the_recognition_language_reaches_every_backend() {
+        let (root, paths) = test_paths("lang");
+        let with = |extra: serde_json::Value| -> Args {
+            let mut args = serde_json::json!({ "audioPath": r"C:\calls\weekly.wav", "outputDir": "outputs" });
+            args.as_object_mut().unwrap().extend(extra.as_object().unwrap().clone());
+            serde_json::from_value(args).unwrap()
+        };
+        let yue = with(serde_json::json!({ "language": "yue", "chineseScript": "traditional" }));
+        let live = build(&paths, "live-cpp-turbo-gpu", &yue).unwrap();
+        assert_eq!(value(&live, "--language").as_deref(), Some("yue"));
+        assert_eq!(value(&live, "--chinese-script").as_deref(), Some("traditional"));
+        assert_eq!(value(&build(&paths, "cpp-gpu", &yue).unwrap(), "-l").as_deref(), Some("yue"));
+        assert_eq!(value(&build(&paths, "qwen17-gpu", &yue).unwrap(), "--language").as_deref(), Some("Cantonese"));
+        let auto = with(serde_json::json!({ "language": "auto" }));
+        assert_eq!(value(&build(&paths, "qwen-cpu", &auto).unwrap(), "--language").as_deref(), Some(""));
+        assert_eq!(value(&build(&paths, "live-meeting", &auto).unwrap(), "--language").as_deref(), Some("auto"));
+        // Settings from before languages existed stay Japanese; unknown values too.
+        let old = with(serde_json::json!({}));
+        assert_eq!(value(&build(&paths, "cpp-cpu", &old).unwrap(), "-l").as_deref(), Some("ja"));
+        assert_eq!(language(&with(serde_json::json!({ "language": "fr" }))), "ja");
+        // Recording alone does not recognize speech, and record_audio.py takes no language.
+        assert_eq!(value(&build(&paths, "record-enter", &yue).unwrap(), "--language"), None);
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
+    fn sensevoice_live_kinds_pick_their_model_and_wav() {
+        let (root, paths) = test_paths("sensevoice");
+        let args: Args =
+            serde_json::from_value(serde_json::json!({ "outputDir": "outputs", "language": "zh" })).unwrap();
+        let cpu = build(&paths, "live-sensevoice-cpu", &args).unwrap();
+        assert!(cpu.args.iter().any(|arg| arg.ends_with("live_sensevoice.cmd")));
+        assert!(value(&cpu, "--sensevoice-model").unwrap().ends_with("SenseVoiceSmall"));
+        assert!(cpu.args.contains(&"--save-recording".to_string()));
+        assert_eq!(value(&cpu, "--session-prefix").as_deref(), Some("sensevoice_live"));
+        let no_wav: Args =
+            serde_json::from_value(serde_json::json!({ "outputDir": "outputs", "saveWav": false })).unwrap();
+        let gpu = build(&paths, "live-sensevoice-gpu", &no_wav).unwrap();
+        assert!(gpu.args.iter().any(|arg| arg.ends_with("live_sensevoice_gpu.cmd")));
+        assert!(value(&gpu, "--sensevoice-model").unwrap().ends_with("SenseVoiceSmall-fp32"));
+        assert!(!gpu.args.contains(&"--save-recording".to_string()));
+        assert!(value(&gpu, "--output").unwrap().ends_with("live_transcript.txt"));
+        assert!(is_cooperative("live-sensevoice-gpu"));
+        std::fs::remove_dir_all(&root).unwrap();
     }
 
     #[test]

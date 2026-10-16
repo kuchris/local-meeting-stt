@@ -46,10 +46,10 @@
       <div class="live-grid">
         <article class="card transcript-card">
           <header class="card-head">
-            <div class="title"><strong data-i18n="即時字幕"></strong><small data-i18n="／ 日本語"></small></div>
+            <div class="title"><strong data-i18n="即時字幕"></strong><small id="caption-language"></small></div>
             <label class="inline-switch"><input type="checkbox" class="switch" id="follow" checked><span data-i18n="跟隨最新字幕"></span></label>
           </header>
-          <div class="transcript" id="transcript" lang="ja">
+          <div class="transcript" id="transcript">
             <p class="empty" id="transcript-empty" data-i18n="確認音源後開始會議，字幕會顯示在這裡。"></p>
             <div id="caption-lines"></div>
             <div class="cap partial" id="caption-partial" hidden><time></time><p></p><small data-i18n="辨識中 · 文字仍可能修訂"></small></div>
@@ -67,10 +67,15 @@
           </div>
           <div class="card list">
             <div class="row">
+              <div class="row-main"><strong data-i18n="辨識語言"></strong><small data-i18n="lang.note"></small></div>
+              <select class="pill" data-language-select></select>
+            </div>
+            <div class="row">
               <div class="row-main"><strong data-i18n="辨識模型"></strong></div>
               <select class="pill" id="live-model">
-                <option value="small">Whisper small</option>
                 <option value="turbo">Whisper large-v3-turbo</option>
+                <option value="sensevoice">SenseVoice-Small</option>
+                <option value="small">Whisper small</option>
                 <option value="base">Whisper base</option>
               </select>
             </div>
@@ -178,6 +183,10 @@
               <div class="transcript-files" id="transcript-files"></div>
             </div>
             <div class="row">
+              <div class="row-main"><strong data-i18n="辨識語言"></strong><small data-i18n="lang.note"></small></div>
+              <select class="pill" data-language-select></select>
+            </div>
+            <div class="row">
               <div class="row-main"><strong data-i18n="辨識模型"></strong></div>
               <select class="pill" id="post-model">
                 <option value="small">Whisper small</option>
@@ -227,8 +236,16 @@
           </div>
         </div>
         <div class="row">
-          <div class="row-main"><strong data-i18n="介面語言"></strong><small data-i18n="Recognition stays Japanese"></small></div>
+          <div class="row-main"><strong data-i18n="介面語言"></strong><small data-i18n="lang.where"></small></div>
           <div class="seg" id="locale-seg" role="radiogroup"></div>
+        </div>
+        <div class="row">
+          <div class="row-main"><strong data-i18n="中文字體"></strong><small data-i18n="script.note"></small></div>
+          <div class="seg" id="script-seg" role="radiogroup">
+            <button data-script-value="as-is" data-i18n="照原樣"></button>
+            <button data-script-value="traditional" data-i18n="繁體（香港）"></button>
+            <button data-script-value="simplified" data-i18n="簡體"></button>
+          </div>
         </div>
         <div class="row">
           <div class="row-main"><strong data-i18n="輸出資料夾"></strong><small data-i18n="Recordings and transcripts are saved here"></small></div>

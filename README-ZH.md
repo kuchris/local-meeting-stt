@@ -16,7 +16,7 @@
 
 在 Windows 上執行的本機會議字幕、錄音及會後轉錄工具。透過喇叭／耳機的系統音訊回送（loopback），擷取 Teams、瀏覽器會議或其他桌面音訊，亦可混入麥克風。錄音與語音辨識均在你的電腦上處理。
 
-**介面預設為英文。** 可在 Settings（設定）切換繁體中文或日文，程式會記住你的選擇。介面語言與辨識語言互相獨立：目前提供的辨識流程使用日文。
+**介面預設為英文。** 可在 Settings（設定）切換繁體中文或日文，程式會記住你的選擇。介面語言與辨識語言互相獨立；辨識語言可選中文（普通話）、粵語、英文、日文，或逐句自動偵測。
 
 ![英文會議介面](docs/meeting-ui.png)
 
@@ -59,7 +59,11 @@ cargo run
 | Recordings | 選擇錄音，或把音訊檔案拖放到視窗任何位置，再選擇模型與後端；錄音已有的逐字稿可一鍵開啟。 |
 | Settings | 外觀、語言及輸出資料夾；檢查／下載模型及執行檔。 |
 
-即時字幕可選 **Whisper small**、**Whisper large-v3-turbo**（CUDA）或 **Whisper base**。會後轉錄可選 **Whisper small**、**Qwen3-ASR 0.6B**，或較準確但需另外下載的 **Qwen3-ASR 1.7B**。Qwen 目前用於檔案轉錄，不支援即時字幕。
+即時字幕可選 **Whisper large-v3-turbo**（CUDA）、**SenseVoice-Small**（CPU 或 CUDA）、**Whisper small** 或 **Whisper base**。會後轉錄可選 **Whisper small**、**Qwen3-ASR 0.6B**，或較準確但需另外下載的 **Qwen3-ASR 1.7B**。Qwen 目前用於檔案轉錄，不支援即時字幕。
+
+**辨識語言**（自動偵測、中文、粵語、英文、日文）在即時會議及錄音檔頁面選擇。Settings 的**中文字體**可把中文及粵語字幕轉為繁體（香港）或簡體；含日文假名的字幕保持原樣。Vulkan 後端（loopback 串流及檔案轉錄）目前仍只辨識日文。
+
+以 RTX 5070 Ti、每種語言 12 段固定 FLEURS 音訊經即時流程重播：SenseVoice-Small 在普通話（錯字率 6.6% 對 8.8%）及粵語（3.0% 對 6.2–7.7%）較準，Whisper large-v3-turbo 在日文（5.4% 對 7.7–8.6%）及英文（錯詞率 4.2% 對 7.6–8.0%）較準。這是乾淨朗讀而非會議，而且 FLEURS 粵語是以粵語朗讀書面語，並非口語粵語。
 
 程式會儲存會後轉錄的後端選擇。在 Whisper 與 Qwen 之間切換時，會保留 CPU／CUDA 偏好。若未儲存轉錄偏好，而即時會議已使用 CUDA，轉錄亦會預選 CUDA；其他情況預選 CPU。明確儲存的 CPU 選擇不會被覆蓋。
 
@@ -68,6 +72,8 @@ cargo run
 | 後端 | 本機檔案 | 備註 |
 | --- | --- | --- |
 | faster-whisper | `models/faster-whisper-small/` | 預設使用 CPU，支援即時字幕及可選的 WAV 錄音。 |
+| SenseVoice-Small CPU | `models/SenseVoiceSmall/` | 經 sherpa-onnx 以 CPU 執行的即時字幕（int8，約 230 MB）；WAV 可選。 |
+| SenseVoice-Small CUDA | `models/SenseVoiceSmall-fp32/` | 可選，以 NVIDIA GPU 執行的即時字幕（fp32，約 900 MB）。第一次執行會下載 NVIDIA 的 CUDA 12／cuDNN 9 套件（約 1.5 GB）。 |
 | whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | 即時伺服器及檔案轉錄。 |
 | whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU，即時伺服器及檔案轉錄。 |
 | whisper.cpp CUDA Turbo | `whisper_cpp/bin_cuda/Release/` + `ggml-large-v3-turbo.bin` | 可選的 NVIDIA 即時字幕；下載器會固定版本並核對 SHA-256。 |

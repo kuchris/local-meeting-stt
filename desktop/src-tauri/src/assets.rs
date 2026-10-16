@@ -42,6 +42,20 @@ const ASSETS: &[Asset] = &[
         note: Some("Optional, about 4.4 GB. More accurate, needs more GPU memory."),
     },
     Asset {
+        id: "sensevoice-small",
+        label: "SenseVoice-Small (CPU)",
+        relative_path: "models/SenseVoiceSmall",
+        downloadable: true,
+        note: Some("Chinese, Cantonese, English, Japanese live captions on CPU; about 230 MB."),
+    },
+    Asset {
+        id: "sensevoice-small-gpu",
+        label: "SenseVoice-Small (GPU)",
+        relative_path: "models/SenseVoiceSmall-fp32",
+        downloadable: true,
+        note: Some("Optional, about 900 MB. The first GPU run also downloads NVIDIA CUDA libraries (about 1.5 GB)."),
+    },
+    Asset {
         id: "faster-whisper",
         label: "faster-whisper small",
         relative_path: "models/faster-whisper-small",
@@ -120,7 +134,7 @@ const ASSETS: &[Asset] = &[
     },
 ];
 
-const OPTIONAL: &[&str] = &["qwen-1.7b"];
+const OPTIONAL: &[&str] = &["qwen-1.7b", "sensevoice-small-gpu"];
 
 /// Files that must all be present, beyond the asset's own path. A sharded
 /// model only counts once every shard has finished: huggingface_hub moves a
@@ -133,6 +147,8 @@ fn required_files(asset_id: &str) -> &'static [&'static str] {
             "model-00001-of-00002.safetensors",
             "model-00002-of-00002.safetensors",
         ],
+        "sensevoice-small" => &["model.int8.onnx", "tokens.txt"],
+        "sensevoice-small-gpu" => &["model.onnx", "tokens.txt"],
         _ => &[],
     }
 }

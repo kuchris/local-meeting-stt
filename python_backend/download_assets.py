@@ -18,6 +18,8 @@ ASSET_CHOICES = (
     "faster-whisper",
     "qwen",
     "qwen-1.7b",
+    "sensevoice-small",
+    "sensevoice-small-gpu",
     "whisper-cpp-cpu",
     "whisper-cpp-cuda",
     "whisper-cpp-model",
@@ -59,7 +61,10 @@ def reset_path(path: Path, force: bool) -> None:
             path.unlink()
 
 
-def download_hf_snapshot(asset_id: str, repo_id: str, destination: Path, force: bool, revision: str | None = None) -> None:
+def download_hf_snapshot(
+    asset_id: str, repo_id: str, destination: Path, force: bool,
+    revision: str | None = None, allow_patterns: list[str] | None = None,
+) -> None:
     from huggingface_hub import snapshot_download
 
     reset_path(destination, force)
@@ -68,7 +73,7 @@ def download_hf_snapshot(asset_id: str, repo_id: str, destination: Path, force: 
     destination.parent.mkdir(parents=True, exist_ok=True)
     progress(asset_id, 10, "Downloading snapshot")
     print(f"Downloading {repo_id}{f'@{revision}' if revision else ''} -> {destination}")
-    snapshot_download(repo_id=repo_id, local_dir=destination, revision=revision)
+    snapshot_download(repo_id=repo_id, local_dir=destination, revision=revision, allow_patterns=allow_patterns)
     progress(asset_id, 100, "Done")
 
 
@@ -184,6 +189,21 @@ def download_assets(args: Namespace) -> None:
             "Qwen/Qwen3-ASR-0.6B",
             root / "models" / "Qwen3-ASR-0.6B",
             args.force,
+        )
+
+    # SenseVoice-Small (zh, yue, en, ja, ko) converted for sherpa-onnx. The int8
+    # model runs on CPU; the GPU backend needs the fp32 one (int8 ops run poorly
+    # on CUDA), so the two are separate folders and separate downloads.
+    sensevoice = ("csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17", "2365baeacb507f821a0c8120fcee3d484dba7a07")
+    if only in (None, "sensevoice-small"):
+        download_hf_snapshot(
+            "sensevoice-small", sensevoice[0], root / "models" / "SenseVoiceSmall", args.force,
+            revision=sensevoice[1], allow_patterns=["model.int8.onnx", "tokens.txt", "LICENSE", "README.md"],
+        )
+    if only == "sensevoice-small-gpu":
+        download_hf_snapshot(
+            "sensevoice-small-gpu", sensevoice[0], root / "models" / "SenseVoiceSmall-fp32", args.force,
+            revision=sensevoice[1], allow_patterns=["model.onnx", "tokens.txt", "LICENSE", "README.md"],
         )
 
     # Optional and 4.4 GB, so a full run leaves it out; download it by name.

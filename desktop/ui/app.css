@@ -34,6 +34,8 @@
   --shadow: 0 16px 44px rgba(20, 22, 30, .16), 0 2px 8px rgba(20, 22, 30, .06), 0 0 0 .5px rgba(20, 22, 30, .1);
   --font: "Segoe UI Variable Text", "Segoe UI", "Microsoft JhengHei UI", "Yu Gothic UI", system-ui, sans-serif;
   --font-ja: "Segoe UI Variable Text", "Segoe UI", "Yu Gothic UI", "Meiryo UI", system-ui, sans-serif;
+  --font-zh-hant: "Segoe UI Variable Text", "Segoe UI", "Microsoft JhengHei UI", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-zh-hans: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
   --code: "Cascadia Mono", Consolas, "Microsoft JhengHei UI", "Yu Gothic UI", monospace;
   --radius: 12px;
   --row-pad: 12px 16px;
@@ -288,10 +290,14 @@ select.pill option { background: var(--card); color: var(--fg); }
 
 .transcript {
   flex: 1; min-height: 0; overflow-y: auto; padding: 14px 18px 18px;
-  font-family: var(--font-ja); font-size: 16px; line-height: 1.75;
+  font-family: var(--font); font-size: 16px; line-height: 1.75;
   user-select: text; cursor: text;
   overflow-anchor: none;
 }
+/* Han characters take the glyphs of the language spoken: 直 and 骨 differ in Japanese. */
+.transcript:lang(ja) { font-family: var(--font-ja); }
+.transcript:lang(zh-HK), .transcript:lang(zh-Hant) { font-family: var(--font-zh-hant); }
+.transcript:lang(zh-Hans) { font-family: var(--font-zh-hans); }
 .transcript .empty { color: var(--muted); font-family: var(--font); font-size: 13.5px; padding: 28px 0; text-align: center; user-select: none; }
 .cap { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; padding: 3px 0; }
 .cap time { color: var(--faint); font: 11.5px/2.4 var(--code); font-variant-numeric: tabular-nums; user-select: none; }

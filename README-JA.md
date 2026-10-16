@@ -16,7 +16,7 @@
 
 会議のリアルタイム字幕、録音、会議後の文字起こしをローカルで行う Windows デスクトップアプリです。スピーカー／ヘッドセットのループバック音声から Teams、ブラウザー会議などのデスクトップ音声を取得し、必要に応じてマイク音声も混ぜられます。録音と音声認識は自分のパソコン上で処理します。
 
-**初期表示言語は英語です。** Settings（設定）で繁体字中国語または日本語に切り替えられ、選択は保存されます。表示言語と認識言語は別です。現在提供している認識処理は日本語を対象としています。
+**初期表示言語は英語です。** Settings（設定）で繁体字中国語または日本語に切り替えられ、選択は保存されます。表示言語と認識言語は別です。認識言語は中国語（標準語）、広東語、英語、日本語から選ぶか、文ごとに自動検出できます。
 
 ![英語の会議画面](docs/meeting-ui.png)
 
@@ -59,7 +59,11 @@ cargo run
 | Recordings | 録音を選択するか、音声ファイルをウィンドウのどこにでもドロップして、モデルとバックエンドを指定。既存の文字起こしはワンクリックで開けます。 |
 | Settings | 外観、言語、出力先。モデルとランタイムの確認・ダウンロード。 |
 
-リアルタイム字幕では **Whisper small**、**Whisper large-v3-turbo**（CUDA）、**Whisper base**、会議後の文字起こしでは **Whisper small**、**Qwen3-ASR 0.6B**、追加ダウンロードでより高精度な **Qwen3-ASR 1.7B** を選べます。Qwen は現在、ファイルの文字起こし専用で、リアルタイム字幕には使用しません。
+リアルタイム字幕では **Whisper large-v3-turbo**（CUDA）、**SenseVoice-Small**（CPU または CUDA）、**Whisper small**、**Whisper base**、会議後の文字起こしでは **Whisper small**、**Qwen3-ASR 0.6B**、追加ダウンロードでより高精度な **Qwen3-ASR 1.7B** を選べます。Qwen は現在、ファイルの文字起こし専用で、リアルタイム字幕には使用しません。
+
+**認識言語**（自動検出、中国語、広東語、英語、日本語）はライブと録音一覧のページで選びます。Settings の**中国語の字体**で、中国語と広東語の字幕を繁体字（香港）または簡体字に変換できます。仮名を含む字幕はそのままです。Vulkan バックエンド（loopback ストリームとファイルの文字起こし）は現在も日本語のみです。
+
+RTX 5070 Ti で各言語 12 件の固定 FLEURS 音声をライブ処理で再生した結果、中国語（CER 6.6% 対 8.8%）と広東語（3.0% 対 6.2–7.7%）では SenseVoice-Small、日本語（5.4% 対 7.7–8.6%）と英語（WER 4.2% 対 7.6–8.0%）では Whisper large-v3-turbo がより正確でした。会議ではなくきれいな朗読音声で、FLEURS の広東語は口語ではなく書き言葉の朗読です。
 
 文字起こしのバックエンド選択は保存されます。Whisper と Qwen を切り替えても CPU／CUDA の選択を引き継ぎます。文字起こしの設定がまだない場合、ライブ設定が CUDA なら文字起こしも CUDA、それ以外は CPU が初期選択になります。明示的に保存した CPU 設定は維持されます。
 
@@ -68,6 +72,8 @@ cargo run
 | バックエンド | ローカルファイル | 備考 |
 | --- | --- | --- |
 | faster-whisper | `models/faster-whisper-small/` | 初期設定は CPU。リアルタイム字幕と任意の WAV 録音。 |
+| SenseVoice-Small CPU | `models/SenseVoiceSmall/` | sherpa-onnx による CPU のリアルタイム字幕（int8、約 230 MB）。WAV は任意。 |
+| SenseVoice-Small CUDA | `models/SenseVoiceSmall-fp32/` | 任意。NVIDIA GPU のリアルタイム字幕（fp32、約 900 MB）。初回実行時に NVIDIA の CUDA 12／cuDNN 9 パッケージ（約 1.5 GB）をダウンロードします。 |
 | whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | ライブサーバーとファイルの文字起こし。 |
 | whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU。ライブサーバーとファイルの文字起こし。 |
 | whisper.cpp CUDA Turbo | `whisper_cpp/bin_cuda/Release/` + `ggml-large-v3-turbo.bin` | 追加の NVIDIA ライブ字幕。ダウンロード時にバージョンと SHA-256 を確認。 |
