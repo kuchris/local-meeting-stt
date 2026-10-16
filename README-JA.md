@@ -58,7 +58,7 @@ cargo run
 | Recordings | 録音を選択するか、音声ファイルをウィンドウのどこにでもドロップして、モデルとバックエンドを指定。既存の文字起こしはワンクリックで開けます。 |
 | Settings | 外観、言語、出力先。モデルとランタイムの確認・ダウンロード。 |
 
-リアルタイム字幕では **Whisper large-v3-turbo**（CUDA）と **SenseVoice-Small**（CPU または CUDA）、会議後の文字起こしでは **Whisper small**、**Qwen3-ASR 0.6B**、追加ダウンロードでより高精度な **Qwen3-ASR 1.7B** を選べます。Qwen は現在、ファイルの文字起こし専用で、リアルタイム字幕には使用しません。
+リアルタイム字幕では **Whisper large-v3-turbo**（CUDA）と **SenseVoice-Small**（CPU または CUDA）、会議後の文字起こしでは **Whisper small**、**Whisper large-v3-turbo**（CUDA、ライブ字幕と同じモデル）、**Qwen3-ASR 0.6B**、追加ダウンロードでより高精度な **Qwen3-ASR 1.7B** を選べます。各言語 12 クリップを約 2 分の 1 ファイルにまとめた文字起こし（RTX 5070 Ti。日本語・中国語・広東語は文字誤り率、英語は単語誤り率）：Whisper small は 15.6%／14.7%／失敗／17.0%、1 ファイル 2.5〜14 秒。Whisper large-v3-turbo は 12.5%／7.8%／9.2%／16.7%、3〜4 秒。Qwen3-ASR 0.6B は 14.9%／6.4%／4.7%／21.6%、12〜31 秒。Qwen3-ASR 1.7B は 8.6%／11.4%／3.5%／9.1%、13〜17 秒。Whisper small は広東語ファイルで句読点と同じ文字の繰り返ししか出しませんでした。Qwen は現在、ファイルの文字起こし専用で、リアルタイム字幕には使用しません。
 
 **認識言語**（自動検出、中国語、広東語、英語、日本語）はライブと録音一覧のページで選びます。中国語と広東語のライブ字幕は繁体字（香港）で表示します。Settings の**中国語の字体**で簡体字にも変更できます（SenseVoice 自体は簡体字で出力します）。日本語の会議、仮名を含む字幕、SenseVoice が日本語と判定した字幕はそのままです。Vulkan のファイル文字起こしは現在も日本語のみです。
 
@@ -74,7 +74,7 @@ RTX 5070 Ti で各言語 12 件の固定 FLEURS 音声をライブ処理で再�
 | SenseVoice-Small CUDA | `models/SenseVoiceSmall-fp32/` | 任意。NVIDIA GPU のリアルタイム字幕（fp32、約 900 MB）。初回実行時に NVIDIA の CUDA 12／cuDNN 9 パッケージ（約 1.5 GB）をダウンロードします。 |
 | whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | ファイルの文字起こし。 |
 | whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU。ファイルの文字起こし。 |
-| whisper.cpp CUDA Turbo | `whisper_cpp/bin_cuda/Release/` + `ggml-large-v3-turbo.bin` | 追加の NVIDIA ライブ字幕。ダウンロード時にバージョンと SHA-256 を確認。 |
+| whisper.cpp CUDA Turbo | `whisper_cpp/bin_cuda/Release/` + `ggml-large-v3-turbo.bin` | 追加の NVIDIA ライブ字幕とファイルの文字起こし。ダウンロード時にバージョンと SHA-256 を確認。 |
 | whisper.cpp Vulkan | `whisper_cpp/bin_vulkan/Release/` + `ggml-small.bin` | ファイルの文字起こし。 |
 | OpenVINO NPU/GPU | `whisper_cpp/bin_openvino/Release/` + small モデルと encoder XML/BIN | 対応する OpenVINO デバイスとローカルビルドが必要。 |
 | Qwen CPU/CUDA | `models/Qwen3-ASR-0.6B/` | ファイルの文字起こし。バージョンを固定した Python 実行環境を共用。 |

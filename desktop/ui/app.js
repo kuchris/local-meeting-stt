@@ -41,28 +41,35 @@ function captionLang() {
 
 const postBackends = {
   small: [["cpp-cpu", "CPU"], ["cpp-gpu", "CUDA"], ["cpp-vulkan", "Vulkan"], ["cpp-npu", "OpenVINO NPU"], ["cpp-openvino-gpu", "OpenVINO GPU"]],
+  turbo: [["cpp-turbo-gpu", "CUDA"]],
   qwen: [["qwen-cpu", "CPU"], ["qwen-gpu", "CUDA"]],
   qwen17: [["qwen17-cpu", "CPU"], ["qwen17-gpu", "CUDA"]],
 };
 const postKinds = Object.values(postBackends).flat().map(([id]) => id);
 const isPostKind = (value) => typeof value === "string" && postKinds.includes(value);
-/** The model a post kind runs: "small", "qwen" (0.6B) or "qwen17" (1.7B). */
-const postModelOf = (kind) => (kind.startsWith("qwen17") ? "qwen17" : kind.startsWith("qwen") ? "qwen" : "small");
-/** Switching models keeps the CPU/CUDA choice. */
+/** The model a post kind runs: "small", "turbo", "qwen" (0.6B) or "qwen17" (1.7B). */
+const postModelOf = (kind) =>
+  kind.startsWith("qwen17") ? "qwen17" : kind.startsWith("qwen") ? "qwen" : kind === "cpp-turbo-gpu" ? "turbo" : "small";
+/** Switching models keeps the CPU/CUDA choice; Turbo runs on CUDA only. */
 function switchPostModel(current, model) {
-  const cuda = current === "cpp-gpu" || current === "qwen-gpu" || current === "qwen17-gpu";
+  if (model === "turbo") return "cpp-turbo-gpu";
+  const cuda = ["cpp-gpu", "cpp-turbo-gpu", "qwen-gpu", "qwen17-gpu"].includes(current);
   const prefix = { small: "cpp", qwen: "qwen", qwen17: "qwen17" }[model] ?? "cpp";
   return `${prefix}-${cuda ? "gpu" : "cpu"}`;
 }
-/** Model folders a Qwen transcription needs; the Whisper kinds are not checked here. */
-const postAssets = { "qwen-cpu": ["qwen"], "qwen-gpu": ["qwen"], "qwen17-cpu": ["qwen-1.7b"], "qwen17-gpu": ["qwen-1.7b"] };
+/** Files a transcription needs: the Qwen model folders and the optional Turbo model. The
+ *  other Whisper kinds are not checked: their asset rows do not match every runtime they use. */
+const postAssets = {
+  "qwen-cpu": ["qwen"], "qwen-gpu": ["qwen"], "qwen17-cpu": ["qwen-1.7b"], "qwen17-gpu": ["qwen-1.7b"],
+  "cpp-turbo-gpu": ["whisper-cpp-turbo-model", "whisper-cpp-cuda"],
+};
 
 const phaseLabels = {
   idle: "準備就緒", starting: "正在啟動", running: "執行中", stopping: "正在停止",
   stopped: "已停止", complete: "已完成", error: "執行失敗",
 };
 const outputSuffixes = {
-  "cpp-gpu": "cpp_gpu_transcript", "cpp-cpu": "cpp_cpu_transcript", "cpp-vulkan": "cpp_vulkan_transcript",
+  "cpp-gpu": "cpp_gpu_transcript", "cpp-turbo-gpu": "cpp_turbo_gpu_transcript", "cpp-cpu": "cpp_cpu_transcript", "cpp-vulkan": "cpp_vulkan_transcript",
   "cpp-npu": "cpp_npu_transcript", "cpp-openvino-gpu": "cpp_openvino_gpu_transcript",
   "qwen-gpu": "qwen_gpu_transcript", "qwen-cpu": "qwen_cpu_transcript",
   "qwen17-gpu": "qwen17_gpu_transcript", "qwen17-cpu": "qwen17_cpu_transcript",
@@ -73,6 +80,7 @@ const transcriptFiles = [
   ["live", "live_transcript.txt", "Live"],
   ["cppCpu", "cpp_cpu_transcript.txt", "Whisper CPU"],
   ["cppGpu", "cpp_gpu_transcript.txt", "Whisper CUDA"],
+  ["cppTurboGpu", "cpp_turbo_gpu_transcript.txt", "Whisper Turbo CUDA"],
   ["cppVulkan", "cpp_vulkan_transcript.txt", "Whisper Vulkan"],
   ["cppNpu", "cpp_npu_transcript.txt", "Whisper NPU"],
   ["cppOpenvinoGpu", "cpp_openvino_gpu_transcript.txt", "Whisper OpenVINO GPU"],
@@ -384,7 +392,7 @@ function renderRecordings() {
         const t2 = item.transcripts;
         const tags = [
           t2.live && "Live",
-          (t2.cppCpu || t2.cppGpu || t2.cppVulkan || t2.cppNpu || t2.cppOpenvinoGpu) && "Whisper",
+          (t2.cppCpu || t2.cppGpu || t2.cppTurboGpu || t2.cppVulkan || t2.cppNpu || t2.cppOpenvinoGpu) && "Whisper",
           (t2.qwenCpu || t2.qwenGpu || t2.qwen17Cpu || t2.qwen17Gpu) && "Qwen",
         ].filter(Boolean);
         return h(

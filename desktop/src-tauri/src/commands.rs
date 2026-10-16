@@ -137,6 +137,7 @@ pub fn reads_input_audio(kind: &str) -> bool {
     matches!(
         kind,
         "cpp-gpu"
+            | "cpp-turbo-gpu"
             | "cpp-cpu"
             | "cpp-vulkan"
             | "cpp-npu"
@@ -180,6 +181,10 @@ fn whisper_cli(paths: &AppPaths, runtime: &str) -> String {
 
 fn small_model(paths: &AppPaths) -> String {
     path_text(&paths.data_root.join("whisper_cpp").join("models").join("ggml-small.bin"))
+}
+
+fn turbo_model(paths: &AppPaths) -> String {
+    path_text(&paths.data_root.join("whisper_cpp").join("models").join("ggml-large-v3-turbo.bin"))
 }
 
 fn openvino(paths: &AppPaths, audio: &str, output: String, device: &str, language: &str) -> Vec<String> {
@@ -291,6 +296,22 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
                 "-otxt".into(),
                 "-of".into(),
                 post_output("cpp_gpu_transcript")?,
+            ],
+        },
+        // The live Turbo model on a recording: as fast as small on CUDA, and Cantonese works.
+        "cpp-turbo-gpu" => CommandSpec {
+            label: "whisper.cpp Turbo GPU".into(),
+            executable: whisper_cli(paths, "bin_cuda"),
+            args: vec![
+                "-m".into(),
+                turbo_model(paths),
+                "-f".into(),
+                need_audio()?,
+                "-l".into(),
+                lang.into(),
+                "-otxt".into(),
+                "-of".into(),
+                post_output("cpp_turbo_gpu_transcript")?,
             ],
         },
         "cpp-cpu" => CommandSpec {
@@ -480,6 +501,10 @@ mod tests {
         assert_eq!(value(&live, "--language").as_deref(), Some("yue"));
         assert_eq!(value(&live, "--chinese-script").as_deref(), Some("traditional"));
         assert_eq!(value(&build(&paths, "cpp-gpu", &yue).unwrap(), "-l").as_deref(), Some("yue"));
+        let turbo = build(&paths, "cpp-turbo-gpu", &yue).unwrap();
+        assert_eq!(value(&turbo, "-l").as_deref(), Some("yue"));
+        assert!(value(&turbo, "-m").unwrap().ends_with("ggml-large-v3-turbo.bin"));
+        assert!(value(&turbo, "-of").unwrap().ends_with("cpp_turbo_gpu_transcript"));
         assert_eq!(value(&build(&paths, "qwen17-gpu", &yue).unwrap(), "--language").as_deref(), Some("Cantonese"));
         let auto = with(serde_json::json!({ "language": "auto" }));
         assert_eq!(value(&build(&paths, "qwen-cpu", &auto).unwrap(), "--language").as_deref(), Some(""));

@@ -58,7 +58,7 @@ cargo run
 | Recordings | 選擇錄音，或把音訊檔案拖放到視窗任何位置，再選擇模型與後端；錄音已有的逐字稿可一鍵開啟。 |
 | Settings | 外觀、語言及輸出資料夾；檢查／下載模型及執行檔。 |
 
-即時字幕可選 **Whisper large-v3-turbo**（CUDA）或 **SenseVoice-Small**（CPU 或 CUDA）。會後轉錄可選 **Whisper small**、**Qwen3-ASR 0.6B**，或較準確但需另外下載的 **Qwen3-ASR 1.7B**。Qwen 目前用於檔案轉錄，不支援即時字幕。
+即時字幕可選 **Whisper large-v3-turbo**（CUDA）或 **SenseVoice-Small**（CPU 或 CUDA）。會後轉錄可選 **Whisper small**、**Whisper large-v3-turbo**（CUDA，與即時字幕同一模型）、**Qwen3-ASR 0.6B**，或較準確但需另外下載的 **Qwen3-ASR 1.7B**。以每種語言 12 段固定音訊合併成約 2 分鐘的檔案轉錄（RTX 5070 Ti；日文、普通話、粵語為錯字率，英文為錯詞率）：Whisper small 為 15.6%／14.7%／失敗／17.0%，每檔 2.5–14 秒；Whisper large-v3-turbo 為 12.5%／7.8%／9.2%／16.7%，3–4 秒；Qwen3-ASR 0.6B 為 14.9%／6.4%／4.7%／21.6%，12–31 秒；Qwen3-ASR 1.7B 為 8.6%／11.4%／3.5%／9.1%，13–17 秒。Whisper small 對粵語檔案只輸出標點及重複字母。Qwen 目前用於檔案轉錄，不支援即時字幕。
 
 **辨識語言**（自動偵測、中文、粵語、英文、日文）在即時會議及錄音檔頁面選擇。中文及粵語即時字幕預設以繁體（香港）顯示，亦可在 Settings 的**中文字體**改為簡體；SenseVoice 本身輸出簡體。日文會議、含日文假名的字幕，以及 SenseVoice 判斷為日文的字幕保持原樣。Vulkan 檔案轉錄目前仍只辨識日文。
 
@@ -74,7 +74,7 @@ cargo run
 | SenseVoice-Small CUDA | `models/SenseVoiceSmall-fp32/` | 可選，以 NVIDIA GPU 執行的即時字幕（fp32，約 900 MB）。第一次執行會下載 NVIDIA 的 CUDA 12／cuDNN 9 套件（約 1.5 GB）。 |
 | whisper.cpp CPU | `whisper_cpp/bin_cpu/Release/` + `ggml-small.bin` | 檔案轉錄。 |
 | whisper.cpp CUDA | `whisper_cpp/bin_cuda/Release/` + `ggml-small.bin` | NVIDIA GPU，檔案轉錄。 |
-| whisper.cpp CUDA Turbo | `whisper_cpp/bin_cuda/Release/` + `ggml-large-v3-turbo.bin` | 可選的 NVIDIA 即時字幕；下載器會固定版本並核對 SHA-256。 |
+| whisper.cpp CUDA Turbo | `whisper_cpp/bin_cuda/Release/` + `ggml-large-v3-turbo.bin` | 可選的 NVIDIA 即時字幕及檔案轉錄；下載器會固定版本並核對 SHA-256。 |
 | whisper.cpp Vulkan | `whisper_cpp/bin_vulkan/Release/` + `ggml-small.bin` | 檔案轉錄。 |
 | OpenVINO NPU/GPU | `whisper_cpp/bin_openvino/Release/` + small 模型及 encoder XML/BIN | 需要相容的 OpenVINO 裝置及本機建置。 |
 | Qwen CPU/CUDA | `models/Qwen3-ASR-0.6B/` | 檔案轉錄，共用固定版本的 Python 執行環境。 |
