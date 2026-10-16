@@ -164,10 +164,11 @@ pub fn is_loopback_stream(kind: &str) -> bool {
 /// Jobs whose cached uv environment is used as is (`UV_OFFLINE=1`). Online, uv
 /// rechecks the package indexes on every start: about 2 s for Qwen (pinned in
 /// qwen-requirements.txt) and 14 s for SenseVoice on CUDA, whose sherpa-onnx
-/// CUDA wheels are listed on a large --find-links page. A job whose cache is
-/// missing is rerun online.
+/// CUDA wheels are listed on a large --find-links page. Chinese whisper.cpp jobs
+/// run their pinned OpenCC converter the same way. A job whose cache is missing
+/// is rerun online.
 pub fn prefers_offline(kind: &str) -> bool {
-    kind.starts_with("qwen") || kind.starts_with("live-sensevoice")
+    kind.starts_with("qwen") || kind.starts_with("live-sensevoice") || kind.starts_with("cpp-")
 }
 
 /// Whether uv itself failed because `--offline` kept it from resolving the
@@ -235,7 +236,7 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
         all
     };
 
-    Ok(match kind {
+    let spec = match kind {
         "live-sensevoice-cpu" | "live-sensevoice-gpu" => {
             let gpu = kind.ends_with("-gpu");
             let save_wav = args.get("saveWav").and_then(Value::as_bool).unwrap_or(true);
@@ -413,7 +414,41 @@ pub fn build(paths: &AppPaths, kind: &str, args: &Args) -> Result<CommandSpec, S
             CommandSpec { label: label.into(), executable: "uv".into(), args: all }
         }
         _ => return Err(format!("Unknown command: {kind}")),
+    };
+    Ok(if converts_cpp_script(kind, lang) {
+        with_script_conversion(paths, spec, chinese_script(args), lang)
+    } else {
+        spec
     })
+}
+
+/// whisper-cli transcription jobs whose text may be Chinese: Mandarin, Cantonese
+/// or auto-detect. Japanese and English run whisper-cli directly; Vulkan is a
+/// .cmd wrapper and recognizes Japanese only.
+fn converts_cpp_script(kind: &str, lang: &str) -> bool {
+    matches!(kind, "cpp-gpu" | "cpp-turbo-gpu" | "cpp-cpu" | "cpp-npu" | "cpp-openvino-gpu")
+        && matches!(lang, "zh" | "yue" | "auto")
+}
+
+/// Runs a whisper-cli job through post_whisper_cpp.py, which converts the text
+/// it writes to the chosen Chinese script (whisper.cpp writes mostly Simplified).
+fn with_script_conversion(paths: &AppPaths, spec: CommandSpec, script: &str, lang: &str) -> CommandSpec {
+    let wrapper = paths.repo_root.join("python_backend").join("post_whisper_cpp.py");
+    let mut args: Vec<String> = ["run", "--no-project", "--with", "opencc-python-reimplemented==0.1.7", "python", "-u"]
+        .iter()
+        .map(|value| value.to_string())
+        .collect();
+    args.extend([
+        path_text(&wrapper),
+        "--chinese-script".into(),
+        script.into(),
+        "--language".into(),
+        lang.into(),
+        "--".into(),
+    ]);
+    args.push(spec.executable);
+    args.extend(spec.args);
+    CommandSpec { label: spec.label, executable: "uv".into(), args }
 }
 
 pub fn asset_download(paths: &AppPaths, asset_id: &str) -> CommandSpec {
@@ -505,6 +540,13 @@ mod tests {
         assert_eq!(value(&live, "--language").as_deref(), Some("yue"));
         assert_eq!(value(&live, "--chinese-script").as_deref(), Some("traditional"));
         assert_eq!(value(&build(&paths, "cpp-gpu", &yue).unwrap(), "-l").as_deref(), Some("yue"));
+        // Chinese whisper.cpp jobs run through the converter; Japanese ones run whisper-cli directly.
+        let wrapped = build(&paths, "cpp-gpu", &yue).unwrap();
+        assert_eq!(wrapped.executable, "uv");
+        assert_eq!(value(&wrapped, "--chinese-script").as_deref(), Some("traditional"));
+        assert!(value(&wrapped, "--").unwrap().ends_with("whisper-cli.exe"));
+        let ja = with(serde_json::json!({ "language": "ja" }));
+        assert!(build(&paths, "cpp-gpu", &ja).unwrap().executable.ends_with("whisper-cli.exe"));
         let turbo = build(&paths, "cpp-turbo-gpu", &yue).unwrap();
         assert_eq!(value(&turbo, "-l").as_deref(), Some("yue"));
         assert!(value(&turbo, "-m").unwrap().ends_with("ggml-large-v3-turbo.bin"));
@@ -608,7 +650,7 @@ mod tests {
     fn qwen_and_sensevoice_run_offline_first() {
         assert!(prefers_offline("qwen-gpu") && prefers_offline("qwen-cpu") && prefers_offline("qwen17-gpu"));
         assert!(prefers_offline("live-sensevoice-gpu") && prefers_offline("live-sensevoice-cpu"));
-        assert!(!prefers_offline("cpp-gpu") && !prefers_offline("live-cpp-turbo-gpu"));
+        assert!(prefers_offline("cpp-gpu") && !prefers_offline("live-cpp-turbo-gpu"));
     }
 
     #[test]
