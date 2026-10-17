@@ -63,7 +63,10 @@ Models, Python environments, private recordings and caches are NOT included.
 OpenVINO encoder files must be prepared separately; supported devices/drivers are required.
 
 English is the default UI. Choose Traditional Chinese or Japanese in Settings.
-The supplied recognition workflows remain Japanese regardless of UI language.
+Recognition languages: Auto-detect, Chinese (Mandarin), Cantonese, English, Japanese,
+chosen on the Live and Recordings pages. Chinese text is written in Traditional (HK)
+unless Simplified is chosen in Settings.
+Live captions default to SenseVoice-Small on CPU (about 230 MB, download it in Settings).
 Outputs are saved under outputs/ unless changed in Settings.
 Extract upgrades separately; copy models and recordings from your old folder if needed.
 
